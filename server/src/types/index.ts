@@ -11,8 +11,10 @@ export interface Mezmur {
 
 export interface SequenceStep {
   step_order: number;
+  line_number: number;
   duration_ms: number | null;
   string_id: number;
+  string_position: number;
   note_name: string;
   audio_file_url: string;
 }

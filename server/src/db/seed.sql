@@ -27,8 +27,8 @@ INSERT INTO mezmurs (title, lyrics, youtube_url, difficulty, artist_id, tune_id,
   ('Sample Mezmur', 'Lyrics line one\nLyrics line two', 'https://youtube.com/watch?v=example', 'beginner', 1, 1, 1);
 
 -- A short sequence for that mezmur: string 1, then 3, then 2, then 4 — made up, just to test stepping through it
-INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, duration_ms) VALUES
-  (1, 1, 1, 500),
-  (1, 3, 2, 500),
-  (1, 2, 3, 500),
-  (1, 4, 4, 500);
+INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms) VALUES
+  (1, 1, 1, 1, 500),
+  (1, 3, 2, 1, 500),
+  (1, 2, 3, 2, 500),
+  (1, 4, 4, 2, 500);

@@ -1,1 +1,10 @@
 @import "tailwindcss";
+
+@theme {
+  --color-background: #F4F3F1;
+  --color-card: #FFFFFF;
+  --color-ink: #1A1A1A;
+  --color-muted: #8A8A8A;
+  --radius-card: 20px;
+  --radius-pill: 999px;
+}

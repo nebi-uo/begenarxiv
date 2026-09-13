@@ -5,63 +5,103 @@ interface Props {
   sequence: SequenceStep[];
 }
 
-export default function TapToHearPlayer({ sequence }: Props) {
-  const [activeIndex, setActiveIndex] = useState<number | null>(null);
-  const [isPlayingAll, setIsPlayingAll] = useState(false);
-  const audioRef = useRef<HTMLAudioElement | null>(null);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+// Temporary stand-in frequencies until real per-string recordings exist.
+// Swappable later for real <audio> playback without touching sequencing logic below.
+const PREVIEW_FREQUENCIES: Record<string, number> = {
+  C: 261.63,
+  D: 293.66,
+  E: 329.63,
+  G: 392.0,
+  A: 440.0,
+};
 
-  // Cleanup on unmount: stop any playing audio, clear any pending timeout
+function groupByLine(sequence: SequenceStep[]) {
+  const lines = new Map<number, SequenceStep[]>();
+  for (const step of sequence) {
+    const existing = lines.get(step.line_number) ?? [];
+    existing.push(step);
+    lines.set(step.line_number, existing);
+  }
+  return Array.from(lines.entries()).sort(([a], [b]) => a - b);
+}
+
+export default function TapToHearPlayer({ sequence }: Props) {
+  const [activeKey, setActiveKey] = useState<string | null>(null);
+  const [isPlayingAll, setIsPlayingAll] = useState(false);
+  const audioCtxRef = useRef<AudioContext | null>(null);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+  const stopRequestedRef = useRef(false);
+
   useEffect(() => {
     return () => {
-      audioRef.current?.pause();
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      audioCtxRef.current?.close();
     };
   }, []);
 
-  const playStep = (index: number, onEnded?: () => void) => {
-    const step = sequence[index];
-    if (!step) return;
-
-    audioRef.current?.pause();
-    const audio = new Audio(step.audio_file_url);
-    audioRef.current = audio;
-    setActiveIndex(index);
-
-    audio.play().catch((err) => console.error('Playback failed:', err));
-
-    if (onEnded) {
-      const duration = step.duration_ms ?? 500;
-      timeoutRef.current = setTimeout(onEnded, duration);
-    }
+  const getAudioContext = () => {
+    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    return audioCtxRef.current;
   };
 
-  // Tap a single step manually — just hear that one string
-  const handleTapStep = (index: number) => {
+  const playTone = (noteName: string, durationMs: number) => {
+    const ctx = getAudioContext();
+    const frequency = PREVIEW_FREQUENCIES[noteName] ?? 220;
+
+    const oscillator = ctx.createOscillator();
+    const gain = ctx.createGain();
+    oscillator.frequency.value = frequency;
+    oscillator.type = 'sine';
+
+    // Envelope: quick fade-out instead of an abrupt cutoff, which would click/pop
+    gain.gain.setValueAtTime(0.2, ctx.currentTime);
+    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + durationMs / 1000);
+
+    oscillator.connect(gain);
+    gain.connect(ctx.destination);
+    oscillator.start();
+    oscillator.stop(ctx.currentTime + durationMs / 1000);
+  };
+
+  const stepKey = (step: SequenceStep) => `${step.line_number}-${step.step_order}`;
+
+  const handleTapStep = (step: SequenceStep) => {
+    stopRequestedRef.current = true;
     setIsPlayingAll(false);
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    playStep(index);
+    setActiveKey(stepKey(step));
+    playTone(step.note_name, step.duration_ms ?? 500);
   };
 
-  // Play the full sequence in order, respecting each step's duration
   const handlePlayAll = () => {
+    stopRequestedRef.current = false;
     setIsPlayingAll(true);
+
+    const ordered = [...sequence].sort((a, b) =>
+      a.line_number !== b.line_number ? a.line_number - b.line_number : a.step_order - b.step_order
+    );
+
     const advance = (index: number) => {
-      if (index >= sequence.length) {
+      if (stopRequestedRef.current || index >= ordered.length) {
         setIsPlayingAll(false);
-        setActiveIndex(null);
+        setActiveKey(null);
         return;
       }
-      playStep(index, () => advance(index + 1));
+      const step = ordered[index];
+      setActiveKey(stepKey(step));
+      const duration = step.duration_ms ?? 500;
+      playTone(step.note_name, duration);
+      timeoutRef.current = setTimeout(() => advance(index + 1), duration);
     };
+
     advance(0);
   };
 
   const handleStop = () => {
+    stopRequestedRef.current = true;
     setIsPlayingAll(false);
-    audioRef.current?.pause();
     if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    setActiveIndex(null);
+    setActiveKey(null);
   };
 
   if (sequence.length === 0) {
@@ -70,19 +110,26 @@ export default function TapToHearPlayer({ sequence }: Props) {
 
   return (
     <div>
-      <div className="flex flex-wrap gap-3 mb-4">
-        {sequence.map((step, index) => (
-          <button
-            key={`${step.step_order}-${index}`}
-            onClick={() => handleTapStep(index)}
-            className={`w-14 h-14 rounded-card flex items-center justify-center font-medium transition-colors ${
-              activeIndex === index
-                ? 'bg-ink text-white'
-                : 'bg-background text-ink'
-            }`}
-          >
-            {step.note_name}
-          </button>
+      <div className="flex flex-col gap-3 mb-4">
+        {groupByLine(sequence).map(([lineNumber, steps]) => (
+          <div key={lineNumber} className="flex items-center gap-2">
+            <span className="text-muted text-xs w-12">Line {lineNumber}</span>
+            <div className="flex gap-2">
+              {steps
+                .sort((a, b) => a.step_order - b.step_order)
+                .map((step) => (
+                  <button
+                    key={stepKey(step)}
+                    onClick={() => handleTapStep(step)}
+                    className={`w-10 h-10 rounded-card flex items-center justify-center font-medium transition-colors ${
+                      activeKey === stepKey(step) ? 'bg-ink text-white' : 'bg-background text-ink'
+                    }`}
+                  >
+                    {step.string_position}
+                  </button>
+                ))}
+            </div>
+          </div>
         ))}
       </div>
 
