@@ -3,6 +3,7 @@ import { useParams, Link } from 'react-router-dom';
 import { api } from '../api/client';
 import type { MezmurDetail } from '../types';
 import TapToHearPlayer from '../components/TapToHearPlayer';
+import Layout from '../components/Layout';
 
 function getYoutubeEmbedUrl(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/)([\w-]+)/);
@@ -25,38 +26,31 @@ export default function MezmurPage() {
       .finally(() => setLoading(false));
   }, [id]);
 
-  if (loading) return <div className="min-h-screen bg-background p-6 text-muted">Loading…</div>;
-  if (error) return <div className="min-h-screen bg-background p-6 text-red-600">{error}</div>;
+  if (loading) return <Layout><p className="text-muted">Loading…</p></Layout>;
+  if (error) return <Layout><p className="text-red-600">{error}</p></Layout>;
   if (!mezmur) return null;
 
   const embedUrl = mezmur.youtube_url ? getYoutubeEmbedUrl(mezmur.youtube_url) : null;
 
   return (
-    <div className="min-h-screen bg-background p-6">
-      <Link to="/" className="text-muted text-sm mb-4 inline-block">← Back to catalogue</Link>
+    <Layout>
+      <Link to="/" className="text-muted text-sm">← Catalogue</Link>
 
-      <h1 className="text-2xl font-semibold text-ink mb-1">{mezmur.title}</h1>
+      <h2 className="text-2xl text-ink mt-3 mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+        {mezmur.title}
+      </h2>
       <p className="text-muted mb-6">
         {mezmur.artist_name ?? 'Unknown artist'} · {mezmur.tune_name ?? 'Unknown tune'}
       </p>
 
-      {mezmur.tuning_profile_id && (
-        <Link
-          to={`/tuner/${mezmur.tuning_profile_id}`}
-          className="inline-block bg-ink text-white text-sm px-5 py-2 rounded-pill mb-6"
-        >
-          Tune for this mezmur
-        </Link>
-      )}
-
-      <div className="bg-card rounded-card p-5 shadow-sm mb-6">
-        <h2 className="text-ink font-medium mb-3">Learn to play</h2>
+      <div className="bg-card rounded-card p-5 shadow-sm mb-5 border border-border">
+        <h3 className="text-ink font-medium mb-3">Learn to play</h3>
         <TapToHearPlayer sequence={mezmur.sequence} />
       </div>
 
       {embedUrl && (
-        <div className="bg-card rounded-card p-5 shadow-sm mb-6">
-          <h2 className="text-ink font-medium mb-3">Reference video</h2>
+        <div className="bg-card rounded-card p-5 shadow-sm mb-5 border border-border">
+          <h3 className="text-ink font-medium mb-3">Reference video</h3>
           <div className="aspect-video rounded-card overflow-hidden">
             <iframe
               src={embedUrl}
@@ -69,11 +63,11 @@ export default function MezmurPage() {
       )}
 
       {mezmur.lyrics && (
-        <div className="bg-card rounded-card p-5 shadow-sm">
-          <h2 className="text-ink font-medium mb-3">Lyrics</h2>
+        <div className="bg-card rounded-card p-5 shadow-sm border border-border">
+          <h3 className="text-ink font-medium mb-3">Lyrics</h3>
           <p className="text-ink whitespace-pre-line leading-relaxed">{mezmur.lyrics}</p>
         </div>
       )}
-    </div>
+    </Layout>
   );
 }
