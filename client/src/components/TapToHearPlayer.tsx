@@ -122,7 +122,7 @@ export default function TapToHearPlayer({ sequence }: Props) {
                     key={stepKey(step)}
                     onClick={() => handleTapStep(step)}
                     className={`w-10 h-10 rounded-card flex items-center justify-center font-medium transition-colors ${
-                      activeKey === stepKey(step) ? 'bg-ink text-white' : 'bg-background text-ink'
+                      activeKey === stepKey(step) ? 'bg-accent text-white' : 'bg-background text-ink'
                     }`}
                   >
                     {step.string_position}
