@@ -7,7 +7,7 @@ export default function Layout({ children }: { children: ReactNode }) {
         <h1 className="text-2xl text-ink" style={{ fontFamily: 'var(--font-display)' }}>
           Begenarxiv
         </h1>
-        <p className="text-muted text-sm">Learn Begena, The Right Way.</p>
+        <p className="text-muted text-sm">For all Begena Enthusiasts</p>
       </header>
       <main className="max-w-2xl mx-auto px-6 pb-16">{children}</main>
     </div>
