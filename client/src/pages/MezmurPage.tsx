@@ -44,7 +44,7 @@ export default function MezmurPage() {
       </p>
 
       <div className="bg-card rounded-card p-5 shadow-sm mb-5 border border-border">
-        <h3 className="text-ink font-medium mb-3">Learn to play</h3>
+        <h3 className="text-ink font-medium mb-3">Sound Preview</h3>
         <TapToHearPlayer sequence={mezmur.sequence} />
       </div>
 
