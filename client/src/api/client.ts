@@ -19,4 +19,13 @@ export const api = {
 
   getTunes: () =>
     fetch(`${BASE_URL}/tunes`).then((res) => handleResponse<{ id: number; name: string }[]>(res)),
+  getMezmursByArtist: (artistId: number, excludeId: number) =>
+    fetch(`${BASE_URL}/artists/${artistId}/mezmurs?exclude=${excludeId}`).then((res) =>
+      handleResponse<import('../types').MezmurListItem[]>(res)
+    ),
+
+  getMezmursByTune: (tuneId: number, excludeId: number) =>
+    fetch(`${BASE_URL}/tunes/${tuneId}/mezmurs?exclude=${excludeId}`).then((res) =>
+      handleResponse<import('../types').MezmurListItem[]>(res)
+    ),
 };

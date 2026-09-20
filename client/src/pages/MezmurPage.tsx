@@ -7,6 +7,10 @@ import TapToHearPlayer from '../components/TapToHearPlayer';
 import DifficultyBar from '../components/DifficultyBar';
 import SectionCard from '../components/SectionCard';
 import Layout from '../components/Layout';
+import { Users, Repeat2 } from 'lucide-react';
+import MezmurRow from '../components/MezmurRow';
+import type { MezmurListItem } from '../types';
+import { useNavigate } from 'react-router-dom';
 
 function getYoutubeEmbedUrl(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/)([\w-]+)/);
@@ -14,16 +18,29 @@ function getYoutubeEmbedUrl(url: string): string | null {
 }
 
 export default function MezmurPage() {
+  const navigate = useNavigate();
   const { id } = useParams<{ id: string }>();
   const [mezmur, setMezmur] = useState<MezmurDetail | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [moreFromArtist, setMoreFromArtist] = useState<MezmurListItem[]>([]);
+  const [moreInTune, setMoreInTune] = useState<MezmurListItem[]>([]);
 
   useEffect(() => {
     if (!id) return;
     setLoading(true);
     api.getMezmurById(id).then(setMezmur).catch((err) => setError(err.message)).finally(() => setLoading(false));
   }, [id]);
+
+  useEffect(() => {
+    if (!mezmur) return;
+    if (mezmur.artist_id) {
+      api.getMezmursByArtist(mezmur.artist_id, mezmur.id).then(setMoreFromArtist).catch(() => {});
+    }
+    if (mezmur.tune_id) {
+      api.getMezmursByTune(mezmur.tune_id, mezmur.id).then(setMoreInTune).catch(() => {});
+    }
+  }, [mezmur]);
 
   if (loading) return <Layout><p className="text-muted text-sm">Loading…</p></Layout>;
   if (error) return <Layout><p className="text-red-600 text-sm">{error}</p></Layout>;
@@ -73,6 +90,26 @@ export default function MezmurPage() {
         {mezmur.lyrics && (
           <SectionCard icon={AlignLeft} iconColor="#1FAE7A" title="Lyrics">
             <p className="text-ink whitespace-pre-line leading-relaxed">{mezmur.lyrics}</p>
+          </SectionCard>
+        )}
+
+        {moreFromArtist.length > 0 && (
+          <SectionCard icon={Users} iconColor="#4F86C6" title={`More from ${mezmur.artist_name}`}>
+            <div className="flex flex-col gap-3">
+              {moreFromArtist.map((m, i) => (
+                <MezmurRow key={m.id} mezmur={m} index={i} onClick={() => navigate(`/mezmur/${m.id}`)} />
+              ))}
+            </div>
+          </SectionCard>
+        )}
+
+        {moreInTune.length > 0 && (
+          <SectionCard icon={Repeat2} iconColor="#8A6FD4" title={`More in ${mezmur.tune_name}`}>
+            <div className="flex flex-col gap-3">
+              {moreInTune.map((m, i) => (
+                <MezmurRow key={m.id} mezmur={m} index={i} onClick={() => navigate(`/mezmur/${m.id}`)} />
+              ))}
+            </div>
           </SectionCard>
         )}
       </div>

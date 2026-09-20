@@ -22,6 +22,8 @@ export interface MezmurDetail {
   lyrics: string | null;
   youtube_url: string | null;
   difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  artist_id: number | null;
+  tune_id: number | null;
   artist_name: string | null;
   tune_name: string | null;
   tuning_profile_id: number | null;
