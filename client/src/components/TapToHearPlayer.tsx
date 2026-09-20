@@ -1,5 +1,7 @@
 import { useEffect, useRef, useState } from 'react';
 import type { SequenceStep } from '../types';
+import { motion } from 'framer-motion';
+import Button from './Button';
 
 interface Props {
   sequence: SequenceStep[];
@@ -118,27 +120,27 @@ export default function TapToHearPlayer({ sequence }: Props) {
               {steps
                 .sort((a, b) => a.step_order - b.step_order)
                 .map((step) => (
-                  <button
+                  <motion.button
                     key={stepKey(step)}
                     onClick={() => handleTapStep(step)}
-                    className={`w-10 h-10 rounded-card flex items-center justify-center font-medium transition-colors ${
+                    whileTap={{ scale: 0.9 }}
+                    animate={{ scale: activeKey === stepKey(step) ? 1.1 : 1 }}
+                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
+                    className={`w-10 h-10 rounded-card flex items-center justify-center font-medium ${
                       activeKey === stepKey(step) ? 'bg-accent text-white' : 'bg-background text-ink'
                     }`}
                   >
                     {step.string_position}
-                  </button>
+                  </motion.button>
                 ))}
             </div>
           </div>
         ))}
       </div>
 
-      <button
-        onClick={isPlayingAll ? handleStop : handlePlayAll}
-        className="bg-ink text-white text-sm px-5 py-2 rounded-pill"
-      >
+      <Button onClick={isPlayingAll ? handleStop : handlePlayAll}>
         {isPlayingAll ? 'Stop' : 'Play full sequence'}
-      </button>
+      </Button>
     </div>
   );
 }
