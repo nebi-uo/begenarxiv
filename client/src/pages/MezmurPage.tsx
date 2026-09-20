@@ -1,10 +1,11 @@
 import { useEffect, useState } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, PlayCircle, Music, AlignLeft, Sparkles } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurDetail } from '../types';
 import TapToHearPlayer from '../components/TapToHearPlayer';
-import Button from '../components/Button';
+import DifficultyBar from '../components/DifficultyBar';
+import SectionCard from '../components/SectionCard';
 import Layout from '../components/Layout';
 
 function getYoutubeEmbedUrl(url: string): string | null {
@@ -32,32 +33,28 @@ export default function MezmurPage() {
 
   return (
     <Layout>
-      <Link to="/" className="inline-flex items-center gap-1 text-muted text-sm mb-5">
+      <Link to="/" className="inline-flex items-center gap-1 text-muted text-sm mb-6">
         <ChevronLeft size={16} /> Catalogue
       </Link>
 
-      <h2 className="text-3xl text-ink mb-1" style={{ fontFamily: 'var(--font-display)' }}>
+      <h2 className="text-3xl text-ink mb-2" style={{ fontFamily: 'var(--font-display)' }}>
         {mezmur.title}
       </h2>
-      <p className="text-muted mb-4">
+      <p className="text-muted mb-2">
         {mezmur.artist_name ?? 'Unknown artist'} · {mezmur.tune_name ?? 'Unknown tune'}
       </p>
+      <DifficultyBar difficulty={mezmur.difficulty} />
 
       {mezmur.tuning_profile_id && (
-        <div className="mb-8">
-          <Button variant="secondary">Tune for this mezmur</Button>
+        <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-pill bg-background border border-border text-muted text-sm opacity-70">
+          <Sparkles size={14} />
+          Tune for this mezmur — coming soon
         </div>
       )}
 
-      <div className="space-y-8">
-        <section>
-          <p className="text-xs text-muted uppercase tracking-wide mb-3">Learn to play</p>
-          <TapToHearPlayer sequence={mezmur.sequence} />
-        </section>
-
+      <div className="flex flex-col gap-8 mt-10">
         {embedUrl && (
-          <section>
-            <p className="text-xs text-muted uppercase tracking-wide mb-3">Reference video</p>
+          <SectionCard icon={PlayCircle} iconColor="#D9534F" title="Reference video">
             <div className="aspect-video rounded-card overflow-hidden">
               <iframe
                 src={embedUrl}
@@ -66,14 +63,17 @@ export default function MezmurPage() {
                 allowFullScreen
               />
             </div>
-          </section>
+          </SectionCard>
         )}
 
+        <SectionCard icon={Music} iconColor="#F2A93B" title="Learn to play">
+          <TapToHearPlayer sequence={mezmur.sequence} />
+        </SectionCard>
+
         {mezmur.lyrics && (
-          <section>
-            <p className="text-xs text-muted uppercase tracking-wide mb-3">Lyrics</p>
+          <SectionCard icon={AlignLeft} iconColor="#1FAE7A" title="Lyrics">
             <p className="text-ink whitespace-pre-line leading-relaxed">{mezmur.lyrics}</p>
-          </section>
+          </SectionCard>
         )}
       </div>
     </Layout>
