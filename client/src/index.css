@@ -1,13 +1,14 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F4F3F1;
+  --color-background: #F7F6F3;
   --color-card: #FFFFFF;
-  --color-ink: #1A1A1A;
+  --color-ink: #17161A;
   --color-muted: #8A8A8A;
-  --color-accent: #A67C3D;
-  --color-border: #E4E2DE;
-  --radius-card: 20px;
+  --color-accent: #F2A93B;
+  --color-accent-secondary: #1FAE7A;
+  --color-border: #E9E7E2;
+  --radius-card: 24px;
   --radius-pill: 999px;
   --font-display: "Fraunces", serif;
   --font-body: "Inter", sans-serif;
@@ -15,4 +16,6 @@
 
 body {
   font-family: var(--font-body);
+  background: radial-gradient(ellipse at top, #EEF3FB 0%, var(--color-background) 55%);
+  min-height: 100vh;
 }
