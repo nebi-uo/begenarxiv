@@ -1,20 +1,17 @@
 import { useEffect, useState } from 'react';
-import { Link } from 'react-router-dom';
-import { ChevronRight } from 'lucide-react';
+import { useNavigate } from 'react-router-dom';
 import { api } from '../api/client';
 import type { MezmurListItem } from '../types';
 import Layout from '../components/Layout';
-
-const difficultyColor: Record<string, string> = {
-  beginner: '#7BA05B',
-  intermediate: '#A67C3D',
-  advanced: '#B5555A',
-};
+import CatalogueHero, { type GroupMode } from '../components/CatalogueHero';
+import MezmurRow from '../components/MezmurRow';
 
 export default function CataloguePage() {
   const [mezmurs, setMezmurs] = useState<MezmurListItem[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [groupMode, setGroupMode] = useState<GroupMode>('all');
+  const navigate = useNavigate();
 
   useEffect(() => {
     api.getMezmurs().then(setMezmurs).catch((err) => setError(err.message)).finally(() => setLoading(false));
@@ -23,42 +20,50 @@ export default function CataloguePage() {
   if (loading) return <Layout><p className="text-muted text-sm">Loading…</p></Layout>;
   if (error) return <Layout><p className="text-red-600 text-sm">{error}</p></Layout>;
 
+  const artistCount = new Set(mezmurs.map((m) => m.artist_name).filter(Boolean)).size;
+  const tuneCount = new Set(mezmurs.map((m) => m.tune_name).filter(Boolean)).size;
+
+  const grouped: Record<string, MezmurListItem[]> =
+    groupMode === 'all'
+      ? { 'All mezmurs': mezmurs }
+      : mezmurs.reduce((acc, m) => {
+          const key = groupMode === 'artist' ? m.artist_name ?? 'Unknown artist' : m.tune_name ?? 'Unknown tune';
+          acc[key] = acc[key] ? [...acc[key], m] : [m];
+          return acc;
+        }, {} as Record<string, MezmurListItem[]>);
+
+  const handleRandom = () => {
+    if (mezmurs.length === 0) return;
+    const pick = mezmurs[Math.floor(Math.random() * mezmurs.length)];
+    navigate(`/mezmur/${pick.id}`);
+  };
+
   return (
     <Layout>
-      <p className="text-xs text-muted uppercase tracking-wide mb-3">Catalogue</p>
+      <CatalogueHero
+        total={mezmurs.length}
+        artistCount={artistCount}
+        tuneCount={tuneCount}
+        groupMode={groupMode}
+        onGroupChange={setGroupMode}
+        onRandom={handleRandom}
+      />
 
       {mezmurs.length === 0 ? (
         <p className="text-muted text-sm">No mezmurs yet — check back soon.</p>
       ) : (
-        <div className="bg-card rounded-card overflow-hidden">
-          {mezmurs.map((m, i) => (
-            <Link
-              key={m.id}
-              to={`/mezmur/${m.id}`}
-              className={`flex items-center justify-between px-5 py-4 active:bg-background transition-colors ${
-                i !== mezmurs.length - 1 ? 'border-b border-border' : ''
-              }`}
-            >
-              <div className="flex items-center gap-3 min-w-0">
-                {m.difficulty && (
-                  <span
-                    className="w-2 h-2 rounded-full shrink-0"
-                    style={{ backgroundColor: difficultyColor[m.difficulty] }}
-                  />
-                )}
-                <div className="min-w-0">
-                  <p className="text-ink font-medium truncate" style={{ fontFamily: 'var(--font-display)' }}>
-                    {m.title}
-                  </p>
-                  <p className="text-muted text-sm truncate">
-                    {m.artist_name ?? 'Unknown artist'} · {m.tune_name ?? 'Unknown tune'}
-                  </p>
-                </div>
-              </div>
-              <ChevronRight className="text-muted shrink-0" size={18} />
-            </Link>
-          ))}
-        </div>
+        Object.entries(grouped).map(([groupName, items]) => (
+          <div key={groupName} className="mb-12">
+            {groupMode !== 'all' && (
+              <p className="text-xs text-muted uppercase tracking-wide mb-3">{groupName}</p>
+            )}
+            <div className="flex flex-col gap-4">
+              {items.map((m, i) => (
+                <MezmurRow key={m.id} mezmur={m} index={i} onClick={() => navigate(`/mezmur/${m.id}`)} />
+              ))}
+            </div>
+          </div>
+        ))
       )}
     </Layout>
   );

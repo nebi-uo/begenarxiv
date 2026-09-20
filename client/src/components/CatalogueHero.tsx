@@ -21,9 +21,9 @@ const actions = [
 
 export default function CatalogueHero({ total, artistCount, tuneCount, groupMode, onGroupChange, onRandom }: Props) {
   return (
-    <div className="bg-ink rounded-card p-6 mb-8 text-white">
-      <p className="text-white/60 text-sm mb-1">Explore</p>
-      <p className="text-2xl mb-5" style={{ fontFamily: 'var(--font-display)' }}>
+    <div className="bg-ink rounded-card p-10 mb-12 text-white">
+      <p className="text-white/60 text-sm mb-2">Explore</p>
+      <p className="text-2xl mb-8" style={{ fontFamily: 'var(--font-display)' }}>
         {total} mezmurs · {artistCount} artists · {tuneCount} tunes
       </p>
       <div className="flex justify-between">

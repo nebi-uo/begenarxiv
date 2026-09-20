@@ -13,7 +13,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </h1>
         </div>
       </header>
-      <main className="max-w-2xl mx-auto px-6 py-6">{children}</main>
+      <main className="max-w-2xl mx-auto px-6 py-10">{children}</main>
     </div>
   );
 }
