@@ -50,7 +50,7 @@ export default function MezmurPage() {
 
   return (
     <Layout>
-      <Link to="/" className="inline-flex items-center gap-1 text-muted text-sm mb-6">
+      <Link to="/catalogue" className="inline-flex items-center gap-1 text-muted text-sm mb-6">
         <ChevronLeft size={16} /> Catalogue
       </Link>
 
