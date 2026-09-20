@@ -1,7 +1,8 @@
 import { Router } from 'express';
-import { getAllArtists } from '../controllers/artistController';
+import { getAllArtists, getMezmursByArtist } from '../controllers/artistController';
 
 const router = Router();
 router.get('/', getAllArtists);
+router.get('/:id/mezmurs', getMezmursByArtist);
 
 export default router;
