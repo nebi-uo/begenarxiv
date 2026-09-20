@@ -10,8 +10,9 @@
   --color-border: #E9E7E2;
   --radius-card: 24px;
   --radius-pill: 999px;
-  --font-display: "Fraunces", serif;
-  --font-body: "Inter", sans-serif;
+  --font-display: "Geist", sans-serif;
+  --font-body: "Geist", sans-serif;
+  --font-mono: "Geist Mono", monospace;
 }
 
 body {
