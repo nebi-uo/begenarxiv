@@ -107,7 +107,7 @@ export default function TapToHearPlayer({ sequence }: Props) {
   };
 
   if (sequence.length === 0) {
-    return <p className="text-muted text-sm">No playable sequence for this mezmur yet.</p>;
+    return <p className="text-muted text-sm">No playable string sequence for this mezmur yet.</p>;
   }
 
   return (
