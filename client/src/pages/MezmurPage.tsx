@@ -65,7 +65,7 @@ export default function MezmurPage() {
       {mezmur.tuning_profile_id && (
         <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-pill bg-background border border-border text-muted text-sm opacity-70">
           <Sparkles size={14} />
-          Tune for this mezmur — coming soon
+          Tune for this mezmur — feature coming soon
         </div>
       )}
 
