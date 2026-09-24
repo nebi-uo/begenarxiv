@@ -13,6 +13,10 @@
   --font-display: "Geist", sans-serif;
   --font-body: "Geist", sans-serif;
   --font-mono: "Geist Mono", monospace;
+  --color-glass: rgba(255, 255, 255, 0.55);
+  --color-glass-border: rgba(255, 255, 255, 0.65);
+  --color-glass-dark: rgba(23, 22, 26, 0.6);
+  --color-glass-dark-border: rgba(255, 255, 255, 0.12);
 }
 
 body {
