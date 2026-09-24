@@ -3,6 +3,7 @@ import { motion, useScroll, useTransform } from 'framer-motion';
 import { Music, BookOpen, Sparkles, ArrowRight, ArrowUpRight } from 'lucide-react';
 import StatCounter from '../components/StatCounter';
 import Button from '../components/Button';
+import AmbientBackground from '../components/AmbientBackground';
 
 const features = [
   {
@@ -28,7 +29,8 @@ export default function LandingPage() {
   const navBorder = useTransform(scrollY, [0, 80], ['rgba(0,0,0,0)', 'rgba(0,0,0,0.06)']);
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative isolate">
+      <AmbientBackground />
       <motion.header
         style={{ backgroundColor: navBackground, borderColor: navBorder }}
         className="sticky top-0 z-20 backdrop-blur-md border-b"
@@ -86,7 +88,7 @@ export default function LandingPage() {
           initial={{ opacity: 0, scale: 0.94 }}
           animate={{ opacity: 1, scale: 1 }}
           transition={{ type: 'spring', stiffness: 240, damping: 22, delay: 0.1 }}
-          className="rounded-card overflow-hidden shadow-lg aspect-4/5"
+          className="rounded-card overflow-hidden shadow-lg aspect-4/5 border border-glass-border"
         >
           <img
             src="/begena-hero.jpg"
@@ -140,7 +142,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ type: 'spring', stiffness: 280, damping: 24, delay: i * 0.08 }}
-                className="bg-card rounded-card p-7 border border-border"
+                className="bg-glass backdrop-blur-xl border border-glass-border rounded-card p-7"
               >
                 <div className="w-11 h-11 rounded-card bg-accent/15 flex items-center justify-center mb-6">
                   <Icon size={20} className="text-accent" />

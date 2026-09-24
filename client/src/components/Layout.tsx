@@ -4,7 +4,7 @@ import AmbientBackground from './AmbientBackground';
 
 export default function Layout({ children }: { children: ReactNode }) {
   return (
-    <div className="min-h-screen bg-background relative">
+    <div className="min-h-screen bg-background relative isolate">
       <AmbientBackground />
       <div className="sticky top-4 z-10 mx-4 md:mx-auto md:max-w-2xl">
         <header className="rounded-pill bg-glass backdrop-blur-xl border border-glass-border shadow-sm">
