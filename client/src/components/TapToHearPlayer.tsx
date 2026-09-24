@@ -116,24 +116,36 @@ export default function TapToHearPlayer({ sequence }: Props) {
         {groupByLine(sequence).map(([lineNumber, steps]) => (
           <div key={lineNumber} className="flex items-center gap-2">
             <span className="text-muted text-xs w-12">Line {lineNumber}</span>
-            <div className="flex gap-2">
-              {steps
-                .sort((a, b) => a.step_order - b.step_order)
-                .map((step) => (
-                  <motion.button
-                    key={stepKey(step)}
-                    onClick={() => handleTapStep(step)}
-                    whileTap={{ scale: 0.9 }}
-                    animate={{ scale: activeKey === stepKey(step) ? 1.1 : 1 }}
-                    transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                    className={`w-10 h-10 rounded-card flex items-center justify-center font-medium ${
-                      activeKey === stepKey(step) ? 'bg-accent text-white' : 'bg-background text-ink'
-                    }`}
-                  >
-                    {step.string_position}
-                  </motion.button>
-                ))}
-            </div>
+            {(() => {
+              const clusters: SequenceStep[][] = [];
+              for (const step of steps.sort((a, b) => a.step_order - b.step_order)) {
+                const lastCluster = clusters[clusters.length - 1];
+                if (step.group_id !== null && lastCluster?.[0]?.group_id === step.group_id) {
+                  lastCluster.push(step);
+                } else {
+                  clusters.push([step]);
+                }
+              }
+
+              return clusters.map((cluster, ci) => (
+                <div
+                  key={ci}
+                  className={`flex ${cluster.length > 1 ? 'gap-0.5 bg-background rounded-card p-1' : ''}`}
+                >
+                  {cluster.map((step) => (
+                    <button
+                      key={stepKey(step)}
+                      onClick={() => handleTapStep(step)}
+                      className={`${cluster.length > 1 ? 'w-8 h-8 text-sm' : 'w-10 h-10'} rounded-card flex items-center justify-center font-medium transition-colors ${
+                        activeKey === stepKey(step) ? 'bg-accent text-white' : 'bg-card text-ink'
+                      }`}
+                    >
+                      {step.string_position}
+                    </button>
+                  ))}
+                </div>
+              ));
+            })()}
           </div>
         ))}
       </div>
