@@ -14,6 +14,7 @@ export interface SequenceStep {
   line_number: number;
   duration_ms: number | null;
   string_id: number;
+  group_id: number | null;
   string_position: number;
   note_name: string;
   audio_file_url: string;
