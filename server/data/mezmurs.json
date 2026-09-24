@@ -7,7 +7,8 @@
     "lyrics": "",
     "youtube_url": "",
     "sequence": [
-      { "line": 1, "notes": ["1", "23", "2"] }
+      { "line": 1, "notes": ["1", "42", "2"] },
+      { "line": 2, "notes": ["2", "13", "31"] }
     ]
   }
 ]
