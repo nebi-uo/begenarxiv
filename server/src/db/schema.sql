@@ -55,6 +55,7 @@ CREATE TABLE mezmur_sequences (
   id SERIAL PRIMARY KEY,
   mezmur_id INT NOT NULL REFERENCES mezmurs(id) ON DELETE CASCADE,
   string_id INT NOT NULL REFERENCES strings(id),
+  group_id INT DEFAULT NULL,
   step_order INT NOT NULL,
   duration_ms INT,
   UNIQUE(mezmur_id, step_order) -- prevents two rows claiming to be "step 3" of the same song
