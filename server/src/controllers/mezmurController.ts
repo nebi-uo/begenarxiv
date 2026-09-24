@@ -38,7 +38,7 @@ export const getMezmurById = async (req: Request, res: Response) => {
     }
 
     const sequenceResult = await query(
-      `SELECT ms.step_order, ms.line_number, ms.duration_ms,
+      `SELECT ms.step_order, ms.line_number, ms.duration_ms, ms.group_id
               s.id AS string_id, s.string_position, s.note_name, s.audio_file_url
       FROM mezmur_sequences ms
       JOIN strings s ON ms.string_id = s.id
