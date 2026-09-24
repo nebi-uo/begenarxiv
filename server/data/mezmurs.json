@@ -1,0 +1,13 @@
+[
+  {
+    "title": "",
+    "artist": "",
+    "tune": "",
+    "difficulty": "beginner",
+    "lyrics": "",
+    "youtube_url": "",
+    "sequence": [
+      { "line": 1, "notes": ["1", "23", "2"] }
+    ]
+  }
+]
