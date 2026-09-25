@@ -55,7 +55,7 @@ export default function CataloguePage() {
         Object.entries(grouped).map(([groupName, items]) => (
           <div key={groupName} className="mb-12">
             {groupMode !== 'all' && (
-              <p className="text-xs text-muted uppercase tracking-wide mb-3">{groupName}</p>
+              <p className="text-xs text-white/60 uppercase tracking-wide mb-3">{groupName}</p>
             )}
             <div className="flex flex-col gap-4">
               {items.map((m, i) => (

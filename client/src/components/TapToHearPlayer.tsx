@@ -163,12 +163,12 @@ export default function TapToHearPlayer({ sequence }: Props) {
       <div className="flex flex-col gap-3 mb-4">
         {groupByLine(sequence).map(([lineNumber, steps]) => (
           <div key={lineNumber} className="flex items-center gap-2">
-            <span className="text-muted text-xs w-12">Line {lineNumber}</span>
+            <span className="text-white/50 text-xs w-12">Line {lineNumber}</span>
             <div className="flex items-center gap-2">
               {clusterByGroup(steps).map((cluster, ci) => (
                 <div
                   key={ci}
-                  className={`flex ${cluster.length > 1 ? 'gap-0.5 bg-background rounded-card p-1' : ''}`}
+                  className={`flex ${cluster.length > 1 ? 'gap-0.5 liquid-glass rounded-card p-1' : ''}`}
                 >
                   {cluster.map((step) => (
                     <motion.button
@@ -178,7 +178,7 @@ export default function TapToHearPlayer({ sequence }: Props) {
                       animate={{ scale: activeKeys.includes(stepKey(step)) ? 1.1 : 1 }}
                       transition={{ type: 'spring', stiffness: 400, damping: 15 }}
                       className={`${cluster.length > 1 ? 'w-8 h-8 text-sm' : 'w-10 h-10'} rounded-card flex items-center justify-center font-medium ${
-                        activeKeys.includes(stepKey(step)) ? 'bg-accent text-white' : 'bg-card text-ink'
+                        activeKeys.includes(stepKey(step)) ? 'bg-accent text-white' : 'liquid-glass text-white'
                       }`}
                     >
                       {step.string_position}

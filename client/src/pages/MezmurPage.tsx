@@ -50,20 +50,20 @@ export default function MezmurPage() {
 
   return (
     <Layout>
-      <Link to="/catalogue" className="inline-flex items-center gap-1 text-muted text-sm mb-6">
+      <Link to="/catalogue" className="inline-flex items-center gap-1 text-white/70 text-sm mb-6">
         <ChevronLeft size={16} /> Catalogue
       </Link>
 
-      <h2 className="text-3xl text-ink mb-2" style={{ fontFamily: 'var(--font-display)' }}>
+      <h2 className="text-3xl text-white mb-2" style={{ fontFamily: 'var(--font-display)' }}>
         {mezmur.title}
       </h2>
-      <p className="text-muted mb-2">
+      <p className="text-white/70 mb-2">
         {mezmur.artist_name ?? 'Unknown artist'} · {mezmur.tune_name ?? 'Unknown tune'}
       </p>
       <DifficultyBar difficulty={mezmur.difficulty} />
 
       {mezmur.tuning_profile_id && (
-        <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-pill bg-background border border-border text-muted text-sm opacity-70">
+        <div className="inline-flex items-center gap-2 mt-6 px-4 py-2 rounded-pill liquid-glass text-white/70 text-sm">
           <Sparkles size={14} />
           Tune for this mezmur — feature coming soon
         </div>
@@ -89,7 +89,7 @@ export default function MezmurPage() {
 
         {mezmur.lyrics && (
           <SectionCard icon={AlignLeft} iconColor="#1FAE7A" title="Lyrics">
-            <p className="text-ink whitespace-pre-line leading-relaxed">{mezmur.lyrics}</p>
+            <p className="text-white/90 whitespace-pre-line leading-relaxed">{mezmur.lyrics}</p>
           </SectionCard>
         )}
 

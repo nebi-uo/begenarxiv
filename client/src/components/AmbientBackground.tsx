@@ -1,9 +1,16 @@
 export default function AmbientBackground() {
   return (
-    <div className="fixed inset-0 -z-10 overflow-hidden pointer-events-none">
-      <div className="absolute -top-40 -left-20 w-[500px] h-[500px] rounded-full bg-ink/[0.04] blur-3xl" />
-      <div className="absolute top-1/3 -right-32 w-[600px] h-[600px] rounded-full bg-ink/[0.03] blur-3xl" />
-      <div className="absolute bottom-0 left-1/4 w-[400px] h-[400px] rounded-full bg-ink/[0.03] blur-3xl" />
+    <div className="fixed inset-0 -z-10 overflow-hidden">
+      <img
+        src="../begena-hero.png"
+        alt=""
+        aria-hidden="true"
+        className="w-full h-full object-cover scale-110"
+        style={{ filter: 'blur(40px) brightness(0.55) saturate(120%)' }}
+      />
+      {/* Extra dark scrim on top for guaranteed text/glass contrast, regardless
+          of how bright any given region of the source photo is */}
+      <div className="absolute inset-0 bg-black/25" />
     </div>
   );
 }

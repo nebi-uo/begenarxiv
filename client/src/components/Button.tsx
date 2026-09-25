@@ -10,8 +10,8 @@ interface Props {
 export default function Button({ children, onClick, variant = 'primary' }: Props) {
   const styles =
     variant === 'primary'
-      ? 'bg-ink text-white'
-      : 'glass text-ink';
+      ? 'bg-white text-ink'
+      : 'liquid-glass text-white';
 
   return (
     <motion.button

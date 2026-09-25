@@ -21,7 +21,7 @@ const actions = [
 
 export default function CatalogueHero({ total, artistCount, tuneCount, groupMode, onGroupChange, onRandom }: Props) {
   return (
-    <div className="glass-dark rounded-card p-10 mb-12 text-white">
+    <div className="liquid-glass rounded-card p-10 mb-12 text-white">
       <p className="text-white/60 text-sm mb-2">Explore</p>
       <p className="text-l mb-8" style={{ fontFamily: 'var(--font-display)' }}>
         {total} mezmurs · {artistCount} artists · {tuneCount} tunes

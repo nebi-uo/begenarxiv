@@ -17,7 +17,7 @@ export default function DifficultyBar({ difficulty }: { difficulty: string | nul
           <span
             key={i}
             className="h-1.5 w-5 rounded-full"
-            style={{ backgroundColor: i < filled ? color : '#E9E7E2' }}
+            style={{ backgroundColor: i < filled ? color : 'rgba(255,255,255,0.15)' }}
           />
         ))}
       </div>
