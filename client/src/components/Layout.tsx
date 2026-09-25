@@ -19,7 +19,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           </div>
         </header>
       </div>
-      <main className="max-w-2xl mx-auto px-6 py-10">{children}</main>
+      <main className="max-w-4xl mx-auto px-6 md:px-10 py-10">{children}</main>
     </div>
   );
 }
