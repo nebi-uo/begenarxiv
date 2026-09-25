@@ -14,8 +14,8 @@ export default function HorizontalMezmurScroll({ title, items, onSelect }: Props
     <div className="mt-4">
       <p className="text-white/60 text-xs uppercase tracking-wide mb-3">{title}</p>
       <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-6 px-6 md:mx-0 md:px-0">
-        {items.map((m) => (
-          <MezmurCardCompact key={m.id} mezmur={m} onClick={() => onSelect(m.id)} />
+        {items.map((m, i) => (
+          <MezmurCardCompact key={m.id} mezmur={m} index={i} onClick={() => onSelect(m.id)} />
         ))}
       </div>
     </div>

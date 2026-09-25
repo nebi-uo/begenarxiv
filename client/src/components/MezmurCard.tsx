@@ -1,10 +1,24 @@
+import { motion } from 'framer-motion';
 import { Music, ChevronRight } from 'lucide-react';
 import DifficultyBar from './DifficultyBar';
 import type { MezmurListItem } from '../types';
 
-export default function MezmurCard({ mezmur, onClick }: { mezmur: MezmurListItem; onClick: () => void }) {
+interface Props {
+  mezmur: MezmurListItem;
+  index: number;
+  onClick: () => void;
+}
+
+export default function MezmurCard({ mezmur, index, onClick }: Props) {
   return (
-    <button onClick={onClick} className="w-full text-left liquid-glass rounded-card p-5 h-full flex flex-col">
+    <motion.button
+      onClick={onClick}
+      initial={{ opacity: 0, y: 16 }}
+      animate={{ opacity: 1, y: 0 }}
+      whileTap={{ scale: 0.97 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24, delay: index * 0.05 }}
+      className="w-full text-left liquid-glass rounded-card p-5 h-full flex flex-col"
+    >
       <div className="flex items-start justify-between mb-4">
         <div className="w-11 h-11 rounded-full bg-white/10 flex items-center justify-center">
           <Music size={18} className="text-accent" />
@@ -20,6 +34,6 @@ export default function MezmurCard({ mezmur, onClick }: { mezmur: MezmurListItem
       <div className="mt-auto pt-3">
         <DifficultyBar difficulty={mezmur.difficulty} />
       </div>
-    </button>
+    </motion.button>
   );
 }

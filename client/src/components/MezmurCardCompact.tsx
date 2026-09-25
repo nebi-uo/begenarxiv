@@ -1,10 +1,21 @@
+import { motion } from 'framer-motion';
 import { Music } from 'lucide-react';
 import type { MezmurListItem } from '../types';
 
-export default function MezmurCardCompact({ mezmur, onClick }: { mezmur: MezmurListItem; onClick: () => void }) {
+interface Props {
+  mezmur: MezmurListItem;
+  index: number;
+  onClick: () => void;
+}
+
+export default function MezmurCardCompact({ mezmur, index, onClick }: Props) {
   return (
-    <button
+    <motion.button
       onClick={onClick}
+      initial={{ opacity: 0, x: 16 }}
+      animate={{ opacity: 1, x: 0 }}
+      whileTap={{ scale: 0.95 }}
+      transition={{ type: 'spring', stiffness: 300, damping: 24, delay: index * 0.06 }}
       className="liquid-glass rounded-card p-4 w-40 shrink-0 text-left snap-start"
     >
       <div className="w-9 h-9 rounded-full bg-white/10 flex items-center justify-center mb-3">
@@ -14,6 +25,6 @@ export default function MezmurCardCompact({ mezmur, onClick }: { mezmur: MezmurL
         {mezmur.title}
       </p>
       <p className="text-white/50 text-xs truncate mt-0.5">{mezmur.artist_name ?? mezmur.tune_name}</p>
-    </button>
+    </motion.button>
   );
 }

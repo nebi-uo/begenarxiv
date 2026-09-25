@@ -80,8 +80,8 @@ export default function CataloguePage() {
                   <p className="text-xs text-white/60 uppercase tracking-wide mb-3">{groupName}</p>
                 )}
                 <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
-                  {items.map((m) => (
-                    <MezmurCard key={m.id} mezmur={m} onClick={() => navigate(`/mezmur/${m.id}`)} />
+                  {items.map((m, i) => (
+                    <MezmurCard key={m.id} mezmur={m} index={i} onClick={() => navigate(`/mezmur/${m.id}`)} />
                   ))}
                 </div>
               </div>
