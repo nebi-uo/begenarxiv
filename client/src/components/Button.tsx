@@ -11,7 +11,7 @@ export default function Button({ children, onClick, variant = 'primary' }: Props
   const styles =
     variant === 'primary'
       ? 'bg-ink text-white'
-      : 'bg-glass backdrop-blur-md border border-glass-border text-ink';
+      : 'glass text-ink';
 
   return (
     <motion.button

@@ -17,7 +17,7 @@ export default function MezmurRow({ mezmur, index, onClick }: Props) {
       animate={{ opacity: 1, y: 0 }}
       transition={{ type: 'spring', stiffness: 300, damping: 24, delay: index * 0.04 }}
       whileTap={{ scale: 0.98 }}
-      className="w-full text-left bg-glass backdrop-blur-xl border border-glass-border rounded-card p-5 flex items-center gap-4 shadow-sm"
+      className="w-full text-left glass rounded-card p-5 flex items-center gap-4"
     >
       <div className="w-11 h-11 rounded-full bg-background flex items-center justify-center shrink-0">
         <Music size={18} className="text-accent" />

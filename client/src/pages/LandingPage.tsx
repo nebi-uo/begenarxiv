@@ -142,7 +142,7 @@ export default function LandingPage() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ type: 'spring', stiffness: 280, damping: 24, delay: i * 0.08 }}
-                className="bg-glass backdrop-blur-xl border border-glass-border rounded-card p-7"
+                className="glass rounded-card p-7"
               >
                 <div className="w-11 h-11 rounded-card bg-accent/15 flex items-center justify-center mb-6">
                   <Icon size={20} className="text-accent" />
