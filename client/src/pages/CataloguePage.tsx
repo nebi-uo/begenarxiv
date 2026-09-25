@@ -7,6 +7,7 @@ import CatalogueHero, { type GroupMode } from '../components/CatalogueHero';
 import SearchFilterBar from '../components/SearchFilterBar';
 import MezmurCard from '../components/MezmurCard';
 import SkeletonCard from '../components/SkeletonCard';
+import CatalogueHeroBanner from '../components/CatalogueHeroBanner';
 
 export default function CataloguePage() {
   const [mezmurs, setMezmurs] = useState<MezmurListItem[]>([]);
@@ -53,6 +54,7 @@ export default function CataloguePage() {
 
   return (
     <Layout>
+      <CatalogueHeroBanner />
       {loading ? (
         <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {Array.from({ length: 6 }).map((_, i) => <SkeletonCard key={i} />)}

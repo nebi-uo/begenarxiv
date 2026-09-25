@@ -2,7 +2,7 @@ export default function CatalogueHeroBanner() {
   return (
     <div className="relative rounded-card overflow-hidden h-48 md:h-64 mb-8">
       <img
-        src="/begena-hero.jpg"
+        src="../begena-catalogue.png"
         alt=""
         aria-hidden="true"
         className="absolute inset-0 w-full h-full object-cover"
