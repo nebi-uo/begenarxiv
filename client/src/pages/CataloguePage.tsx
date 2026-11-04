@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Music, Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { Filter, AlertCircle, RefreshCw } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurListItem } from '../types';
 import Layout from '../components/Layout';
@@ -17,6 +17,7 @@ export default function CataloguePage() {
   const [groupMode, setGroupMode] = useState<GroupMode>('all');
   const [query, setQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
+  const [modeFilter, setModeFilter] = useState<string>('all');
   const navigate = useNavigate();
 
   const fetchSongs = () => {
@@ -44,9 +45,13 @@ export default function CataloguePage() {
       const matchesDifficulty =
         difficultyFilter === 'all' || m.difficulty === difficultyFilter;
 
-      return matchesQuery && matchesDifficulty;
+      const matchesMode =
+        modeFilter === 'all' ||
+        (m.tune_name && m.tune_name.toLowerCase().includes(modeFilter.toLowerCase()));
+
+      return matchesQuery && matchesDifficulty && matchesMode;
     });
-  }, [mezmurs, query, difficultyFilter]);
+  }, [mezmurs, query, difficultyFilter, modeFilter]);
 
   const artistCount = new Set(mezmurs.map((m) => m.artist_name).filter(Boolean)).size;
   const tuneCount = new Set(mezmurs.map((m) => m.tune_name).filter(Boolean)).size;
@@ -72,15 +77,15 @@ export default function CataloguePage() {
   if (error) {
     return (
       <Layout>
-        <div className="max-w-md mx-auto my-16 p-6 rounded-2xl border border-rose-200 bg-rose-50 text-center">
-          <AlertCircle size={32} className="mx-auto text-rose-500 mb-3" />
-          <h3 className="font-bold text-rose-950 mb-1">Unable to Load Catalogue</h3>
-          <p className="text-xs text-rose-700 mb-4">{error}</p>
+        <div className="max-w-md mx-auto my-16 p-6 rounded-xl border border-zinc-200 bg-zinc-50 text-center font-mono">
+          <AlertCircle size={28} className="mx-auto text-zinc-950 mb-3" />
+          <h3 className="font-bold text-sm text-zinc-950 mb-1">UNABLE TO LOAD CATALOGUE</h3>
+          <p className="text-xs text-zinc-500 mb-4">{error}</p>
           <button
             onClick={fetchSongs}
-            className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-rose-900 text-white text-xs font-medium cursor-pointer hover:bg-rose-800"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-zinc-950 text-white text-xs font-mono cursor-pointer"
           >
-            <RefreshCw size={12} /> Retry
+            <RefreshCw size={11} /> RETRY
           </button>
         </div>
       </Layout>
@@ -94,8 +99,8 @@ export default function CataloguePage() {
       {loading ? (
         <div className="py-12">
           <IndiePageLoader
-            message="FETCHING MEZMUR ARCHIVE..."
-            subMessage="SYNCING WITH POSTGRESQL NOTATION ENGINE"
+            message="FETCHING REPERTOIRE..."
+            subMessage="CONNECTING TO 10-STRING DATABASE"
           />
         </div>
       ) : (
@@ -107,30 +112,45 @@ export default function CataloguePage() {
             onRandom={handleRandom}
           />
 
-          {/* Difficulty Filter Chips Bar */}
-          <div className="flex flex-wrap items-center justify-between gap-3 mb-4">
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1 text-xs">
-              <span className="text-zinc-400 font-mono flex items-center gap-1 mr-1">
-                <Filter size={12} /> Level:
+          {/* Mode & Difficulty Filter Chips Bar */}
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 font-mono text-xs">
+            {/* 3 Modes Filter */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <span className="text-zinc-400 text-[11px] uppercase mr-1">Mode:</span>
+              {['all', 'tizita', 'selamta', 'anchi-hoye'].map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setModeFilter(m)}
+                  className={`px-2.5 py-1 rounded text-xs capitalize transition-colors cursor-pointer ${
+                    modeFilter === m
+                      ? 'bg-zinc-950 text-white font-bold'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
+                  }`}
+                >
+                  {m === 'all' ? 'All Modes' : m}
+                </button>
+              ))}
+            </div>
+
+            {/* Difficulty Filter */}
+            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+              <span className="text-zinc-400 flex items-center gap-1 mr-1 text-[11px]">
+                <Filter size={11} /> Level:
               </span>
               {['all', 'beginner', 'intermediate', 'advanced'].map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setDifficultyFilter(lvl)}
-                  className={`px-3 py-1 rounded-full text-xs font-medium capitalize transition-all cursor-pointer ${
+                  className={`px-2.5 py-1 rounded text-xs uppercase transition-colors cursor-pointer ${
                     difficultyFilter === lvl
-                      ? 'bg-zinc-950 text-white shadow-xs'
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200/60'
+                      ? 'bg-zinc-950 text-white font-medium'
+                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
                   }`}
                 >
                   {lvl}
                 </button>
               ))}
             </div>
-
-            <span className="text-xs font-mono text-zinc-500">
-              Showing {filtered.length} of {mezmurs.length} songs
-            </span>
           </div>
 
           <SearchFilterBar
@@ -141,39 +161,38 @@ export default function CataloguePage() {
           />
 
           {filtered.length === 0 ? (
-            <div className="text-center py-16 bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
-              <Music size={28} className="mx-auto text-zinc-400 mb-2" />
-              <p className="text-zinc-900 font-semibold text-sm">No mezmurs match your search</p>
-              <p className="text-zinc-500 text-xs mt-1">
-                Try searching a different artist, tune, or clearing your difficulty filter.
+            <div className="text-center py-16 bg-zinc-50 rounded-xl border border-zinc-200 font-mono text-xs">
+              <p className="text-zinc-950 font-bold mb-1">NO MATCHING HYMNS</p>
+              <p className="text-zinc-500 text-[11px]">
+                Try adjusting your search query, mode filter, or difficulty level.
               </p>
-              {(query || difficultyFilter !== 'all') && (
+              {(query || difficultyFilter !== 'all' || modeFilter !== 'all') && (
                 <button
                   onClick={() => {
                     setQuery('');
                     setDifficultyFilter('all');
+                    setModeFilter('all');
                   }}
-                  className="mt-4 px-4 py-1.5 rounded-full bg-zinc-900 text-white text-xs font-medium cursor-pointer"
+                  className="mt-4 px-3 py-1.5 rounded bg-zinc-950 text-white text-xs cursor-pointer"
                 >
-                  Clear all filters
+                  RESET FILTERS
                 </button>
               )}
             </div>
           ) : (
             Object.entries(grouped).map(([groupName, items]) => (
-              <div key={groupName} className="mb-12">
+              <div key={groupName} className="mb-10">
                 {groupMode !== 'all' && (
-                  <div className="flex items-center gap-2 mb-4 pb-2 border-b border-zinc-200">
-                    <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
-                    <h3 className="text-sm font-mono font-bold uppercase tracking-wider text-zinc-800">
+                  <div className="flex items-center gap-2 mb-3 pb-2 border-b border-zinc-200 font-mono">
+                    <span className="text-xs font-bold uppercase tracking-wider text-zinc-900">
                       {groupName}
-                    </h3>
-                    <span className="text-xs font-mono text-zinc-400">
-                      ({items.length} {items.length === 1 ? 'song' : 'songs'})
+                    </span>
+                    <span className="text-[11px] text-zinc-400">
+                      / {items.length} {items.length === 1 ? 'hymn' : 'hymns'}
                     </span>
                   </div>
                 )}
-                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5">
+                <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-3 md:gap-4">
                   {items.map((m, i) => (
                     <MezmurCard
                       key={m.id}

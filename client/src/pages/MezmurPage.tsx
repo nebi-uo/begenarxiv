@@ -1,6 +1,6 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, PlayCircle, Music, AlignLeft, Sparkles, Volume2, Disc, User, AlertCircle, RefreshCw } from 'lucide-react';
+import { ChevronLeft, PlayCircle, Music, AlignLeft, Volume2, AlertCircle, RefreshCw } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurDetail, MezmurListItem } from '../types';
 import TapToHearPlayer from '../components/TapToHearPlayer';
@@ -9,7 +9,8 @@ import SectionCard from '../components/SectionCard';
 import HorizontalMezmurScroll from '../components/HorizontalMezmurScroll';
 import Layout from '../components/Layout';
 import IndiePageLoader from '../components/IndiePageLoader';
-import { useTonePlayer, STRING_FREQUENCIES } from '../hooks/useTonePlayer';
+import PixelBegena from '../components/PixelBegena';
+import { useTonePlayer, type BegenaTuneMode, BEGENA_TUNINGS } from '../hooks/useTonePlayer';
 
 function getYoutubeEmbedUrl(url: string): string | null {
   const match = url.match(/(?:v=|youtu\.be\/)([\w-]+)/);
@@ -24,8 +25,11 @@ export default function MezmurPage() {
   const [error, setError] = useState<string | null>(null);
   const [moreFromArtist, setMoreFromArtist] = useState<MezmurListItem[]>([]);
   const [moreInTune, setMoreInTune] = useState<MezmurListItem[]>([]);
-  const { pluckString } = useTonePlayer();
-  const [activeTestTone, setActiveTestTone] = useState<number | null>(null);
+  
+  // Default mode is Tizita
+  const [currentMode, setCurrentMode] = useState<BegenaTuneMode>('Tizita');
+  const { pluckString } = useTonePlayer(currentMode);
+  const [activeString, setActiveString] = useState<number | null>(null);
 
   const fetchSong = () => {
     if (!id) return;
@@ -53,20 +57,39 @@ export default function MezmurPage() {
         .then(setMoreInTune)
         .catch(() => {});
     }
+    // If tune name matches one of the 3 modes, adapt tuning mode
+    if (mezmur.tune_name) {
+      const lower = mezmur.tune_name.toLowerCase();
+      if (lower.includes('selamta')) setCurrentMode('Selamta');
+      else if (lower.includes('anchi')) setCurrentMode('Anchi-Hoye');
+      else setCurrentMode('Tizita');
+    }
   }, [mezmur]);
 
-  const handleTestTone = (pos: number) => {
-    setActiveTestTone(pos);
+  const handleManualPluck = useCallback((pos: number) => {
+    setActiveString(pos);
     pluckString(pos);
-    setTimeout(() => setActiveTestTone(null), 300);
-  };
+    setTimeout(() => setActiveString(null), 250);
+  }, [pluckString]);
+
+  // Keyboard shortcut listener: keys 1 to 5
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
+      if (['1', '2', '3', '4', '5'].includes(e.key)) {
+        handleManualPluck(parseInt(e.key, 10));
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, [handleManualPluck]);
 
   if (loading) {
     return (
       <Layout>
         <div className="py-16">
           <IndiePageLoader
-            message="LOADING MEZMUR SEQUENCE..."
+            message="LOADING NOTATION..."
             subMessage="CALCULATING STRING HARMONICS"
           />
         </div>
@@ -77,22 +100,22 @@ export default function MezmurPage() {
   if (error || !mezmur) {
     return (
       <Layout>
-        <div className="max-w-md mx-auto my-16 p-6 rounded-2xl border border-rose-200 bg-rose-50 text-center">
-          <AlertCircle size={32} className="mx-auto text-rose-500 mb-3" />
-          <h3 className="font-bold text-rose-950 mb-1">Mezmur Not Found</h3>
-          <p className="text-xs text-rose-700 mb-4">{error ?? 'Unable to find the requested song.'}</p>
+        <div className="max-w-md mx-auto my-16 p-6 rounded-xl border border-zinc-200 bg-zinc-50 text-center font-mono">
+          <AlertCircle size={28} className="mx-auto text-zinc-950 mb-3" />
+          <h3 className="font-bold text-sm text-zinc-950 mb-1">HYMN NOT FOUND</h3>
+          <p className="text-xs text-zinc-500 mb-4">{error ?? 'Unable to find the requested song.'}</p>
           <div className="flex items-center justify-center gap-3">
             <Link
               to="/catalogue"
-              className="px-4 py-2 rounded-full bg-zinc-950 text-white text-xs font-medium cursor-pointer"
+              className="px-3 py-1.5 rounded bg-zinc-950 text-white text-xs font-mono"
             >
               Back to Catalogue
             </Link>
             <button
               onClick={fetchSong}
-              className="inline-flex items-center gap-1.5 px-4 py-2 rounded-full bg-white border border-rose-300 text-rose-900 text-xs font-medium cursor-pointer"
+              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-white border border-zinc-300 text-zinc-900 text-xs font-mono cursor-pointer"
             >
-              <RefreshCw size={12} /> Retry
+              <RefreshCw size={11} /> Retry
             </button>
           </div>
         </div>
@@ -101,91 +124,120 @@ export default function MezmurPage() {
   }
 
   const embedUrl = mezmur.youtube_url ? getYoutubeEmbedUrl(mezmur.youtube_url) : null;
+  const currentTuningNotes = BEGENA_TUNINGS[currentMode];
 
   return (
     <Layout>
       {/* Breadcrumb Back Link */}
-      <div className="mb-6">
+      <div className="mb-6 flex items-center justify-between">
         <Link
           to="/catalogue"
-          className="inline-flex items-center gap-1 text-xs font-mono font-medium text-zinc-600 hover:text-zinc-950 px-3 py-1.5 rounded-full bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 transition-colors"
+          className="inline-flex items-center gap-1 text-xs font-mono text-zinc-500 hover:text-zinc-950 transition-colors"
         >
-          <ChevronLeft size={14} /> Back to Catalogue
+          <ChevronLeft size={14} /> CATALOGUE
         </Link>
+        <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400">
+          <span className="pixel-tag-blue">10 STRINGS</span>
+          <span className="hidden sm:inline">SHORTCUTS: [1-5] PLUCK · [SPACE] PLAY/PAUSE</span>
+        </div>
       </div>
 
       {/* Song Header Block */}
-      <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 mb-8 shadow-xs">
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 md:p-8 mb-6">
         <div className="flex flex-col md:flex-row md:items-end justify-between gap-4">
           <div>
-            <div className="flex flex-wrap items-center gap-2 mb-2">
-              <span className="inline-flex items-center gap-1 text-xs font-mono bg-zinc-100 text-zinc-700 px-2.5 py-0.5 rounded-full border border-zinc-200">
-                <User size={12} className="text-zinc-500" />
-                {mezmur.artist_name ?? 'Unknown artist'}
-              </span>
-              <span className="inline-flex items-center gap-1 text-xs font-mono bg-zinc-100 text-zinc-700 px-2.5 py-0.5 rounded-full border border-zinc-200">
-                <Disc size={12} className="text-zinc-500" />
-                {mezmur.tune_name ?? 'Standard Tune'}
-              </span>
+            <div className="flex flex-wrap items-center gap-2 mb-2 font-mono text-xs text-zinc-500">
+              <span>{mezmur.artist_name ?? 'Unknown artist'}</span>
+              <span>/</span>
+              <span>{mezmur.tune_name ?? 'Tizita Mode'}</span>
             </div>
 
-            <h1 className="text-3xl md:text-4xl font-bold tracking-tight text-zinc-950">
+            <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-950">
               {mezmur.title}
             </h1>
           </div>
 
-          <div className="flex flex-col items-start md:items-end gap-2">
+          <div className="flex flex-col items-start md:items-end gap-2 font-mono text-xs">
             <DifficultyBar difficulty={mezmur.difficulty} />
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-mono text-zinc-500 bg-zinc-50 border border-zinc-200 px-2.5 py-1 rounded-md">
-              <Sparkles size={11} className="text-amber-500" />
-              <span>Standard 5-String Tuning (C-D-E-G-A)</span>
+            <div className="flex items-center gap-1">
+              {(['Tizita', 'Selamta', 'Anchi-Hoye'] as BegenaTuneMode[]).map((m) => (
+                <button
+                  key={m}
+                  onClick={() => setCurrentMode(m)}
+                  className={`px-2 py-0.5 rounded text-[10px] transition-colors cursor-pointer ${
+                    currentMode === m
+                      ? 'bg-zinc-950 text-white font-bold'
+                      : 'bg-zinc-100 text-zinc-600 hover:text-zinc-950'
+                  }`}
+                >
+                  {m}
+                </button>
+              ))}
             </div>
+            <span className="text-[10px] text-zinc-400">
+              {currentMode}: 1={currentTuningNotes[1]?.note} · 2={currentTuningNotes[2]?.note} · 3={currentTuningNotes[3]?.note} · 4={currentTuningNotes[4]?.note} · 5={currentTuningNotes[5]?.note}
+            </span>
           </div>
         </div>
       </div>
 
-      {/* Main Grid: Interactive Player & Accompanying Material */}
-      <div className="grid lg:grid-cols-3 gap-6">
-        {/* Left Column (2 Cols): Tap-to-Hear Player & Lyrics */}
-        <div className="lg:col-span-2 space-y-6">
-          {/* Tap-to-Hear Player Section */}
+      {/* Main Grid */}
+      <div className="grid lg:grid-cols-12 gap-6">
+        {/* Left Column (8 Cols): Tap-to-Hear Player & Lyrics */}
+        <div className="lg:col-span-8 space-y-6">
           <SectionCard
             icon={Music}
-            iconColor="#D97706"
-            title="Interactive Numbers Notation"
-            description="Tap any number to hear its string. Press Play to step through the hymn with synchronized roll timing."
+            title="Numbers Notation Sequence"
+            description="Tap numbers to hear string audio. Click Play to step through the sequence."
           >
-            <TapToHearPlayer sequence={mezmur.sequence} />
+            <TapToHearPlayer
+              sequence={mezmur.sequence}
+              onActiveStringChange={setActiveString}
+            />
           </SectionCard>
 
-          {/* Lyrics Section */}
           {mezmur.lyrics && (
             <SectionCard
               icon={AlignLeft}
-              iconColor="#059669"
               title="Liturgical Lyrics"
-              description="Traditional hymn poetry aligned with the musical movements."
+              description="Hymn poetry aligned with notation movements."
             >
-              <div className="p-4 bg-zinc-50 rounded-xl border border-zinc-200/80">
-                <p className="text-zinc-800 text-sm md:text-base whitespace-pre-line leading-relaxed font-sans">
-                  {mezmur.lyrics}
-                </p>
+              <div className="p-4 bg-zinc-50 rounded border border-zinc-200 text-zinc-800 text-sm whitespace-pre-line leading-relaxed font-sans">
+                {mezmur.lyrics}
               </div>
             </SectionCard>
           )}
         </div>
 
-        {/* Right Column (1 Col): Reference Video & Tuning Profile */}
-        <div className="space-y-6">
+        {/* Right Column (4 Cols): Live Pixel Begena + Reference Video + Tuning */}
+        <div className="lg:col-span-4 space-y-6">
+          {/* Live String Visualizer: 10-String Pixel Begena */}
+          <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 flex flex-col items-center">
+            <div className="w-full flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-3 pb-2 border-b border-zinc-200">
+              <span className="pixel-tag">10_STRINGS</span>
+              <span className="text-zinc-900 font-bold">
+                {activeString
+                  ? `STR ${activeString}: ${currentTuningNotes[activeString]?.note}`
+                  : `${currentMode.toUpperCase()}`}
+              </span>
+            </div>
+
+            <PixelBegena
+              size="compact"
+              activeString={activeString}
+              onPluck={handleManualPluck}
+              mode={currentMode}
+            />
+          </div>
+
           {/* Reference Video */}
           {embedUrl && (
             <SectionCard
               icon={PlayCircle}
-              iconColor="#E11D48"
               title="Reference Video"
-              description="Master vocal phrasing & fingering."
+              description="Master performance reference."
             >
-              <div className="aspect-video rounded-xl overflow-hidden border border-zinc-200 bg-black">
+              <div className="aspect-video rounded overflow-hidden border border-zinc-200 bg-black">
                 <iframe
                   src={embedUrl}
                   className="w-full h-full"
@@ -197,41 +249,48 @@ export default function MezmurPage() {
             </SectionCard>
           )}
 
-          {/* Quick String Tuning Frequency Preview */}
+          {/* String Tuning Reference */}
           <SectionCard
             icon={Volume2}
-            iconColor="#D97706"
-            title="String Tuning Reference"
-            description="Reference pitch targets for tuning your Begena."
+            title={`${currentMode} String Frequencies`}
+            description="Reference frequencies for Begena tuning."
           >
-            <div className="space-y-2">
+            <div className="space-y-1.5 font-mono text-xs">
               {[1, 2, 3, 4, 5].map((pos) => {
-                const info = STRING_FREQUENCIES[pos];
-                const isActive = activeTestTone === pos;
+                const info = currentTuningNotes[pos];
+                const isActive = activeString === pos;
 
                 return (
                   <button
                     key={pos}
-                    onClick={() => handleTestTone(pos)}
-                    className={`w-full flex items-center justify-between p-2.5 rounded-lg border transition-all text-left cursor-pointer ${
+                    onClick={() => handleManualPluck(pos)}
+                    className={`w-full flex items-center justify-between p-2 rounded border transition-colors cursor-pointer ${
                       isActive
-                        ? 'bg-amber-50 border-amber-300 ring-1 ring-amber-300'
-                        : 'bg-zinc-50 hover:bg-zinc-100 border-zinc-200'
+                        ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs'
+                        : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-900'
                     }`}
                   >
-                    <div className="flex items-center gap-2.5">
-                      <span className="w-6 h-6 rounded-full bg-zinc-950 text-white font-mono font-bold text-xs flex items-center justify-center">
+                    <div className="flex items-center gap-2">
+                      <span
+                        className={`w-5 h-5 rounded flex items-center justify-center font-bold text-xs ${
+                          isActive
+                            ? 'bg-zinc-800 text-white'
+                            : 'bg-zinc-100 text-zinc-900 border border-zinc-200'
+                        }`}
+                      >
                         {pos}
                       </span>
-                      <span className="text-xs font-semibold text-zinc-900">
+                      <span>
                         String {pos} ({info.note})
                       </span>
                     </div>
 
-                    <div className="flex items-center gap-2">
-                      <span className="text-[11px] font-mono text-zinc-400">{info.hz} Hz</span>
-                      <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-white border border-zinc-200 text-zinc-600">
-                        {isActive ? 'Playing' : 'Pluck'}
+                    <div className="flex items-center gap-2 text-[10px]">
+                      <span className={isActive ? 'text-zinc-400' : 'text-zinc-400'}>
+                        {info.hz} Hz
+                      </span>
+                      <span className="text-[9px] uppercase px-1 py-0.5 rounded border border-zinc-300">
+                        Pluck
                       </span>
                     </div>
                   </button>
@@ -242,7 +301,7 @@ export default function MezmurPage() {
         </div>
       </div>
 
-      {/* Discovery Ribbons: More from Artist & More in Tune */}
+      {/* Discovery Ribbons */}
       {(moreFromArtist.length > 0 || moreInTune.length > 0) && (
         <div className="mt-12 pt-8 border-t border-zinc-200">
           <HorizontalMezmurScroll

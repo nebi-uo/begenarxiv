@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { Music, ArrowRight } from 'lucide-react';
+import { ArrowRight } from 'lucide-react';
 import type { MezmurListItem } from '../types';
 
 interface Props {
@@ -12,28 +12,25 @@ export default function MezmurCardCompact({ mezmur, index, onClick }: Props) {
   return (
     <motion.button
       onClick={onClick}
-      initial={{ opacity: 0, x: 16 }}
+      initial={{ opacity: 0, x: 12 }}
       animate={{ opacity: 1, x: 0 }}
-      whileHover={{ y: -2 }}
-      whileTap={{ scale: 0.96 }}
-      transition={{ type: 'spring', stiffness: 350, damping: 25, delay: index * 0.05 }}
-      className="bg-white border border-zinc-200 hover:border-zinc-900 rounded-xl p-4 w-48 shrink-0 text-left snap-start shadow-xs hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
+      whileTap={{ scale: 0.98 }}
+      transition={{ duration: 0.2, delay: index * 0.04 }}
+      className="bg-white border border-zinc-200 hover:border-zinc-950 rounded-lg p-3.5 w-44 shrink-0 text-left snap-start transition-colors cursor-pointer flex flex-col justify-between"
     >
       <div>
-        <div className="w-8 h-8 rounded-lg bg-zinc-50 border border-zinc-200/80 flex items-center justify-center mb-2.5 text-zinc-700">
-          <Music size={14} className="text-amber-600" />
-        </div>
-        <p className="text-zinc-950 text-sm font-semibold truncate">
+        <span className="text-[9px] font-mono text-zinc-400 block mb-1">HYMN</span>
+        <p className="text-zinc-950 text-xs font-semibold truncate">
           {mezmur.title}
         </p>
-        <p className="text-zinc-500 text-xs truncate mt-0.5">
+        <p className="text-zinc-500 font-mono text-[10px] truncate mt-0.5">
           {mezmur.artist_name ?? mezmur.tune_name ?? 'Begena Hymn'}
         </p>
       </div>
 
-      <div className="mt-3 pt-2 border-t border-zinc-100 flex items-center justify-between text-[11px] text-zinc-400">
-        <span>View Song</span>
-        <ArrowRight size={12} className="text-zinc-400" />
+      <div className="mt-3 pt-2 border-t border-zinc-100 flex items-center justify-between text-[10px] font-mono text-zinc-400">
+        <span>OPEN</span>
+        <ArrowRight size={11} />
       </div>
     </motion.button>
   );

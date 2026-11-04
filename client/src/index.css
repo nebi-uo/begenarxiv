@@ -6,33 +6,35 @@
   --color-surface-subtle: #F4F4F5;
   --color-card: #FFFFFF;
   --color-ink: #09090B;
-  --color-ink-secondary: #3F3F46;
+  --color-ink-secondary: #52525B;
   --color-muted: #71717A;
   --color-subtle: #A1A1AA;
   --color-border: #E4E4E7;
-  --color-border-hover: #18181B;
-  --color-accent: #D97706;
-  --color-accent-hover: #B45309;
-  --color-accent-light: #FEF3C7;
-  --color-accent-secondary: #059669;
+  --color-border-dark: #09090B;
 
-  --radius-card: 16px;
+  /* Pixel art night palette from reference image */
+  --color-pixel-night: #0D122B;
+  --color-pixel-indigo: #161E4A;
+  --color-pixel-deep: #1F2A66;
+  --color-pixel-cyan: #38BDF8;
+
+  --radius-card: 10px;
   --radius-pill: 9999px;
-  --radius-btn: 10px;
+  --radius-btn: 6px;
 
-  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Geist", Helvetica, Arial, sans-serif;
-  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Geist", Helvetica, Arial, sans-serif;
-  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+  --font-sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, monospace;
 }
 
 @layer base {
   * {
-    border-color: var(--color-border);
+    border-color: #E4E4E7;
   }
 
   body {
-    background-color: var(--color-background);
-    color: var(--color-ink);
+    background-color: #FFFFFF;
+    color: #09090B;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -40,66 +42,86 @@
     overflow-x: hidden;
   }
 
-  /* Selection styling */
   ::selection {
-    background-color: #18181B;
+    background-color: #161E4A;
     color: #FFFFFF;
   }
 }
 
 @layer components {
-  /* Clean Modern SaaS Card */
-  .saas-card {
+  /* Pixel art rendering */
+  .pixel-art {
+    image-rendering: pixelated;
+    image-rendering: crisp-edges;
+    shape-rendering: crispEdges;
+  }
+
+  /* Pixel box with retro shadow */
+  .pixel-box {
     background: #FFFFFF;
-    border: 1px solid #E4E4E7;
-    border-radius: var(--radius-card);
-    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
-    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+    border: 2px solid #09090B;
+    box-shadow: 3px 3px 0px #09090B;
   }
 
-  .saas-card:hover {
-    border-color: #D4D4D8;
-    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
+  .pixel-box-night {
+    background: #0D122B;
+    border: 2px solid #1F2A66;
+    box-shadow: 3px 3px 0px #09090B;
+    color: #FFFFFF;
   }
 
-  /* Subtle technical grid background */
-  .tech-grid {
-    background-size: 32px 32px;
-    background-image: 
-      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
-      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
-  }
-
-  /* Subtle technical dots */
-  .tech-dots {
-    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
-    background-size: 20px 20px;
-  }
-
-  /* Indie game retro border & badge */
-  .retro-badge {
+  .pixel-tag {
     font-family: var(--font-mono);
-    border: 1px solid #18181B;
-    box-shadow: 2px 2px 0px #18181B;
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    background: #09090B;
+    color: #FFFFFF;
+    border-radius: 2px;
   }
 
-  .retro-box {
+  .pixel-tag-blue {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
+    background: #161E4A;
+    color: #38BDF8;
+    border: 1px solid #1F2A66;
+    border-radius: 2px;
+  }
+
+  .pixel-tag-outline {
+    font-family: var(--font-mono);
+    font-size: 10px;
+    letter-spacing: 0.05em;
+    padding: 2px 6px;
     background: #FFFFFF;
-    border: 2px solid #18181B;
-    box-shadow: 4px 4px 0px #18181B;
+    color: #09090B;
+    border: 1px solid #09090B;
+    border-radius: 2px;
   }
 
-  .retro-box-amber {
-    background: #FFFBEB;
-    border: 2px solid #D97706;
-    box-shadow: 4px 4px 0px #D97706;
+  /* 16-bit 2x2 checkerboard dither pattern */
+  .pixel-dither-subtle {
+    background-image: 
+      radial-gradient(#161E4A 0.75px, transparent 0.75px);
+    background-size: 4px 4px;
+    opacity: 0.08;
+  }
+
+  .pixel-dither-night {
+    background-image: 
+      radial-gradient(#38BDF8 0.75px, transparent 0.75px);
+    background-size: 4px 4px;
+    opacity: 0.15;
   }
 }
 
-/* Custom minimal scrollbar */
+/* Minimalist scrollbar */
 ::-webkit-scrollbar {
-  width: 6px;
-  height: 6px;
+  width: 5px;
+  height: 5px;
 }
 
 ::-webkit-scrollbar-track {

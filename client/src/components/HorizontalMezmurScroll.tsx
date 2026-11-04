@@ -12,12 +12,12 @@ export default function HorizontalMezmurScroll({ title, items, onSelect }: Props
 
   return (
     <div className="mt-8">
-      <div className="flex items-center justify-between mb-3">
-        <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+      <div className="flex items-center justify-between mb-3 font-mono">
+        <h4 className="text-[11px] uppercase tracking-wider text-zinc-500 font-semibold">
           {title}
         </h4>
-        <span className="text-xs text-zinc-400 font-mono">
-          {items.length} {items.length === 1 ? 'song' : 'songs'}
+        <span className="text-[10px] text-zinc-400">
+          {items.length} {items.length === 1 ? 'item' : 'items'}
         </span>
       </div>
       <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">

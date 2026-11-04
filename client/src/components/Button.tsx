@@ -16,24 +16,22 @@ export default function Button({
   className = '',
   disabled = false,
 }: Props) {
-  let variantStyles = 'bg-zinc-950 hover:bg-zinc-800 text-white border border-zinc-900';
+  let variantStyles = 'bg-zinc-950 hover:bg-zinc-800 text-white border border-zinc-950';
 
   if (variant === 'secondary') {
-    variantStyles = 'bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-200 shadow-xs';
+    variantStyles = 'bg-white hover:bg-zinc-50 text-zinc-900 border border-zinc-300 hover:border-zinc-950';
   } else if (variant === 'accent') {
-    variantStyles = 'bg-amber-600 hover:bg-amber-700 text-white border border-amber-600 shadow-xs';
+    variantStyles = 'bg-zinc-950 hover:bg-zinc-800 text-white border border-zinc-950';
   } else if (variant === 'outline') {
-    variantStyles = 'bg-transparent hover:bg-zinc-100 text-zinc-900 border border-zinc-300';
+    variantStyles = 'bg-transparent hover:bg-zinc-50 text-zinc-900 border border-zinc-200 hover:border-zinc-900';
   }
 
   return (
     <motion.button
       onClick={onClick}
       disabled={disabled}
-      whileHover={disabled ? undefined : { scale: 1.01 }}
       whileTap={disabled ? undefined : { scale: 0.98 }}
-      transition={{ type: 'spring', stiffness: 400, damping: 20 }}
-      className={`inline-flex items-center justify-center gap-2 text-sm font-medium px-5 py-2.5 rounded-full cursor-pointer transition-colors duration-150 ${variantStyles} ${
+      className={`inline-flex items-center justify-center gap-2 text-xs font-mono font-medium px-4 py-2 rounded-md cursor-pointer transition-colors duration-150 ${variantStyles} ${
         disabled ? 'opacity-50 cursor-not-allowed' : ''
       } ${className}`}
     >

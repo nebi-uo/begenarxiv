@@ -1,7 +1,7 @@
 import { useState, useEffect, useCallback, useRef } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { Play, Square, Volume2 } from 'lucide-react';
-import { useTonePlayer, STRING_FREQUENCIES, ROLL_OFFSET_SEC } from '../hooks/useTonePlayer';
+import { useTonePlayer, type BegenaTuneMode, BEGENA_TUNINGS, ROLL_OFFSET_SEC } from '../hooks/useTonePlayer';
 
 interface DemoStep {
   position: number;
@@ -10,20 +10,25 @@ interface DemoStep {
 }
 
 const SAMPLE_DEMO_SEQUENCE: DemoStep[] = [
+  { position: 1, durationMs: 400 },
+  { position: 3, durationMs: 400 },
+  { position: 2, durationMs: 400 },
+  { position: 4, durationMs: 300 },
+  { position: 2, durationMs: 300 },
   { position: 1, durationMs: 450 },
-  { position: 3, durationMs: 450 },
-  { position: 2, durationMs: 450 },
-  { position: 4, durationMs: 350 },
-  { position: 2, durationMs: 350 },
-  { position: 1, durationMs: 500 },
-  // Ornament roll: 4 then 2 fast
-  { position: 4, durationMs: 250, isOrnament: true },
-  { position: 2, durationMs: 250, isOrnament: true },
-  { position: 1, durationMs: 650 },
+  // Fast roll ornament (42)
+  { position: 4, durationMs: 200, isOrnament: true },
+  { position: 2, durationMs: 200, isOrnament: true },
+  { position: 1, durationMs: 600 },
 ];
 
-export default function InteractiveSoundboard() {
-  const { pluckString } = useTonePlayer();
+interface Props {
+  initialMode?: BegenaTuneMode;
+}
+
+export default function InteractiveSoundboard({ initialMode = 'Tizita' }: Props) {
+  const [mode, setMode] = useState<BegenaTuneMode>(initialMode);
+  const { pluckString, currentTuning } = useTonePlayer(mode);
   const [activeString, setActiveString] = useState<number | null>(null);
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
   const [currentDemoIndex, setCurrentDemoIndex] = useState<number | null>(null);
@@ -36,14 +41,14 @@ export default function InteractiveSoundboard() {
       pluckString(position);
       setTimeout(() => {
         setActiveString((current) => (current === position ? null : current));
-      }, 250);
+      }, 220);
     },
     [pluckString]
   );
 
-  // Keyboard shortcut listener: keys 1 to 5
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
+      if (['INPUT', 'TEXTAREA'].includes((e.target as HTMLElement)?.tagName)) return;
       if (['1', '2', '3', '4', '5'].includes(e.key)) {
         const pos = parseInt(e.key, 10);
         handlePluck(pos);
@@ -78,7 +83,7 @@ export default function InteractiveSoundboard() {
       setActiveString(step.position);
       pluckString(step.position, step.durationMs);
 
-      const nextDelay = step.isOrnament ? ROLL_OFFSET_SEC * 1000 + 150 : step.durationMs;
+      const nextDelay = step.isOrnament ? ROLL_OFFSET_SEC * 1000 + 140 : step.durationMs;
       demoTimeoutRef.current = setTimeout(() => {
         runStep(index + 1);
       }, nextDelay);
@@ -93,69 +98,89 @@ export default function InteractiveSoundboard() {
     };
   }, []);
 
+  const modes: BegenaTuneMode[] = ['Tizita', 'Selamta', 'Anchi-Hoye'];
+
   return (
-    <div className="w-full bg-white border border-zinc-200 rounded-2xl p-5 md:p-7 shadow-sm">
-      {/* Top Header of Soundboard */}
+    <div className="w-full bg-white border border-zinc-200 rounded-xl p-5 md:p-8">
+      {/* Top Header */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-5 border-b border-zinc-100">
         <div>
           <div className="flex items-center gap-2">
-            <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
+            <span className="w-2 h-2 rounded-full bg-zinc-950" />
             <h3 className="font-semibold text-zinc-950 text-sm md:text-base tracking-tight">
-              Interactive Begena Soundboard
+              10-String Begena Audio Board
             </h3>
-            <span className="text-[11px] font-mono bg-zinc-100 text-zinc-600 px-2 py-0.5 rounded-md border border-zinc-200">
-              Web Audio Synthesizer
+            <span className="pixel-tag-blue">
+              MODE: {mode.toUpperCase()}
             </span>
           </div>
           <p className="text-zinc-500 text-xs mt-1">
-            Tap any string or press keys <kbd className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded font-mono text-[10px] text-zinc-800">1</kbd> to <kbd className="px-1 py-0.5 bg-zinc-100 border border-zinc-200 rounded font-mono text-[10px] text-zinc-800">5</kbd> on your keyboard.
+            Tap string pads or press keyboard keys 1 to 5.
           </p>
         </div>
 
-        {/* Quick Demo Play/Stop Button */}
-        <button
-          onClick={isPlayingDemo ? stopDemo : playDemo}
-          className={`flex items-center gap-2 px-3.5 py-1.5 rounded-full text-xs font-medium transition-all ${
-            isPlayingDemo
-              ? 'bg-zinc-900 text-white shadow-sm'
-              : 'bg-amber-50 text-amber-900 border border-amber-200 hover:bg-amber-100'
-          }`}
-        >
-          {isPlayingDemo ? (
-            <>
-              <Square size={12} className="fill-current" /> Stop Demo
-            </>
-          ) : (
-            <>
-              <Play size={12} className="fill-current text-amber-600" /> Auto-Play Roll Sample
-            </>
-          )}
-        </button>
+        {/* Tune Mode Switcher & Auto-Play Demo */}
+        <div className="flex items-center gap-2">
+          {/* 3 Modes */}
+          <div className="flex bg-zinc-100 p-0.5 rounded border border-zinc-200 font-mono text-xs">
+            {modes.map((m) => (
+              <button
+                key={m}
+                onClick={() => setMode(m)}
+                className={`px-2.5 py-1 rounded text-[11px] transition-colors cursor-pointer ${
+                  mode === m
+                    ? 'bg-zinc-950 text-white font-bold'
+                    : 'text-zinc-600 hover:text-zinc-950'
+                }`}
+              >
+                {m}
+              </button>
+            ))}
+          </div>
+
+          <button
+            onClick={isPlayingDemo ? stopDemo : playDemo}
+            className={`flex items-center gap-1.5 px-3 py-1.5 rounded text-xs font-mono font-medium transition-colors cursor-pointer ${
+              isPlayingDemo
+                ? 'bg-zinc-950 text-white'
+                : 'bg-white text-zinc-900 border border-zinc-300 hover:border-zinc-950'
+            }`}
+          >
+            {isPlayingDemo ? (
+              <>
+                <Square size={11} className="fill-current" /> Stop
+              </>
+            ) : (
+              <>
+                <Play size={11} className="fill-current" /> Roll Demo
+              </>
+            )}
+          </button>
+        </div>
       </div>
 
-      {/* Strings Row Visualizer */}
+      {/* 5 Playing String Columns (Tizita: 1=E, 2=C, 3=D, 4=A, 5=G) */}
       <div className="grid grid-cols-5 gap-2 md:gap-4 py-6">
         {[1, 2, 3, 4, 5].map((pos) => {
-          const info = STRING_FREQUENCIES[pos];
+          const info = currentTuning[pos] ?? BEGENA_TUNINGS.Tizita[pos];
           const isActive = activeString === pos;
 
           return (
             <motion.button
               key={pos}
               onClick={() => handlePluck(pos)}
-              whileHover={{ scale: 1.02 }}
-              whileTap={{ scale: 0.96 }}
-              className={`relative flex flex-col items-center justify-between p-3 md:p-5 rounded-xl border transition-all cursor-pointer ${
+              whileTap={{ scale: 0.97 }}
+              className={`relative flex flex-col items-center justify-between p-3 md:p-5 rounded-lg border transition-all cursor-pointer ${
                 isActive
-                  ? 'border-amber-500 bg-amber-50/50 shadow-md ring-2 ring-amber-400/20'
-                  : 'border-zinc-200 bg-zinc-50/50 hover:bg-zinc-100/70 hover:border-zinc-300'
+                  ? 'border-zinc-950 bg-zinc-950 text-white shadow-xs'
+                  : 'border-zinc-200 bg-zinc-50/50 hover:bg-white hover:border-zinc-400 text-zinc-900'
               }`}
             >
-              {/* String Number Pill */}
+              {/* String Number Badge */}
               <div
-                className={`w-8 h-8 md:w-10 md:h-10 rounded-full flex items-center justify-center font-mono font-bold text-sm md:text-base transition-colors ${
+                className={`w-7 h-7 md:w-8 md:h-8 rounded flex items-center justify-center font-mono font-bold text-xs md:text-sm border transition-colors ${
                   isActive
-                    ? 'bg-amber-500 text-white shadow-sm'
+                    ? 'bg-zinc-900 text-white border-zinc-700'
                     : 'bg-white text-zinc-900 border border-zinc-200'
                 }`}
               >
@@ -163,27 +188,24 @@ export default function InteractiveSoundboard() {
               </div>
 
               {/* Plucked String Line Graphic */}
-              <div className="w-full flex items-center justify-center py-5 md:py-8">
+              <div className="w-full flex items-center justify-center py-5 md:py-7">
                 <motion.div
                   animate={
                     isActive
-                      ? {
-                          scaleX: [1, 2.5, 0.7, 1.8, 1],
-                          backgroundColor: ['#D97706', '#B45309', '#D97706'],
-                        }
+                      ? { scaleX: [1, 2.5, 0.8, 1.8, 1], backgroundColor: '#38BDF8' }
                       : { scaleX: 1, backgroundColor: '#D4D4D8' }
                   }
-                  transition={{ duration: 0.35, ease: 'easeOut' }}
-                  className="w-0.5 md:w-1 h-14 md:h-20 rounded-full"
+                  transition={{ duration: 0.25 }}
+                  className="w-0.5 h-12 md:h-16 rounded-full"
                 />
               </div>
 
-              {/* Note Name & Frequency */}
-              <div className="text-center">
-                <span className="block font-bold text-xs md:text-sm text-zinc-900">
+              {/* Note Details */}
+              <div className="text-center font-mono">
+                <span className={`block font-bold text-xs ${isActive ? 'text-white' : 'text-zinc-950'}`}>
                   {info.note}
                 </span>
-                <span className="block font-mono text-[10px] text-zinc-400 mt-0.5">
+                <span className={`block text-[10px] mt-0.5 ${isActive ? 'text-zinc-400' : 'text-zinc-400'}`}>
                   {info.hz} Hz
                 </span>
               </div>
@@ -192,7 +214,7 @@ export default function InteractiveSoundboard() {
         })}
       </div>
 
-      {/* Demo Roll Preview Banner */}
+      {/* Demo Active Bar */}
       <AnimatePresence>
         {isPlayingDemo && (
           <motion.div
@@ -201,17 +223,17 @@ export default function InteractiveSoundboard() {
             exit={{ opacity: 0, height: 0 }}
             className="overflow-hidden pt-2"
           >
-            <div className="bg-zinc-900 text-white rounded-xl p-3 flex items-center justify-between text-xs font-mono">
+            <div className="bg-zinc-950 text-white rounded-lg p-3 flex items-center justify-between text-xs font-mono border border-zinc-800">
               <div className="flex items-center gap-2">
-                <Volume2 size={14} className="text-amber-400 animate-pulse" />
-                <span>PLAYING DEMO SEQUENCE:</span>
-                <div className="flex items-center gap-1.5 overflow-x-auto">
+                <Volume2 size={13} className="text-sky-400" />
+                <span className="text-zinc-400">PLAYING [{mode.toUpperCase()}]:</span>
+                <div className="flex items-center gap-1">
                   {SAMPLE_DEMO_SEQUENCE.map((s, idx) => (
                     <span
                       key={idx}
                       className={`px-1.5 py-0.5 rounded text-[11px] ${
                         currentDemoIndex === idx
-                          ? 'bg-amber-500 text-zinc-950 font-bold scale-110'
+                          ? 'bg-white text-zinc-950 font-bold'
                           : 'bg-zinc-800 text-zinc-400'
                       }`}
                     >
