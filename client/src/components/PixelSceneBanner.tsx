@@ -1,6 +1,6 @@
 export default function PixelSceneBanner() {
   return (
-    <div className="relative w-full rounded-xl overflow-hidden border-2 border-black bg-black text-white select-none shadow-md">
+    <div className="relative w-full rounded-xl overflow-hidden border border-black bg-black text-white select-none">
       {/* 1-Bit Monochrome Handcrafted Pixel Art SVG Scene (Inspired by Night Landscape Reference) */}
       <svg
         viewBox="0 0 960 360"

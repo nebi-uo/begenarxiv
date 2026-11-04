@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, PlayCircle, Music, AlignLeft, Volume2, AlertCircle, RefreshCw } from 'lucide-react';
+import { ChevronLeft, PlayCircle, Music, AlignLeft, AlertCircle, RefreshCw } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurDetail, MezmurListItem } from '../types';
 import TapToHearPlayer from '../components/TapToHearPlayer';
@@ -192,6 +192,7 @@ export default function MezmurPage() {
           >
             <TapToHearPlayer
               sequence={mezmur.sequence}
+              mode={currentMode}
               onActiveStringChange={setActiveString}
             />
           </SectionCard>
@@ -249,55 +250,7 @@ export default function MezmurPage() {
             </SectionCard>
           )}
 
-          {/* String Tuning Reference */}
-          <SectionCard
-            icon={Volume2}
-            title={`${currentMode} String Frequencies`}
-            description="Reference frequencies for Begena tuning."
-          >
-            <div className="space-y-1.5 font-mono text-xs">
-              {[1, 2, 3, 4, 5].map((pos) => {
-                const info = currentTuningNotes[pos];
-                const isActive = activeString === pos;
 
-                return (
-                  <button
-                    key={pos}
-                    onClick={() => handleManualPluck(pos)}
-                    className={`w-full flex items-center justify-between p-2 rounded border transition-colors cursor-pointer ${
-                      isActive
-                        ? 'bg-zinc-950 text-white border-zinc-950 shadow-xs'
-                        : 'bg-white hover:bg-zinc-50 border-zinc-200 text-zinc-900'
-                    }`}
-                  >
-                    <div className="flex items-center gap-2">
-                      <span
-                        className={`w-5 h-5 rounded flex items-center justify-center font-bold text-xs ${
-                          isActive
-                            ? 'bg-zinc-800 text-white'
-                            : 'bg-zinc-100 text-zinc-900 border border-zinc-200'
-                        }`}
-                      >
-                        {pos}
-                      </span>
-                      <span>
-                        String {pos} ({info.note})
-                      </span>
-                    </div>
-
-                    <div className="flex items-center gap-2 text-[10px]">
-                      <span className={isActive ? 'text-zinc-400' : 'text-zinc-400'}>
-                        {info.hz} Hz
-                      </span>
-                      <span className="text-[9px] uppercase px-1 py-0.5 rounded border border-zinc-300">
-                        Pluck
-                      </span>
-                    </div>
-                  </button>
-                );
-              })}
-            </div>
-          </SectionCard>
         </div>
       </div>
 

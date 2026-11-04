@@ -2,7 +2,7 @@ import PixelBegena from './PixelBegena';
 
 export default function CatalogueHeroBanner() {
   return (
-    <div className="relative rounded-xl overflow-hidden border-2 border-black bg-black p-6 md:p-8 mb-6 text-white shadow-sm select-none">
+    <div className="relative rounded-xl overflow-hidden border border-black bg-black p-6 md:p-8 mb-6 text-white select-none">
       {/* Handcrafted Pure SVG Pixel Dither Background */}
       <svg
         viewBox="0 0 800 140"

@@ -3,7 +3,9 @@ import { useEffect, useRef, useCallback } from 'react';
 export type BegenaTuneMode = 'Tizita' | 'Selamta' | 'Anchi-Hoye';
 
 // Frequencies for the 3 traditional Begena tuning modes (Qenets)
-// Tizita tuning: String 1 = E, String 2 = C, String 3 = D, String 4 = A, String 5 = G
+// Tizita: String 1 = E, String 2 = C, String 3 = D, String 4 = A, String 5 = G
+// Selamta: String 1 = F (changed from E), String 2 = C, String 3 = D, String 4 = A, String 5 = G
+// Anchi-Hoye: String 1 = F, String 2 = C, String 3 = C#, String 4 = A, String 5 = F#
 export const BEGENA_TUNINGS: Record<
   BegenaTuneMode,
   Record<number, { note: string; hz: number; previewHz: number }>
@@ -16,18 +18,18 @@ export const BEGENA_TUNINGS: Record<
     5: { note: 'G', hz: 196.00, previewHz: 392.00 },
   },
   Selamta: {
-    1: { note: 'C', hz: 130.81, previewHz: 261.63 },
-    2: { note: 'D', hz: 146.83, previewHz: 293.66 },
-    3: { note: 'E', hz: 164.81, previewHz: 329.63 },
-    4: { note: 'G', hz: 196.00, previewHz: 392.00 },
-    5: { note: 'A', hz: 220.00, previewHz: 440.00 },
+    1: { note: 'F', hz: 174.61, previewHz: 349.23 },
+    2: { note: 'C', hz: 130.81, previewHz: 261.63 },
+    3: { note: 'D', hz: 146.83, previewHz: 293.66 },
+    4: { note: 'A', hz: 220.00, previewHz: 440.00 },
+    5: { note: 'G', hz: 196.00, previewHz: 392.00 },
   },
   'Anchi-Hoye': {
-    1: { note: 'D', hz: 146.83, previewHz: 293.66 },
-    2: { note: 'F', hz: 174.61, previewHz: 349.23 },
-    3: { note: 'G', hz: 196.00, previewHz: 392.00 },
+    1: { note: 'F', hz: 174.61, previewHz: 349.23 },
+    2: { note: 'C', hz: 130.81, previewHz: 261.63 },
+    3: { note: 'C#', hz: 138.59, previewHz: 277.18 },
     4: { note: 'A', hz: 220.00, previewHz: 440.00 },
-    5: { note: 'C', hz: 261.63, previewHz: 523.25 },
+    5: { note: 'F#', hz: 185.00, previewHz: 369.99 },
   },
 };
 
@@ -36,11 +38,22 @@ export const STRING_FREQUENCIES = BEGENA_TUNINGS.Tizita;
 
 export const NOTE_TO_FREQUENCY: Record<string, number> = {
   C: 261.63,
+  'C#': 277.18,
+  Db: 277.18,
   D: 293.66,
+  'D#': 311.13,
+  Eb: 311.13,
   E: 329.63,
   F: 349.23,
+  'F#': 369.99,
+  Gb: 369.99,
   G: 392.00,
+  'G#': 415.30,
+  Ab: 415.30,
   A: 440.00,
+  'A#': 466.16,
+  Bb: 466.16,
+  B: 493.88,
 };
 
 export const ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast ornament roll

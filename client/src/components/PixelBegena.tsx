@@ -39,12 +39,17 @@ export default function PixelBegena({
         {/* Tall slender upright arms */}
         <rect x="4" y="5" width="2" height="11" />
         <rect x="18" y="5" width="2" height="11" />
-        {/* 10 Strings (represented as 5 pairs) */}
-        <rect x="8" y="5" width="1" height="11" opacity="0.8" />
-        <rect x="10" y="5" width="1" height="11" opacity="0.8" />
-        <rect x="12" y="5" width="1" height="11" opacity="0.8" />
-        <rect x="14" y="5" width="1" height="11" opacity="0.8" />
-        <rect x="16" y="5" width="1" height="11" opacity="0.8" />
+        {/* 10 Strings with authentic skipping: 1 (active), skip 2, 2 (active), skip 1, 3 (active), skip 1, 4 (active), skip 1, 5 (active) */}
+        <rect x="7" y="5" width="1" height="11" />
+        <rect x="8" y="5" width="1" height="11" opacity="0.3" />
+        <rect x="9" y="5" width="1" height="11" opacity="0.3" />
+        <rect x="10" y="5" width="1" height="11" />
+        <rect x="11" y="5" width="1" height="11" opacity="0.3" />
+        <rect x="12" y="5" width="1" height="11" />
+        <rect x="13" y="5" width="1" height="11" opacity="0.3" />
+        <rect x="14" y="5" width="1" height="11" />
+        <rect x="15" y="5" width="1" height="11" opacity="0.3" />
+        <rect x="16" y="5" width="1" height="11" />
         {/* Compact soundbox */}
         <rect x="5" y="16" width="14" height="6" />
         {/* Bridge */}
@@ -57,19 +62,28 @@ export default function PixelBegena({
   }
 
   // Exact 10 strings matching authentic Begena:
-  // 5 primary playing positions [1, 2, 3, 4, 5] mapped to alternate strings
-  // Drone strings are sympathetic resonators
+  // After String 1, skips 2 strings -> String 2, skips 1 -> String 3, skips 1 -> String 4, skips 1 -> String 5.
+  // 1. Physical 1: Playable [1]
+  // 2. Physical 2: Drone (skip 1)
+  // 3. Physical 3: Drone (skip 2)
+  // 4. Physical 4: Playable [2]
+  // 5. Physical 5: Drone (skip 1)
+  // 6. Physical 6: Playable [3]
+  // 7. Physical 7: Drone (skip 1)
+  // 8. Physical 8: Playable [4]
+  // 9. Physical 9: Drone (skip 1)
+  // 10. Physical 10: Playable [5]
   const stringPositions = [
-    { id: 1, posIndex: 1, yokeX: 104, bridgeX: 105, isPrimary: true },
-    { id: 2, posIndex: null, yokeX: 116, bridgeX: 116, isPrimary: false },
-    { id: 3, posIndex: 2, yokeX: 128, bridgeX: 128, isPrimary: true },
-    { id: 4, posIndex: null, yokeX: 140, bridgeX: 140, isPrimary: false },
-    { id: 5, posIndex: 3, yokeX: 152, bridgeX: 151, isPrimary: true },
-    { id: 6, posIndex: null, yokeX: 168, bridgeX: 169, isPrimary: false },
-    { id: 7, posIndex: 4, yokeX: 180, bridgeX: 180, isPrimary: true },
-    { id: 8, posIndex: null, yokeX: 192, bridgeX: 192, isPrimary: false },
-    { id: 9, posIndex: 5, yokeX: 204, bridgeX: 204, isPrimary: true },
-    { id: 10, posIndex: null, yokeX: 216, bridgeX: 215, isPrimary: false },
+    { id: 1, posIndex: 1, yokeX: 104, bridgeX: 104, isPrimary: true },
+    { id: 2, posIndex: null, yokeX: 117, bridgeX: 117, isPrimary: false },
+    { id: 3, posIndex: null, yokeX: 130, bridgeX: 130, isPrimary: false },
+    { id: 4, posIndex: 2, yokeX: 143, bridgeX: 143, isPrimary: true },
+    { id: 5, posIndex: null, yokeX: 156, bridgeX: 156, isPrimary: false },
+    { id: 6, posIndex: 3, yokeX: 169, bridgeX: 169, isPrimary: true },
+    { id: 7, posIndex: null, yokeX: 182, bridgeX: 182, isPrimary: false },
+    { id: 8, posIndex: 4, yokeX: 195, bridgeX: 195, isPrimary: true },
+    { id: 9, posIndex: null, yokeX: 208, bridgeX: 208, isPrimary: false },
+    { id: 10, posIndex: 5, yokeX: 221, bridgeX: 221, isPrimary: true },
   ];
 
   const primaryPlayingStrings = [
@@ -80,7 +94,7 @@ export default function PixelBegena({
     { pos: 5, note: currentTuning[5]?.note ?? 'G' },
   ];
 
-  // Exact authentic stature from photograph (ViewBox 320 x 520)
+  // Proportions matching photograph (ViewBox 320 x 520)
   const width = size === 'hero' ? 300 : 210;
   const height = size === 'hero' ? 488 : 341;
 
@@ -99,11 +113,6 @@ export default function PixelBegena({
             <rect x="0" y="0" width="2" height="2" fill="#000000" opacity="0.08" />
             <rect x="2" y="2" width="2" height="2" fill="#000000" opacity="0.08" />
           </pattern>
-          {/* 1-bit Dark Dither for Shading */}
-          <pattern id="darkDither" width="4" height="4" patternUnits="userSpaceOnUse">
-            <rect x="0" y="0" width="2" height="2" fill="#000000" opacity="0.25" />
-            <rect x="2" y="2" width="2" height="2" fill="#000000" opacity="0.25" />
-          </pattern>
         </defs>
 
         {/* Framing border */}
@@ -118,42 +127,34 @@ export default function PixelBegena({
           strokeDasharray="4 4"
         />
 
-        {/* ============================================================== */}
-        {/* 1. TOP CURVED SCROLL HORNS (Volute / Ram's Horns from Photo)  */}
-        {/* ============================================================== */}
+        {/* 1. TOP CURVED SCROLL HORNS (Volute / Ram's Horns from Photo) */}
         {/* Left Scroll Horn */}
         <g>
-          {/* Outer scroll contour */}
           <rect x="36" y="52" width="24" height="26" fill="#000000" />
           <rect x="26" y="38" width="16" height="20" fill="#000000" />
           <rect x="28" y="24" width="22" height="18" fill="#000000" />
           <rect x="44" y="18" width="28" height="14" fill="#000000" />
           <rect x="66" y="24" width="14" height="18" fill="#000000" />
           <rect x="62" y="36" width="12" height="12" fill="#000000" />
-          {/* Inner scroll eye cutout */}
           <rect x="46" y="28" width="10" height="10" fill="#FAFAFA" />
           <rect x="50" y="32" width="2" height="2" fill="#000000" />
         </g>
 
         {/* Right Scroll Horn */}
         <g>
-          {/* Outer scroll contour */}
           <rect x="260" y="52" width="24" height="26" fill="#000000" />
           <rect x="278" y="38" width="16" height="20" fill="#000000" />
           <rect x="270" y="24" width="22" height="18" fill="#000000" />
           <rect x="248" y="18" width="28" height="14" fill="#000000" />
           <rect x="240" y="24" width="14" height="18" fill="#000000" />
           <rect x="246" y="36" width="12" height="12" fill="#000000" />
-          {/* Inner scroll eye cutout */}
           <rect x="264" y="28" width="10" height="10" fill="#FAFAFA" />
           <rect x="268" y="32" width="2" height="2" fill="#000000" />
         </g>
 
-        {/* ============================================================== */}
-        {/* 2. TOP CROSSBAR (YOKE / BERENTA)                              */}
-        {/* ============================================================== */}
+        {/* 2. TOP CROSSBAR (YOKE / BERENTA) */}
         <rect x="48" y="56" width="224" height="22" fill="#000000" />
-        {/* Traditional Ethiopian Carved Geometric Band on Yoke */}
+        {/* Traditional Carved Geometric Band */}
         {Array.from({ length: 24 }).map((_, i) => (
           <rect
             key={i}
@@ -166,51 +167,37 @@ export default function PixelBegena({
           />
         ))}
 
-        {/* ============================================================== */}
-        {/* 3. 10 WOODEN TUNING PEGS WITH LEATHER COILS                   */}
-        {/* ============================================================== */}
+        {/* 3. 10 WOODEN TUNING PEGS WITH LEATHER COILS */}
         {stringPositions.map((s) => (
           <g key={s.id}>
-            {/* Wooden peg head */}
             <rect x={s.yokeX - 3} y="26" width="7" height="6" fill="#000000" />
             <rect x={s.yokeX - 1} y="22" width="3" height="4" fill="#000000" />
-            {/* Wooden peg shaft */}
             <rect x={s.yokeX - 2} y="32" width="5" height="24" fill="#000000" />
             <rect x={s.yokeX - 1} y="32" width="1" height="24" fill="#71717A" />
-            {/* Leather binding coil across yoke */}
             <rect x={s.yokeX - 3} y="58" width="7" height="18" fill="#18181B" />
             <rect x={s.yokeX - 2} y="62" width="5" height="2" fill="#FFFFFF" opacity="0.3" />
             <rect x={s.yokeX - 2} y="70" width="5" height="2" fill="#FFFFFF" opacity="0.3" />
           </g>
         ))}
 
-        {/* ============================================================== */}
-        {/* 4. HANGING LEATHER TUNING WEIGHT / POUCH (Korkoro) ON RIGHT   */}
-        {/* ============================================================== */}
-        {/* Thin leather suspension cord */}
+        {/* 4. HANGING LEATHER TUNING WEIGHT (Korkoro) ON RIGHT */}
         <line
-          x1="234"
+          x1="236"
           y1="78"
-          x2="234"
+          x2="236"
           y2="236"
           stroke="#000000"
           strokeWidth="1.5"
           strokeDasharray="3 3"
         />
-        {/* Teardrop leather weight */}
-        <polygon points="234,234 227,248 241,248" fill="#000000" />
-        <rect x="226" y="248" width="16" height="22" rx="2" fill="#000000" />
-        <polygon points="227,270 241,270 234,278" fill="#000000" />
-        {/* Weight leather texture */}
-        <rect x="228" y="250" width="12" height="18" fill="#27272A" />
-        <rect x="230" y="252" width="4" height="4" fill="#52525B" />
+        <polygon points="236,234 229,248 243,248" fill="#000000" />
+        <rect x="228" y="248" width="16" height="22" rx="2" fill="#000000" />
+        <polygon points="229,270 243,270 236,278" fill="#000000" />
+        <rect x="230" y="250" width="12" height="18" fill="#27272A" />
 
-        {/* ============================================================== */}
-        {/* 5. TALL, SLENDER UPRIGHT ARMS (Tenten) - Outward Splay Trapeze*/}
-        {/* ============================================================== */}
-        {/* Left Arm: From Yoke (x=64..80) down to Soundbox (x=88..104) */}
+        {/* 5. TALL, SLENDER UPRIGHT ARMS (Tenten) - Outward Splay Trapeze */}
+        {/* Left Arm */}
         <polygon points="64,78 80,78 104,350 88,350" fill="#000000" />
-        {/* Left Arm Carved Diamond Pattern Relief */}
         {Array.from({ length: 14 }).map((_, i) => {
           const cy = 96 + i * 18;
           const cx = 72 + (i / 13) * 24;
@@ -224,9 +211,8 @@ export default function PixelBegena({
           );
         })}
 
-        {/* Right Arm: From Yoke (x=240..256) down to Soundbox (x=216..232) */}
+        {/* Right Arm */}
         <polygon points="240,78 256,78 232,350 216,350" fill="#000000" />
-        {/* Right Arm Carved Diamond Pattern Relief */}
         {Array.from({ length: 14 }).map((_, i) => {
           const cy = 96 + i * 18;
           const cx = 248 - (i / 13) * 24;
@@ -240,14 +226,9 @@ export default function PixelBegena({
           );
         })}
 
-        {/* ============================================================== */}
-        {/* 6. RECTANGULAR SOUNDBOX (Body / Parchment Hide Face)          */}
-        {/* ============================================================== */}
-        {/* Outer Dark Wooden Frame */}
+        {/* 6. RECTANGULAR SOUNDBOX (Body / Parchment Hide Face) */}
         <polygon points="84,346 236,346 242,468 78,468" fill="#000000" />
-        {/* Stretched Animal Hide Parchment Front */}
         <polygon points="90,352 230,352 236,462 84,462" fill="#F4F4F5" />
-        {/* 1-Bit Dither Texture across Parchment */}
         <polygon points="90,352 230,352 236,462 84,462" fill="url(#parchmentDither)" />
 
         {/* Ethiopian Cross / Diamond Soundhole in Center */}
@@ -258,13 +239,9 @@ export default function PixelBegena({
           <rect x="-2" y="-2" width="4" height="4" fill="#FAFAFA" />
         </g>
 
-        {/* ============================================================== */}
-        {/* 7. WIDE WOODEN BRIDGE WITH 10 LEATHER DAMPERS (Birr / Enshish)*/}
-        {/* ============================================================== */}
-        {/* Wooden Bridge Base with arches */}
-        <rect x="94" y="404" width="132" height="14" fill="#000000" />
-        <rect x="96" y="406" width="128" height="4" fill="#27272A" />
-        {/* 10 Individual Leather Dampers on Bridge */}
+        {/* 7. WIDE WOODEN BRIDGE WITH 10 LEATHER DAMPERS (Birr / Enshish) */}
+        <rect x="94" y="404" width="134" height="14" fill="#000000" />
+        <rect x="96" y="406" width="130" height="4" fill="#27272A" />
         {stringPositions.map((s) => (
           <rect
             key={`damper-${s.id}`}
@@ -278,11 +255,8 @@ export default function PixelBegena({
           />
         ))}
 
-        {/* ============================================================== */}
-        {/* 8. LOWER TAILPIECE ANCHORING ALL 10 STRINGS                   */}
-        {/* ============================================================== */}
-        <rect x="98" y="454" width="124" height="8" fill="#000000" />
-        {/* 10 string knots */}
+        {/* 8. LOWER TAILPIECE ANCHORING ALL 10 STRINGS */}
+        <rect x="98" y="454" width="126" height="8" fill="#000000" />
         {stringPositions.map((s) => (
           <rect
             key={`knot-${s.id}`}
@@ -291,14 +265,11 @@ export default function PixelBegena({
             width="4"
             height="4"
             fill="#FFFFFF"
-            opacity="0.4"
+            opacity={s.isPrimary ? 0.6 : 0.25}
           />
         ))}
 
-        {/* ============================================================== */}
-        {/* 9. TWO POINTED BONE / IVORY FEET (Exact Feature from Photo)   */}
-        {/* ============================================================== */}
-        {/* Left ivory foot */}
+        {/* 9. TWO POINTED BONE / IVORY FEET */}
         <polygon
           points="104,468 116,468 112,498 102,498"
           fill="#FFFFFF"
@@ -307,7 +278,6 @@ export default function PixelBegena({
         />
         <rect x="105" y="488" width="4" height="8" fill="#000000" opacity="0.3" />
 
-        {/* Right ivory foot */}
         <polygon
           points="204,468 216,468 218,498 208,498"
           fill="#FFFFFF"
@@ -316,9 +286,7 @@ export default function PixelBegena({
         />
         <rect x="211" y="488" width="4" height="8" fill="#000000" opacity="0.3" />
 
-        {/* ============================================================== */}
-        {/* 10. THE 10 STRINGS WITH ACTIVE PLUCKING VIBRATIONS             */}
-        {/* ============================================================== */}
+        {/* 10. THE 10 STRINGS (1, skip 2, 2, skip 1, 3, skip 1, 4, skip 1, 5) */}
         {stringPositions.map((str) => {
           const isPrimary = str.isPrimary;
           const posNum = str.posIndex;
@@ -330,7 +298,7 @@ export default function PixelBegena({
               className={interactive && posNum !== null ? 'cursor-pointer group' : ''}
               onClick={() => posNum !== null && handleStringClick(posNum)}
             >
-              {/* Wide click hitbox */}
+              {/* Wide click hitbox for playable strings */}
               {interactive && posNum !== null && (
                 <rect
                   x={str.yokeX - 8}
@@ -344,7 +312,6 @@ export default function PixelBegena({
               {/* String Plucking Vibration Animation */}
               {isPlucked ? (
                 <g>
-                  {/* Vibrating ghost lines */}
                   <line
                     x1={str.yokeX - 3}
                     y1="78"
@@ -365,7 +332,6 @@ export default function PixelBegena({
                     strokeDasharray="4 2"
                     opacity="0.6"
                   />
-                  {/* Solid core line */}
                   <line
                     x1={str.yokeX}
                     y1="78"
@@ -383,7 +349,7 @@ export default function PixelBegena({
                   y2="456"
                   stroke={isPrimary ? '#000000' : '#A1A1AA'}
                   strokeWidth={isPrimary ? '1.8' : '1'}
-                  opacity={isPrimary ? 0.95 : 0.45}
+                  opacity={isPrimary ? 0.95 : 0.35}
                   className={
                     interactive && posNum !== null
                       ? 'group-hover:stroke-black group-hover:stroke-[2.5]'
@@ -396,7 +362,7 @@ export default function PixelBegena({
         })}
       </svg>
 
-      {/* Primary Playing String Selector Pills underneath (Tizita: 1=E, 2=C, 3=D, 4=A, 5=G) */}
+      {/* Primary Playing String Selector Pills (1, 2, 3, 4, 5) */}
       {interactive && (
         <div className="flex items-center justify-between w-full max-w-[280px] mt-3 px-1 font-mono">
           {primaryPlayingStrings.map((str) => {
@@ -407,7 +373,7 @@ export default function PixelBegena({
                 onClick={() => handleStringClick(str.pos)}
                 className={`flex flex-col items-center justify-center py-1.5 px-2.5 rounded cursor-pointer transition-all ${
                   isPlucked
-                    ? 'bg-black text-white scale-105 shadow-xs'
+                    ? 'bg-black text-white scale-105'
                     : 'bg-zinc-100 hover:bg-zinc-200 text-black border border-zinc-200'
                 }`}
                 title={`String ${str.pos} (${str.note}) - ${mode}`}

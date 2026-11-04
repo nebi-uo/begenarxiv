@@ -34,6 +34,9 @@
     -moz-osx-font-smoothing: grayscale;
     min-height: 100vh;
     overflow-x: hidden;
+    /* Subtle, understated grunge / parchment texture overlay */
+    background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noiseFilter'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='matrix' values='1 0 0 0 0  0 1 0 0 0  0 0 1 0 0  0 0 0 0.04 0'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noiseFilter)'/%3E%3C/svg%3E");
+    background-repeat: repeat;
   }
 
   ::selection {
@@ -50,17 +53,15 @@
     shape-rendering: crispEdges;
   }
 
-  /* 8-bit Stepped Pixel Box */
+  /* Clean Flat Pixel Box without bold drop-shadows */
   .pixel-box {
     background: #FFFFFF;
-    border: 2px solid #000000;
-    box-shadow: 3px 3px 0px #000000;
+    border: 1px solid #000000;
   }
 
   .pixel-box-black {
     background: #000000;
-    border: 2px solid #000000;
-    box-shadow: 3px 3px 0px #71717A;
+    border: 1px solid #000000;
     color: #FFFFFF;
   }
 
@@ -85,7 +86,7 @@
     border-radius: 2px;
   }
 
-  /* 1-bit Checkerboard Dither Patterns (Pure Black & White) */
+  /* 1-bit Checkerboard Dither Patterns */
   .pixel-dither-50 {
     background-image: radial-gradient(#000000 1px, transparent 1px);
     background-size: 4px 4px;
