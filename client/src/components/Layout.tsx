@@ -57,7 +57,7 @@ export default function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Minimalist Footer */}
-      <footer className="border-t border-zinc-200/80 bg-white/70 backdrop-blur-[2px] mt-auto">
+      <footer className="border-t border-zinc-200 bg-white mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-zinc-900 font-semibold">
             <div className="w-6 h-8 flex items-center justify-center shrink-0">

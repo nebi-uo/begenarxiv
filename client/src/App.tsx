@@ -7,8 +7,6 @@ import MezmurPage from './pages/MezmurPage';
 function App() {
   return (
     <BrowserRouter>
-      {/* Precision grunge stipple overlay across whole app */}
-      <div className="fixed inset-0 pointer-events-none z-30 grunge-overlay" aria-hidden="true" />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/catalogue" element={<CataloguePage />} />
