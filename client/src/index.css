@@ -1,98 +1,116 @@
 @import "tailwindcss";
 
 @theme {
-  --color-background: #F7F6F3;
+  --color-background: #FFFFFF;
+  --color-surface: #FAFAFA;
+  --color-surface-subtle: #F4F4F5;
   --color-card: #FFFFFF;
-  --color-ink: #17161A;
-  --color-muted: #8A8A8A;
-  --color-accent: #F2A93B;
-  --color-accent-secondary: #1FAE7A;
-  --color-border: #E9E7E2;
-  --radius-card: 24px;
-  --radius-pill: 999px;
-  --font-display: "Geist", sans-serif;
-  --font-body: "Geist", sans-serif;
-  --font-mono: "Geist Mono", monospace;
-  --color-glass: rgba(255, 255, 255, 0.55);
-  --color-glass-border: rgba(255, 255, 255, 0.65);
-  --color-glass-dark: rgba(23, 22, 26, 0.6);
-  --color-glass-dark-border: rgba(255, 255, 255, 0.12);
+  --color-ink: #09090B;
+  --color-ink-secondary: #3F3F46;
+  --color-muted: #71717A;
+  --color-subtle: #A1A1AA;
+  --color-border: #E4E4E7;
+  --color-border-hover: #18181B;
+  --color-accent: #D97706;
+  --color-accent-hover: #B45309;
+  --color-accent-light: #FEF3C7;
+  --color-accent-secondary: #059669;
+
+  --radius-card: 16px;
+  --radius-pill: 9999px;
+  --radius-btn: 10px;
+
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Geist", Helvetica, Arial, sans-serif;
+  --font-display: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Inter", "Geist", Helvetica, Arial, sans-serif;
+  --font-mono: ui-monospace, "SFMono-Regular", Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;
+}
+
+@layer base {
+  * {
+    border-color: var(--color-border);
+  }
+
+  body {
+    background-color: var(--color-background);
+    color: var(--color-ink);
+    font-family: var(--font-sans);
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    min-height: 100vh;
+    overflow-x: hidden;
+  }
+
+  /* Selection styling */
+  ::selection {
+    background-color: #18181B;
+    color: #FFFFFF;
+  }
 }
 
 @layer components {
-  .liquid-glass {
-    background: rgba(255, 255, 255, 0.03);
-    backdrop-filter: blur(6px) saturate(180%);
-    -webkit-backdrop-filter: blur(6px) saturate(180%);
-    border: 1px solid rgba(255, 255, 255, 0.25);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.15),
-      inset 0 1px 1px rgba(255, 255, 255, 0.5),
-      inset 0 -1px 1px rgba(0, 0, 0, 0.08);
-    position: relative;
-    overflow: hidden;
+  /* Clean Modern SaaS Card */
+  .saas-card {
+    background: #FFFFFF;
+    border: 1px solid #E4E4E7;
+    border-radius: var(--radius-card);
+    box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.04), 0 1px 2px -1px rgba(0, 0, 0, 0.04);
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
   }
 
-  .glass-panel {
-    background: rgba(255, 255, 255, 0.55);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.4);
-    box-shadow:
-      0 8px 32px rgba(0, 0, 0, 0.2),
-      inset 0 1px 1px rgba(255, 255, 255, 0.6);
-    position: relative;
-    overflow: hidden;
+  .saas-card:hover {
+    border-color: #D4D4D8;
+    box-shadow: 0 6px 16px -4px rgba(0, 0, 0, 0.06), 0 2px 6px -2px rgba(0, 0, 0, 0.04);
   }
 
-  .glass-panel-dark {
-    background: rgba(23, 22, 26, 0.55);
-    backdrop-filter: blur(20px) saturate(160%);
-    -webkit-backdrop-filter: blur(20px) saturate(160%);
-    border: 1px solid rgba(255, 255, 255, 0.12);
-    box-shadow: 0 8px 32px rgba(0, 0, 0, 0.3), inset 0 1px 1px rgba(255, 255, 255, 0.1);
+  /* Subtle technical grid background */
+  .tech-grid {
+    background-size: 32px 32px;
+    background-image: 
+      linear-gradient(to right, rgba(0, 0, 0, 0.03) 1px, transparent 1px),
+      linear-gradient(to bottom, rgba(0, 0, 0, 0.03) 1px, transparent 1px);
   }
 
-  .glass-panel::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(115deg, transparent 25%, rgba(255, 255, 255, 0.3) 38%, transparent 55%);
-    pointer-events: none;
+  /* Subtle technical dots */
+  .tech-dots {
+    background-image: radial-gradient(rgba(0, 0, 0, 0.08) 1px, transparent 1px);
+    background-size: 20px 20px;
   }
 
-  .liquid-glass::before {
-    content: '';
-    position: absolute;
-    inset: 0;
-    background: linear-gradient(
-      115deg,
-      transparent 25%,
-      rgba(255, 255, 255, 0.45) 38%,
-      rgba(255, 255, 255, 0.15) 42%,
-      transparent 55%
-    );
-    pointer-events: none;
+  /* Indie game retro border & badge */
+  .retro-badge {
+    font-family: var(--font-mono);
+    border: 1px solid #18181B;
+    box-shadow: 2px 2px 0px #18181B;
   }
 
-  .liquid-glass::after {
-    content: '';
-    position: absolute;
-    top: 0;
-    left: 0;
-    right: 0;
-    height: 50%;
-    background: linear-gradient(
-      to bottom,
-      rgba(255, 255, 255, 0.2),
-      transparent
-    );
-    pointer-events: none;
+  .retro-box {
+    background: #FFFFFF;
+    border: 2px solid #18181B;
+    box-shadow: 4px 4px 0px #18181B;
+  }
+
+  .retro-box-amber {
+    background: #FFFBEB;
+    border: 2px solid #D97706;
+    box-shadow: 4px 4px 0px #D97706;
   }
 }
 
-body {
-  font-family: var(--font-body);
-  background: radial-gradient(ellipse at top, #EEF3FB 0%, var(--color-background) 55%);
-  min-height: 100vh;
+/* Custom minimal scrollbar */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #D4D4D8;
+  border-radius: 9999px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #A1A1AA;
 }

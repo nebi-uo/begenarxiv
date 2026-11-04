@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
 import { motion } from 'framer-motion';
+import { Play, Square, Volume2 } from 'lucide-react';
 import type { SequenceStep } from '../types';
 import Button from './Button';
 
@@ -15,7 +16,7 @@ const PREVIEW_FREQUENCIES: Record<string, number> = {
   A: 440.0,
 };
 
-const ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast roll — tunable
+const ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast roll
 
 function groupByLine(sequence: SequenceStep[]) {
   const lines = new Map<number, SequenceStep[]>();
@@ -69,38 +70,55 @@ export default function TapToHearPlayer({ sequence }: Props) {
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       highlightTimeoutsRef.current.forEach(clearTimeout);
-      audioCtxRef.current?.close();
+      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
+        audioCtxRef.current.close().catch(() => {});
+      }
     };
   }, []);
 
   const getAudioContext = () => {
-    if (!audioCtxRef.current) audioCtxRef.current = new AudioContext();
+    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
+      const AudioCtx = window.AudioContext || (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
+      audioCtxRef.current = new AudioCtx();
+    }
+    if (audioCtxRef.current.state === 'suspended') {
+      audioCtxRef.current.resume();
+    }
     return audioCtxRef.current;
   };
 
-  // Schedules a tone at a precise, sample-accurate start time on the audio
-  // clock — not "play now", but "play exactly at this future instant".
   const scheduleTone = (noteName: string, durationMs: number, startTime: number) => {
     const ctx = getAudioContext();
-    const frequency = PREVIEW_FREQUENCIES[noteName] ?? 220;
+    const frequency = PREVIEW_FREQUENCIES[noteName] ?? 261.63;
+    const durationSec = durationMs / 1000;
+
+    // Plucked string harmonic synthesis (triangle + sine overtone)
     const oscillator = ctx.createOscillator();
+    const overtone = ctx.createOscillator();
     const gain = ctx.createGain();
-    oscillator.frequency.value = frequency;
-    oscillator.type = 'sine';
-    gain.gain.setValueAtTime(0.2, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationMs / 1000);
+
+    oscillator.type = 'triangle';
+    oscillator.frequency.setValueAtTime(frequency, startTime);
+
+    overtone.type = 'sine';
+    overtone.frequency.setValueAtTime(frequency * 2, startTime);
+
+    gain.gain.setValueAtTime(0.0001, startTime);
+    gain.gain.exponentialRampToValueAtTime(0.25, startTime + 0.008);
+    gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationSec);
+
     oscillator.connect(gain);
+    overtone.connect(gain);
     gain.connect(ctx.destination);
+
     oscillator.start(startTime);
-    oscillator.stop(startTime + durationMs / 1000);
+    overtone.start(startTime);
+    oscillator.stop(startTime + durationSec);
+    overtone.stop(startTime + durationSec);
   };
 
   const stepKey = (step: SequenceStep) => `${step.line_number}-${step.step_order}`;
 
-  // Plays a unit as a fast roll: each note in the group starts ROLL_OFFSET_SEC
-  // after the previous one, scheduled on the audio clock for tight, consistent
-  // timing. Visual highlighting is staggered to match, via setTimeout — a little
-  // JS timer jitter on the *visual* side is imperceptible, unlike on audio.
   const playUnit = (unit: SequenceStep[], onEnded?: () => void) => {
     const ctx = getAudioContext();
     const duration = unit[0]?.duration_ms ?? 500;
@@ -127,6 +145,10 @@ export default function TapToHearPlayer({ sequence }: Props) {
     highlightTimeoutsRef.current.forEach(clearTimeout);
     setActiveKeys([stepKey(step)]);
     scheduleTone(step.note_name, step.duration_ms ?? 500, getAudioContext().currentTime);
+
+    setTimeout(() => {
+      setActiveKeys((prev) => prev.filter((k) => k !== stepKey(step)));
+    }, 300);
   };
 
   const handlePlayAll = () => {
@@ -155,45 +177,133 @@ export default function TapToHearPlayer({ sequence }: Props) {
   };
 
   if (sequence.length === 0) {
-    return <p className="text-muted text-sm">No playable sequence for this mezmur yet.</p>;
+    return (
+      <div className="py-8 text-center text-zinc-500 text-sm bg-zinc-50 rounded-xl border border-dashed border-zinc-200">
+        <Volume2 size={24} className="mx-auto text-zinc-400 mb-2" />
+        <p>No playable notation sequence for this mezmur yet.</p>
+      </div>
+    );
   }
 
+  const lines = groupByLine(sequence);
+
   return (
-    <div>
-      <div className="flex flex-col gap-3 mb-4">
-        {groupByLine(sequence).map(([lineNumber, steps]) => (
-          <div key={lineNumber} className="flex items-center gap-2">
-            <span className="text-white/50 text-xs w-12">Line {lineNumber}</span>
-            <div className="flex items-center gap-2">
-              {clusterByGroup(steps).map((cluster, ci) => (
-                <div
-                  key={ci}
-                  className={`flex ${cluster.length > 1 ? 'gap-0.5 liquid-glass rounded-card p-1' : ''}`}
-                >
-                  {cluster.map((step) => (
-                    <motion.button
-                      key={stepKey(step)}
-                      onClick={() => handleTapStep(step)}
-                      whileTap={{ scale: 0.9 }}
-                      animate={{ scale: activeKeys.includes(stepKey(step)) ? 1.1 : 1 }}
-                      transition={{ type: 'spring', stiffness: 400, damping: 15 }}
-                      className={`${cluster.length > 1 ? 'w-8 h-8 text-sm' : 'w-10 h-10'} rounded-card flex items-center justify-center font-medium ${
-                        activeKeys.includes(stepKey(step)) ? 'bg-accent text-white' : 'liquid-glass text-white'
-                      }`}
-                    >
-                      {step.string_position}
-                    </motion.button>
-                  ))}
-                </div>
-              ))}
+    <div className="space-y-6">
+      {/* Control bar */}
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 p-4 bg-zinc-50 border border-zinc-200 rounded-xl">
+        <div className="flex items-center gap-3">
+          <Button
+            onClick={isPlayingAll ? handleStop : handlePlayAll}
+            variant={isPlayingAll ? 'secondary' : 'primary'}
+            className="shadow-xs"
+          >
+            {isPlayingAll ? (
+              <>
+                <Square size={14} className="fill-current text-rose-500" /> Stop
+              </>
+            ) : (
+              <>
+                <Play size={14} className="fill-current text-amber-400" /> Play Full Sequence
+              </>
+            )}
+          </Button>
+
+          {isPlayingAll && (
+            <div className="flex items-center gap-1.5 text-xs font-mono text-amber-700 bg-amber-50 px-2.5 py-1 rounded-full border border-amber-200 animate-pulse">
+              <span className="w-1.5 h-1.5 rounded-full bg-amber-500" />
+              <span>Playing notation…</span>
+            </div>
+          )}
+        </div>
+
+        {/* Legend */}
+        <div className="flex items-center gap-4 text-xs text-zinc-500 font-mono">
+          <div className="flex items-center gap-1.5">
+            <span className="w-5 h-5 rounded border border-zinc-300 bg-white flex items-center justify-center text-[10px] font-bold text-zinc-800">
+              1
+            </span>
+            <span>Solo Note</span>
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="px-1.5 py-0.5 rounded-md border border-amber-200 bg-amber-50 text-amber-900 text-[10px] font-bold">
+              1 2
+            </span>
+            <span>Fast Roll (~35ms)</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Notation Grid grouped by line */}
+      <div className="space-y-4">
+        {lines.map(([lineNumber, steps]) => (
+          <div
+            key={lineNumber}
+            className="flex flex-col sm:flex-row items-start sm:items-center gap-3 p-3.5 rounded-xl border border-zinc-150 bg-white hover:border-zinc-300 transition-colors"
+          >
+            {/* Line Number Badge */}
+            <div className="flex items-center gap-2 sm:w-20 shrink-0">
+              <span className="text-[11px] font-mono font-bold bg-zinc-100 text-zinc-600 px-2 py-1 rounded border border-zinc-200">
+                L{lineNumber}
+              </span>
+            </div>
+
+            {/* Note Tokens */}
+            <div className="flex flex-wrap items-center gap-2">
+              {clusterByGroup(steps).map((cluster, ci) => {
+                const isGrouped = cluster.length > 1;
+
+                return (
+                  <div
+                    key={ci}
+                    className={`inline-flex items-center ${
+                      isGrouped
+                        ? 'p-1 rounded-xl bg-amber-50/70 border border-amber-200/80 gap-1'
+                        : ''
+                    }`}
+                  >
+                    {cluster.map((step) => {
+                      const isActive = activeKeys.includes(stepKey(step));
+
+                      return (
+                        <motion.button
+                          key={stepKey(step)}
+                          onClick={() => handleTapStep(step)}
+                          whileTap={{ scale: 0.92 }}
+                          animate={
+                            isActive
+                              ? { scale: 1.12 }
+                              : { scale: 1 }
+                          }
+                          transition={{ type: 'spring', stiffness: 500, damping: 20 }}
+                          className={`relative flex flex-col items-center justify-center rounded-lg font-mono font-bold cursor-pointer transition-colors ${
+                            isGrouped
+                              ? 'w-9 h-9 text-xs'
+                              : 'w-11 h-11 text-sm'
+                          } ${
+                            isActive
+                              ? 'bg-amber-500 text-white shadow-md ring-2 ring-amber-400/40 z-10'
+                              : 'bg-white text-zinc-950 border border-zinc-200 hover:bg-zinc-100 hover:border-zinc-300 shadow-xs'
+                          }`}
+                          title={`Line ${step.line_number}, Step ${step.step_order} - Note ${step.note_name} (String ${step.string_position})`}
+                        >
+                          <span>{step.string_position}</span>
+                          <span
+                            className={`text-[8px] font-sans -mt-0.5 ${
+                              isActive ? 'text-amber-100' : 'text-zinc-400'
+                            }`}
+                          >
+                            {step.note_name}
+                          </span>
+                        </motion.button>
+                      );
+                    })}
+                  </div>
+                );
+              })}
             </div>
           </div>
         ))}
       </div>
-
-      <Button onClick={isPlayingAll ? handleStop : handlePlayAll}>
-        {isPlayingAll ? 'Stop' : 'Play full sequence'}
-      </Button>
     </div>
   );
 }

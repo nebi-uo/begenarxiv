@@ -11,9 +11,16 @@ export default function HorizontalMezmurScroll({ title, items, onSelect }: Props
   if (items.length === 0) return null;
 
   return (
-    <div className="mt-4">
-      <p className="text-white/60 text-xs uppercase tracking-wide mb-3">{title}</p>
-      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-2 -mx-6 px-6 md:mx-0 md:px-0">
+    <div className="mt-8">
+      <div className="flex items-center justify-between mb-3">
+        <h4 className="text-xs font-mono uppercase tracking-wider text-zinc-500 font-semibold">
+          {title}
+        </h4>
+        <span className="text-xs text-zinc-400 font-mono">
+          {items.length} {items.length === 1 ? 'song' : 'songs'}
+        </span>
+      </div>
+      <div className="flex gap-3 overflow-x-auto snap-x snap-mandatory pb-3 -mx-4 px-4 sm:-mx-6 sm:px-6 md:mx-0 md:px-0">
         {items.map((m, i) => (
           <MezmurCardCompact key={m.id} mezmur={m} index={i} onClick={() => onSelect(m.id)} />
         ))}

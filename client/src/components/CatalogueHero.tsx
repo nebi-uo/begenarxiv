@@ -1,5 +1,5 @@
 import { motion } from 'framer-motion';
-import { LayoutGrid, User, Music2, Shuffle } from 'lucide-react';
+import { Shuffle, Sparkles } from 'lucide-react';
 
 export type GroupMode = 'all' | 'artist' | 'tune';
 
@@ -7,46 +7,57 @@ interface Props {
   total: number;
   artistCount: number;
   tuneCount: number;
-  groupMode: GroupMode;
-  onGroupChange: (mode: GroupMode) => void;
   onRandom: () => void;
 }
 
-const actions = [
-  { key: 'all' as const, label: 'All', icon: LayoutGrid },
-  { key: 'artist' as const, label: 'Artist', icon: User },
-  { key: 'tune' as const, label: 'Tune', icon: Music2 },
-  { key: 'random' as const, label: 'Random', icon: Shuffle },
-];
-
-export default function CatalogueHero({ total, artistCount, tuneCount, groupMode, onGroupChange, onRandom }: Props) {
+export default function CatalogueHero({
+  total,
+  artistCount,
+  tuneCount,
+  onRandom,
+}: Props) {
   return (
-    <div className="liquid-glass rounded-card p-10 mb-12 text-white">
-      <p className="text-white/60 text-sm mb-2">Explore</p>
-      <p className="text-l mb-8" style={{ fontFamily: 'var(--font-display)' }}>
-        {total} mezmurs · {artistCount} artists · {tuneCount} tunes
-      </p>
-      <div className="flex justify-between">
-        {actions.map(({ key, label, icon: Icon }) => {
-          const active = key === groupMode;
-          return (
-            <motion.button
-              key={key}
-              whileTap={{ scale: 0.9 }}
-              onClick={() => (key === 'random' ? onRandom() : onGroupChange(key))}
-              className="flex flex-col items-center gap-1.5"
-            >
-              <div
-                className={`w-11 h-11 rounded-full flex items-center justify-center transition-colors ${
-                  active ? 'bg-accent' : 'bg-white/15'
-                }`}
-              >
-                <Icon size={18} color="white" />
-              </div>
-              <span className="text-xs text-white/70">{label}</span>
-            </motion.button>
-          );
-        })}
+    <div className="bg-white border border-zinc-200 rounded-2xl p-6 md:p-8 mb-8 shadow-xs">
+      <div className="flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+        {/* Header and Metrics */}
+        <div>
+          <div className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full text-[11px] font-mono bg-zinc-100 text-zinc-700 border border-zinc-200 mb-2">
+            <Sparkles size={11} className="text-amber-500" />
+            <span>Digital Notation Archive</span>
+          </div>
+          <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-950">
+            Mezmur Song Catalogue
+          </h1>
+          <p className="text-zinc-500 text-sm mt-1">
+            Browse authentic transcriptions with synchronized numbers and tap-to-hear audio.
+          </p>
+
+          {/* Quick Metrics Badges */}
+          <div className="flex items-center gap-4 mt-4 text-xs font-medium text-zinc-600">
+            <span className="flex items-center gap-1.5">
+              <span className="font-bold text-zinc-950 text-sm">{total}</span> Songs Available
+            </span>
+            <span className="text-zinc-300">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="font-bold text-zinc-950 text-sm">{artistCount}</span> Artists
+            </span>
+            <span className="text-zinc-300">·</span>
+            <span className="flex items-center gap-1.5">
+              <span className="font-bold text-zinc-950 text-sm">{tuneCount}</span> Musical Modes
+            </span>
+          </div>
+        </div>
+
+        {/* Random Song Button */}
+        <motion.button
+          whileHover={{ scale: 1.02 }}
+          whileTap={{ scale: 0.98 }}
+          onClick={onRandom}
+          className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-medium px-4 py-2.5 rounded-xl shadow-xs transition-colors cursor-pointer self-stretch md:self-auto justify-center"
+        >
+          <Shuffle size={14} className="text-amber-400" />
+          <span>Random Song</span>
+        </motion.button>
       </div>
     </div>
   );
