@@ -56,9 +56,19 @@ export default function LandingPage() {
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [rollTesting, setRollTesting] = useState<string | null>(null);
+  const [isScrolled, setIsScrolled] = useState(false);
 
   const demoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopRequestedRef = useRef(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const handleManualPluck = useCallback(
     (pos: number) => {
@@ -158,11 +168,17 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white">
-      {/* Top Navbar - Clean, necessary links only */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-zinc-200">
+      {/* Top Navbar - Clean, necessary links only. Transparent at top, glassmorphic on scroll */}
+      <header
+        className={`sticky top-0 z-40 transition-all duration-200 ${
+          isScrolled
+            ? 'bg-white/80 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
+            : 'bg-transparent border-b border-transparent'
+        }`}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-8 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+            <div className="w-6 h-8 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
             <span className="font-bold tracking-tight text-base text-black">
@@ -174,19 +190,12 @@ export default function LandingPage() {
             <Link to="/catalogue" className="hover:text-black text-zinc-600 transition-colors">
               CATALOGUE
             </Link>
-            <Link
-              to="/catalogue"
-              className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs font-mono px-3.5 py-1.5 rounded transition-colors"
-            >
-              <span>Repertoire</span>
-              <ArrowRight size={12} />
-            </Link>
           </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16" id="studio">
+      <section className="pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16 bg-transparent" id="studio">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Headline, Mode Selector, Description & Actions */}
@@ -201,7 +210,7 @@ export default function LandingPage() {
               </p>
 
               {/* 3 Traditional Tune Modes */}
-              <div className="mb-6 p-4 rounded-lg border border-zinc-200 bg-white">
+              <div className="mb-6 p-4 rounded-lg border border-zinc-200 bg-white/80 backdrop-blur-[2px]">
                 <div className="flex items-center justify-between text-xs font-mono mb-2.5">
                   <span className="text-zinc-500 font-semibold uppercase text-[10px]">
                     TUNING MODE (QENET)
@@ -263,7 +272,7 @@ export default function LandingPage() {
 
             {/* Right Column: Handcrafted 10-String Begena (Single Previewer on Page) */}
             <div className="lg:col-span-5 flex flex-col items-center w-full">
-              <div className="pixel-box p-4 sm:p-6 md:p-8 bg-white w-full max-w-[320px] sm:max-w-sm flex flex-col items-center rounded-lg">
+              <div className="pixel-box p-4 sm:p-6 md:p-8 bg-white/85 backdrop-blur-[2px] w-full max-w-[320px] sm:max-w-sm flex flex-col items-center rounded-lg">
                 <div className="w-full flex items-center justify-between border-b border-zinc-200 pb-3 mb-4 text-[10px] font-mono text-zinc-600">
                   <span className="font-bold text-black">10_STRING_BEGENA</span>
                   <span className="text-black font-semibold">{currentMode.toUpperCase()}</span>
@@ -292,11 +301,11 @@ export default function LandingPage() {
       </section>
 
       {/* Telemetry Overview Cards (Clean, flat, no top badges) */}
-      <section className="py-12 bg-white/70 border-t border-zinc-200">
+      <section className="py-12 bg-transparent border-t border-zinc-200/80">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Morphology */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
+            <div className="p-5 bg-white/80 backdrop-blur-[2px] border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
                 <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
                   01 / STRINGS
@@ -314,7 +323,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 2: 3 Qenets */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
+            <div className="p-5 bg-white/80 backdrop-blur-[2px] border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
                 <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
                   02 / QENETS
@@ -332,7 +341,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 3: 35ms Ornament Rolls */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
+            <div className="p-5 bg-white/80 backdrop-blur-[2px] border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
                 <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
                   03 / ROLLS
@@ -350,7 +359,7 @@ export default function LandingPage() {
             </div>
 
             {/* Card 4: Acoustic Buzz */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
+            <div className="p-5 bg-white/80 backdrop-blur-[2px] border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
                 <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
                   04 / RESONANCE
@@ -371,7 +380,7 @@ export default function LandingPage() {
       </section>
 
       {/* The Roll Lab: Fast Ornaments A/B Test */}
-      <section className="py-12 sm:py-16 bg-white/70 border-t border-zinc-200" id="rolls">
+      <section className="py-12 sm:py-16 bg-transparent border-t border-zinc-200/80" id="rolls">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
@@ -384,7 +393,7 @@ export default function LandingPage() {
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Solo Note Card */}
-            <div className="p-5 border border-zinc-200 rounded-lg bg-white flex flex-col justify-between">
+            <div className="p-5 border border-zinc-200 rounded-lg bg-white/80 backdrop-blur-[2px] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-zinc-500 mb-2">
                   <span>SINGLE NOTE</span>
@@ -411,7 +420,7 @@ export default function LandingPage() {
             </div>
 
             {/* Fast Roll Card */}
-            <div className="p-5 border border-black rounded-lg bg-white flex flex-col justify-between">
+            <div className="p-5 border border-black rounded-lg bg-white/80 backdrop-blur-[2px] flex flex-col justify-between">
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-black font-bold mb-2">
                   <span>GROUPED DIGITS [ 42 ]</span>
@@ -441,7 +450,7 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-12 sm:py-16 bg-white border-t border-zinc-200" id="faq">
+      <section className="py-12 sm:py-16 bg-transparent border-t border-zinc-200/80" id="faq">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
@@ -455,7 +464,7 @@ export default function LandingPage() {
               return (
                 <div
                   key={index}
-                  className="border border-zinc-200 bg-white rounded-lg overflow-hidden"
+                  className="border border-zinc-200 bg-white/80 backdrop-blur-[2px] rounded-lg overflow-hidden"
                 >
                   <button
                     onClick={() => setActiveFaq(isOpen ? null : index)}
@@ -492,9 +501,9 @@ export default function LandingPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="py-12 sm:py-14 bg-zinc-50/70 border-t border-zinc-200">
+      <section className="py-12 sm:py-14 bg-transparent border-t border-zinc-200/80">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 md:p-10 bg-white/85 backdrop-blur-[2px] border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
                 Explore the Mezmur Repertoire
@@ -514,10 +523,10 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 bg-white/80 py-6 sm:py-8">
+      <footer className="border-t border-zinc-200/80 bg-white/70 backdrop-blur-[2px] py-6 sm:py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-black font-semibold">
-            <div className="w-6 h-7 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+            <div className="w-6 h-8 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
             <span>Begenarxiv</span>

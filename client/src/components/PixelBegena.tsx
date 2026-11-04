@@ -55,54 +55,69 @@ export default function PixelBegena({
         shapeRendering="crispEdges"
       >
         {/* Top Scroll Horns */}
-        <g fill="#FFFFFF">
-          <rect x="36" y="52" width="24" height="26" />
-          <rect x="26" y="38" width="16" height="20" />
-          <rect x="28" y="24" width="22" height="18" />
-          <rect x="44" y="18" width="28" height="14" />
-          <rect x="66" y="24" width="14" height="18" />
-          <rect x="62" y="36" width="12" height="12" />
+        <g fill="#000000">
+          <rect x="34" y="52" width="26" height="26" />
+          <rect x="22" y="38" width="18" height="20" />
+          <rect x="24" y="24" width="24" height="18" />
+          <rect x="42" y="16" width="30" height="14" />
+          <rect x="68" y="22" width="14" height="20" />
+          <rect x="62" y="36" width="14" height="14" />
 
-          <rect x="260" y="52" width="24" height="26" />
-          <rect x="278" y="38" width="16" height="20" />
-          <rect x="270" y="24" width="22" height="18" />
-          <rect x="248" y="18" width="28" height="14" />
-          <rect x="240" y="24" width="14" height="18" />
-          <rect x="246" y="36" width="12" height="12" />
+          <rect x="260" y="52" width="26" height="26" />
+          <rect x="280" y="38" width="18" height="20" />
+          <rect x="272" y="24" width="24" height="18" />
+          <rect x="248" y="16" width="30" height="14" />
+          <rect x="238" y="22" width="14" height="20" />
+          <rect x="244" y="36" width="14" height="14" />
+
+          {/* Yoke */}
+          <rect x="46" y="56" width="228" height="22" />
+
+          {/* 10 Pegs */}
+          {stringPositions.map((s) => (
+            <rect key={s.id} x={s.yokeX - 2} y="26" width="4" height="30" />
+          ))}
         </g>
-        {/* Yoke */}
-        <rect x="48" y="56" width="224" height="22" fill="#FFFFFF" />
-        {/* 10 Pegs */}
-        {stringPositions.map((s) => (
-          <rect key={s.id} x={s.yokeX - 2} y="28" width="4" height="28" fill="#FFFFFF" />
-        ))}
+
         {/* Hanging Weight */}
-        <line x1="236" y1="78" x2="236" y2="230" stroke="#FFFFFF" strokeWidth="2" strokeDasharray="3 3" />
-        <rect x="228" y="230" width="16" height="24" fill="#FFFFFF" />
+        <line x1="236" y1="78" x2="236" y2="230" stroke="#000000" strokeWidth="2" strokeDasharray="3 3" />
+        <rect x="228" y="230" width="16" height="24" rx="2" fill="#000000" />
+
         {/* Arms */}
-        <polygon points="64,78 80,78 104,350 88,350" fill="#FFFFFF" />
-        <polygon points="240,78 256,78 232,350 216,350" fill="#FFFFFF" />
-        {/* Soundbox */}
-        <polygon points="84,346 236,346 242,468 78,468" fill="#FFFFFF" />
-        <polygon points="92,354 228,354 234,460 86,460" fill="#000000" />
+        <polygon points="62,78 80,78 106,346 88,346" fill="#000000" />
+        <polygon points="238,78 256,78 230,346 212,346" fill="#000000" />
+
+        {/* Soundbox (Light subtle parchment fill so strings stand out cleanly) */}
+        <polygon points="84,346 234,346 242,466 76,466" fill="#FAFAFA" stroke="#000000" strokeWidth="3" />
+        <rect x="90" y="352" width="138" height="4" fill="#000000" opacity="0.15" />
+
         {/* Bridge */}
-        <rect x="94" y="404" width="134" height="14" fill="#FFFFFF" />
+        <rect x="92" y="404" width="134" height="14" fill="#000000" rx="1" />
+        {/* String Notches on Bridge */}
+        <g fill="#FFFFFF">
+          {stringPositions.map((s) => (
+            <rect key={`notch-${s.id}`} x={s.bridgeX - 1} y="405" width="2" height="12" />
+          ))}
+        </g>
+
         {/* Tailpiece */}
-        <rect x="98" y="454" width="126" height="8" fill="#FFFFFF" />
+        <rect x="96" y="452" width="126" height="8" fill="#000000" rx="1" />
+
         {/* Feet */}
-        <polygon points="104,468 116,468 112,498 102,498" fill="#FFFFFF" />
-        <polygon points="204,468 216,468 218,498 208,498" fill="#FFFFFF" />
-        {/* 10 Strings */}
+        <polygon points="102,466 116,466 112,498 100,498" fill="#000000" />
+        <polygon points="202,466 216,466 218,498 206,498" fill="#000000" />
+
+        {/* 10 Strings: String 1, skip 2, String 2, skip 1, String 3, skip 1, String 4, skip 1, String 5 */}
         {stringPositions.map((s) => (
           <line
             key={`str-${s.id}`}
             x1={s.yokeX}
-            y1={78}
+            y1={56}
             x2={s.bridgeX}
-            y2={454}
-            stroke="#FFFFFF"
-            strokeWidth={s.isPrimary ? '2' : '1'}
-            opacity={s.isPrimary ? 0.95 : 0.35}
+            y2={452}
+            stroke="#000000"
+            strokeWidth={s.isPrimary ? 2.5 : 1.2}
+            opacity={s.isPrimary ? 1 : 0.45}
           />
         ))}
       </svg>

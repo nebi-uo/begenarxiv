@@ -1,20 +1,35 @@
-import type { ReactNode } from 'react';
+import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
 import PixelBegena from './PixelBegena';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const isCatalogue = location.pathname.startsWith('/catalogue');
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 15);
+    };
+    handleScroll();
+    window.addEventListener('scroll', handleScroll, { passive: true });
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   return (
     <div className="min-h-screen bg-transparent text-zinc-950 flex flex-col font-sans selection:bg-zinc-950 selection:text-white">
-      {/* Top Navbar */}
-      <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-zinc-200">
+      {/* Top Navbar: Transparent at top, glassmorphic on scroll */}
+      <header
+        className={`sticky top-0 z-40 transition-all duration-200 ${
+          isScrolled
+            ? 'bg-white/80 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
+            : 'bg-transparent border-b border-transparent'
+        }`}
+      >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          {/* Logo with Scaled-Down Begena */}
+          {/* Logo with Scaled-Down Begena on Transparent Background */}
           <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-7 h-8 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+            <div className="w-6 h-8 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
             <span className="font-bold tracking-tight text-base text-zinc-950">
@@ -22,25 +37,17 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Navigation Links - Only Necessary Ones */}
-          <nav className="flex items-center gap-4 sm:gap-6 text-xs font-mono">
-            <Link
-              to="/catalogue"
-              className={`hover:text-black transition-colors ${
-                isCatalogue ? 'text-black font-bold' : 'text-zinc-600'
-              }`}
-            >
-              CATALOGUE
-            </Link>
-
-            <Link
-              to="/catalogue"
-              className="inline-flex items-center gap-1.5 bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-mono px-3.5 py-1.5 rounded transition-colors"
-            >
-              <span>Repertoire</span>
-              <ArrowRight size={12} />
-            </Link>
-          </nav>
+          {/* Navigation Links: On /catalogue, no unnecessary buttons. On /mezmur/:id, only CATALOGUE */}
+          {!isCatalogue && (
+            <nav className="flex items-center gap-4 sm:gap-6 text-xs font-mono">
+              <Link
+                to="/catalogue"
+                className="hover:text-black text-zinc-600 transition-colors"
+              >
+                CATALOGUE
+              </Link>
+            </nav>
+          )}
         </div>
       </header>
 
@@ -50,10 +57,10 @@ export default function Layout({ children }: { children: ReactNode }) {
       </main>
 
       {/* Minimalist Footer */}
-      <footer className="border-t border-zinc-200 bg-white/80 mt-auto">
+      <footer className="border-t border-zinc-200/80 bg-white/70 backdrop-blur-[2px] mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-zinc-900 font-semibold">
-            <div className="w-6 h-7 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+            <div className="w-6 h-8 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
             <span>Begenarxiv</span>
@@ -61,10 +68,14 @@ export default function Layout({ children }: { children: ReactNode }) {
             <span className="text-zinc-500 font-normal">Ethiopian Begena Archive</span>
           </div>
           <div className="flex items-center gap-4 text-xs">
-            <Link to="/catalogue" className="hover:text-zinc-950 transition-colors">
-              Catalogue
-            </Link>
-            <span className="text-zinc-300">·</span>
+            {!isCatalogue && (
+              <>
+                <Link to="/catalogue" className="hover:text-zinc-950 transition-colors">
+                  Catalogue
+                </Link>
+                <span className="text-zinc-300">·</span>
+              </>
+            )}
             <span>Open Source</span>
           </div>
         </div>
