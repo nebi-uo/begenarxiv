@@ -8,7 +8,6 @@ import {
   ChevronDown,
 } from 'lucide-react';
 import PixelBegena from '../components/PixelBegena';
-import PixelSceneBanner from '../components/PixelSceneBanner';
 import Button from '../components/Button';
 import { useTonePlayer, ROLL_OFFSET_SEC, type BegenaTuneMode, BEGENA_TUNINGS } from '../hooks/useTonePlayer';
 
@@ -55,7 +54,6 @@ export default function LandingPage() {
   const { pluckString } = useTonePlayer(currentMode);
   const [activeString, setActiveString] = useState<number | null>(null);
   const [isPlayingDemo, setIsPlayingDemo] = useState(false);
-  const [currentStepIndex, setCurrentStepIndex] = useState<number | null>(null);
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [rollTesting, setRollTesting] = useState<string | null>(null);
 
@@ -76,7 +74,6 @@ export default function LandingPage() {
   const stopDemo = useCallback(() => {
     stopRequestedRef.current = true;
     setIsPlayingDemo(false);
-    setCurrentStepIndex(null);
     setActiveString(null);
     if (demoTimeoutRef.current) clearTimeout(demoTimeoutRef.current);
   }, []);
@@ -88,13 +85,11 @@ export default function LandingPage() {
     const step = (index: number) => {
       if (stopRequestedRef.current || index >= SAMPLE_HYMN_SEQUENCE.length) {
         setIsPlayingDemo(false);
-        setCurrentStepIndex(null);
         setActiveString(null);
         return;
       }
 
       const item = SAMPLE_HYMN_SEQUENCE[index];
-      setCurrentStepIndex(index);
       setActiveString(item.position);
       pluckString(item.position, item.durationMs);
 
@@ -163,43 +158,22 @@ export default function LandingPage() {
 
   return (
     <div className="min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white">
-      {/* Top Navbar */}
+      {/* Top Navbar - Clean, necessary links only */}
       <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-sm border-b border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-7 h-7 rounded bg-black text-white flex items-center justify-center">
-              <PixelBegena size="icon" />
+            <div className="w-7 h-8 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+              <PixelBegena size="icon" interactive={false} />
             </div>
             <span className="font-bold tracking-tight text-base text-black">
               Begenarxiv
             </span>
-            <span className="pixel-tag">
-              10-STRINGS
-            </span>
           </Link>
 
-          <nav className="hidden md:flex items-center gap-6 text-xs font-mono text-zinc-600">
-            <Link to="/catalogue" className="hover:text-black transition-colors">
+          <nav className="flex items-center gap-4 sm:gap-6 text-xs font-mono">
+            <Link to="/catalogue" className="hover:text-black text-zinc-600 transition-colors">
               CATALOGUE
             </Link>
-            <a href="#studio" className="hover:text-black transition-colors">
-              STUDIO
-            </a>
-            <a href="#atmosphere" className="hover:text-black transition-colors">
-              ATMOSPHERE
-            </a>
-            <a href="#rolls" className="hover:text-black transition-colors">
-              ROLL_LAB
-            </a>
-            <a href="#faq" className="hover:text-black transition-colors">
-              FAQ
-            </a>
-          </nav>
-
-          <div className="flex items-center gap-3">
-            <span className="hidden lg:inline text-[10px] font-mono text-zinc-500">
-              [1-5]: PLUCK
-            </span>
             <Link
               to="/catalogue"
               className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs font-mono px-3.5 py-1.5 rounded transition-colors"
@@ -207,24 +181,17 @@ export default function LandingPage() {
               <span>Repertoire</span>
               <ArrowRight size={12} />
             </Link>
-          </div>
+          </nav>
         </div>
       </header>
 
-      {/* Hero Studio Section */}
-      <section className="pt-10 md:pt-14 pb-14" id="studio">
+      {/* Hero Section */}
+      <section className="pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16" id="studio">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Headline, Mode Selector, Description & Controls */}
+          <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
+            {/* Left Column: Headline, Mode Selector, Description & Actions */}
             <div className="lg:col-span-7">
-              <div className="flex flex-wrap items-center gap-2 mb-4">
-                <span className="pixel-tag">10-STRING BEGENA</span>
-                <span className="pixel-tag-outline">
-                  {currentMode.toUpperCase()}: 1={currentTuningNotes[1]?.note} · 2={currentTuningNotes[2]?.note} · 3={currentTuningNotes[3]?.note} · 4={currentTuningNotes[4]?.note} · 5={currentTuningNotes[5]?.note}
-                </span>
-              </div>
-
-              <h1 className="text-4xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-4">
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-4">
                 Numbers notation for Ethiopia's sacred lyre.
               </h1>
 
@@ -234,8 +201,8 @@ export default function LandingPage() {
               </p>
 
               {/* 3 Traditional Tune Modes */}
-              <div className="mb-6 p-3 rounded-lg border border-zinc-200 bg-white">
-                <div className="flex items-center justify-between text-xs font-mono mb-2">
+              <div className="mb-6 p-4 rounded-lg border border-zinc-200 bg-white">
+                <div className="flex items-center justify-between text-xs font-mono mb-2.5">
                   <span className="text-zinc-500 font-semibold uppercase text-[10px]">
                     TUNING MODE (QENET)
                   </span>
@@ -243,7 +210,7 @@ export default function LandingPage() {
                     {currentMode.toUpperCase()}
                   </span>
                 </div>
-                <div className="flex flex-wrap gap-1.5 font-mono text-xs">
+                <div className="flex flex-wrap gap-2 font-mono text-xs">
                   {(['Tizita', 'Selamta', 'Anchi-Hoye'] as BegenaTuneMode[]).map((m) => (
                     <button
                       key={m}
@@ -258,7 +225,7 @@ export default function LandingPage() {
                     </button>
                   ))}
                 </div>
-                <div className="mt-2 text-[11px] font-mono text-zinc-600">
+                <div className="mt-3 text-[11px] font-mono text-zinc-600">
                   {currentMode === 'Tizita' && 'Tizita: 1=E · 2=C · 3=D · 4=A · 5=G'}
                   {currentMode === 'Selamta' && 'Selamta: 1=F · 2=C · 3=D · 4=A · 5=G (String 1 shifted to F)'}
                   {currentMode === 'Anchi-Hoye' && 'Anchi-Hoye: 1=F · 2=C · 3=C# · 4=A · 5=F#'}
@@ -266,7 +233,7 @@ export default function LandingPage() {
               </div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3 mb-6">
+              <div className="flex flex-wrap items-center gap-3">
                 <Link to="/catalogue">
                   <Button variant="primary" className="text-xs px-4 py-2.5">
                     Browse Catalogue <ArrowRight size={13} />
@@ -292,49 +259,11 @@ export default function LandingPage() {
                   )}
                 </button>
               </div>
-
-              {/* Live Sequence Monitor */}
-              <div className="p-4 rounded-lg border border-zinc-200 bg-white font-mono text-xs">
-                <div className="flex items-center justify-between text-zinc-500 text-[11px] pb-2 border-b border-zinc-100">
-                  <div className="flex items-center gap-2">
-                    <span
-                      className={`w-2 h-2 rounded-full ${
-                        isPlayingDemo ? 'bg-black animate-ping' : 'bg-zinc-400'
-                      }`}
-                    />
-                    <span className="font-bold text-black">
-                      {isPlayingDemo ? 'PLAYING ROLL SEQUENCE' : 'KEYBOARD READY'}
-                    </span>
-                  </div>
-                  <span className="text-zinc-500">[SPACE] TO TOGGLE</span>
-                </div>
-
-                <div className="flex items-center gap-2 pt-3 overflow-x-auto pb-1">
-                  <span className="text-[10px] text-zinc-400 uppercase shrink-0">Seq:</span>
-                  {SAMPLE_HYMN_SEQUENCE.map((s, idx) => (
-                    <span
-                      key={idx}
-                      className={`px-2 py-1 rounded text-xs transition-all ${
-                        currentStepIndex === idx
-                          ? 'bg-black text-white font-bold scale-105'
-                          : 'bg-zinc-50 text-black border border-zinc-200'
-                      }`}
-                    >
-                      {s.position}
-                    </span>
-                  ))}
-                </div>
-
-                <div className="flex items-center justify-between pt-2.5 text-[10px] text-zinc-500 border-t border-zinc-100 mt-2.5">
-                  <span>Pluck keys [1], [2], [3], [4], [5]</span>
-                  <span>42 = 35ms micro-roll</span>
-                </div>
-              </div>
             </div>
 
-            {/* Right Column: Handcrafted 10-String Pixel Begena (Single Previewer on Page) */}
-            <div className="lg:col-span-5 flex flex-col items-center">
-              <div className="pixel-box p-6 md:p-8 bg-white w-full max-w-sm flex flex-col items-center rounded-lg">
+            {/* Right Column: Handcrafted 10-String Begena (Single Previewer on Page) */}
+            <div className="lg:col-span-5 flex flex-col items-center w-full">
+              <div className="pixel-box p-4 sm:p-6 md:p-8 bg-white w-full max-w-[320px] sm:max-w-sm flex flex-col items-center rounded-lg">
                 <div className="w-full flex items-center justify-between border-b border-zinc-200 pb-3 mb-4 text-[10px] font-mono text-zinc-600">
                   <span className="font-bold text-black">10_STRING_BEGENA</span>
                   <span className="text-black font-semibold">{currentMode.toUpperCase()}</span>
@@ -362,16 +291,15 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Telemetry Overview Cards (Clean, flat, no shadows) */}
+      {/* Telemetry Overview Cards (Clean, flat, no top badges) */}
       <section className="py-12 bg-white/70 border-t border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             {/* Card 1: Morphology */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  <span>01 / STRINGS</span>
-                  <span className="pixel-tag-outline">10 TOTAL</span>
+                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
+                  01 / STRINGS
                 </div>
                 <h3 className="font-bold text-sm text-black mb-1">
                   10 Physical Strings
@@ -388,9 +316,8 @@ export default function LandingPage() {
             {/* Card 2: 3 Qenets */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  <span>02 / QENETS</span>
-                  <span className="pixel-tag-outline">3 MODES</span>
+                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
+                  02 / QENETS
                 </div>
                 <h3 className="font-bold text-sm text-black mb-1">
                   Traditional Scales
@@ -407,9 +334,8 @@ export default function LandingPage() {
             {/* Card 3: 35ms Ornament Rolls */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  <span>03 / ROLLS</span>
-                  <span className="pixel-tag-outline">35MS</span>
+                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
+                  03 / ROLLS
                 </div>
                 <h3 className="font-bold text-sm text-black mb-1">
                   Micro-Timed Rolls
@@ -426,9 +352,8 @@ export default function LandingPage() {
             {/* Card 4: Acoustic Buzz */}
             <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
               <div>
-                <div className="flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  <span>04 / RESONANCE</span>
-                  <span className="pixel-tag-outline">BIRR BUZZ</span>
+                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
+                  04 / RESONANCE
                 </div>
                 <h3 className="font-bold text-sm text-black mb-1">
                   Leather Damper Buzz
@@ -445,24 +370,11 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Pure SVG 1-Bit Pixel Art Scene */}
-      <section className="py-10 bg-white border-t border-zinc-200" id="atmosphere">
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
-          <PixelSceneBanner />
-        </div>
-      </section>
-
       {/* The Roll Lab: Fast Ornaments A/B Test */}
-      <section className="py-14 bg-white/70 border-t border-zinc-200" id="rolls">
+      <section className="py-12 sm:py-16 bg-white/70 border-t border-zinc-200" id="rolls">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <div className="flex items-center gap-2 mb-2">
-              <span className="pixel-tag">LAB</span>
-              <span className="text-xs font-mono text-zinc-600 uppercase">
-                ORNAMENT ROLL ENGINE
-              </span>
-            </div>
-            <h2 className="text-2xl font-bold tracking-tight text-black">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
               Solo Pluck vs. 35ms Ornament Roll
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
@@ -470,7 +382,7 @@ export default function LandingPage() {
             </p>
           </div>
 
-          <div className="grid sm:grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Solo Note Card */}
             <div className="p-5 border border-zinc-200 rounded-lg bg-white flex flex-col justify-between">
               <div>
@@ -529,11 +441,10 @@ export default function LandingPage() {
       </section>
 
       {/* FAQ Section */}
-      <section className="py-14 bg-white border-t border-zinc-200" id="faq">
+      <section className="py-12 sm:py-16 bg-white border-t border-zinc-200" id="faq">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="mb-8">
-            <span className="pixel-tag mb-2 inline-block">FAQ</span>
-            <h2 className="text-2xl font-bold tracking-tight text-black">
+            <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
               Frequently asked questions.
             </h2>
           </div>
@@ -581,15 +492,11 @@ export default function LandingPage() {
       </section>
 
       {/* Bottom CTA */}
-      <section className="py-14 bg-zinc-50/70 border-t border-zinc-200">
+      <section className="py-12 sm:py-14 bg-zinc-50/70 border-t border-zinc-200">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col md:flex-row items-start md:items-center justify-between gap-6">
+          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
             <div>
-              <div className="flex items-center gap-2 mb-2 font-mono text-xs text-zinc-500">
-                <span className="w-2 h-2 bg-black" />
-                <span>BEGENARXIV / OPEN ARCHIVE</span>
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight text-black">
+              <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
                 Explore the Mezmur Repertoire
               </h2>
               <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-md">
@@ -597,8 +504,8 @@ export default function LandingPage() {
               </p>
             </div>
 
-            <Link to="/catalogue">
-              <Button variant="primary" className="text-xs px-5 py-3 shrink-0">
+            <Link to="/catalogue" className="w-full sm:w-auto">
+              <Button variant="primary" className="text-xs px-5 py-3 w-full sm:w-auto justify-center">
                 Open Catalogue <ArrowRight size={13} />
               </Button>
             </Link>
@@ -607,11 +514,11 @@ export default function LandingPage() {
       </section>
 
       {/* Footer */}
-      <footer className="border-t border-zinc-200 bg-white py-8">
+      <footer className="border-t border-zinc-200 bg-white/80 py-6 sm:py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-2.5 text-black font-semibold">
-            <div className="w-5 h-5 rounded bg-black text-white flex items-center justify-center">
-              <PixelBegena size="icon" />
+            <div className="w-6 h-7 rounded bg-black text-white flex items-center justify-center p-0.5 shrink-0">
+              <PixelBegena size="icon" interactive={false} />
             </div>
             <span>Begenarxiv</span>
             <span className="text-zinc-300">/</span>

@@ -7,7 +7,6 @@ import Layout from '../components/Layout';
 import CatalogueHero, { type GroupMode } from '../components/CatalogueHero';
 import SearchFilterBar from '../components/SearchFilterBar';
 import MezmurCard from '../components/MezmurCard';
-import CatalogueHeroBanner from '../components/CatalogueHeroBanner';
 import IndiePageLoader from '../components/IndiePageLoader';
 
 export default function CataloguePage() {
@@ -94,8 +93,6 @@ export default function CataloguePage() {
 
   return (
     <Layout>
-      <CatalogueHeroBanner />
-
       {loading ? (
         <div className="py-12">
           <IndiePageLoader

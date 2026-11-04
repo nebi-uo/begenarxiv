@@ -136,10 +136,9 @@ export default function MezmurPage() {
         >
           <ChevronLeft size={14} /> CATALOGUE
         </Link>
-        <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400">
-          <span className="pixel-tag">10 STRINGS</span>
-          <span className="hidden sm:inline">SHORTCUTS: [1-5] PLUCK · [SPACE] PLAY/PAUSE</span>
-        </div>
+        <span className="hidden sm:inline font-mono text-[10px] text-zinc-400">
+          SHORTCUTS: [1-5] PLUCK · [SPACE] PLAY/PAUSE
+        </span>
       </div>
 
       {/* Song Header Block */}
@@ -213,9 +212,9 @@ export default function MezmurPage() {
         {/* Right Column (4 Cols): Live Pixel Begena + Reference Video + Tuning */}
         <div className="lg:col-span-4 space-y-6">
           {/* Live String Visualizer: 10-String Pixel Begena */}
-          <div className="p-5 border border-zinc-200 rounded-xl bg-zinc-50/50 flex flex-col items-center">
+          <div className="p-5 border border-zinc-200 rounded-lg bg-zinc-50/50 flex flex-col items-center">
             <div className="w-full flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-3 pb-2 border-b border-zinc-200">
-              <span className="pixel-tag">10_STRINGS</span>
+              <span className="font-semibold text-zinc-900">10_STRINGS</span>
               <span className="text-zinc-900 font-bold">
                 {activeString
                   ? `STR ${activeString}: ${currentTuningNotes[activeString]?.note}`

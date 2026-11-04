@@ -23,56 +23,8 @@ export default function PixelBegena({
     if (onPluck) onPluck(pos);
   };
 
-  // 24x24 pixel icon for navigation, tags, and cards
-  if (size === 'icon') {
-    return (
-      <svg
-        viewBox="0 0 24 24"
-        className="w-4 h-4 pixel-art inline-block select-none fill-current"
-        shapeRendering="crispEdges"
-      >
-        {/* Curved scroll horns at top */}
-        <rect x="2" y="1" width="3" height="2" />
-        <rect x="19" y="1" width="3" height="2" />
-        {/* Top crossbar */}
-        <rect x="3" y="3" width="18" height="2" />
-        {/* Tall slender upright arms */}
-        <rect x="4" y="5" width="2" height="11" />
-        <rect x="18" y="5" width="2" height="11" />
-        {/* 10 Strings with authentic skipping: 1 (active), skip 2, 2 (active), skip 1, 3 (active), skip 1, 4 (active), skip 1, 5 (active) */}
-        <rect x="7" y="5" width="1" height="11" />
-        <rect x="8" y="5" width="1" height="11" opacity="0.3" />
-        <rect x="9" y="5" width="1" height="11" opacity="0.3" />
-        <rect x="10" y="5" width="1" height="11" />
-        <rect x="11" y="5" width="1" height="11" opacity="0.3" />
-        <rect x="12" y="5" width="1" height="11" />
-        <rect x="13" y="5" width="1" height="11" opacity="0.3" />
-        <rect x="14" y="5" width="1" height="11" />
-        <rect x="15" y="5" width="1" height="11" opacity="0.3" />
-        <rect x="16" y="5" width="1" height="11" />
-        {/* Compact soundbox */}
-        <rect x="5" y="16" width="14" height="6" />
-        {/* Bridge */}
-        <rect x="8" y="18" width="8" height="2" fill="#FFFFFF" />
-        {/* Two bottom feet */}
-        <rect x="8" y="22" width="2" height="2" />
-        <rect x="14" y="22" width="2" height="2" />
-      </svg>
-    );
-  }
-
   // Exact 10 strings matching authentic Begena:
-  // After String 1, skips 2 strings -> String 2, skips 1 -> String 3, skips 1 -> String 4, skips 1 -> String 5.
-  // 1. Physical 1: Playable [1]
-  // 2. Physical 2: Drone (skip 1)
-  // 3. Physical 3: Drone (skip 2)
-  // 4. Physical 4: Playable [2]
-  // 5. Physical 5: Drone (skip 1)
-  // 6. Physical 6: Playable [3]
-  // 7. Physical 7: Drone (skip 1)
-  // 8. Physical 8: Playable [4]
-  // 9. Physical 9: Drone (skip 1)
-  // 10. Physical 10: Playable [5]
+  // String 1, skip 2, String 2, skip 1, String 3, skip 1, String 4, skip 1, String 5
   const stringPositions = [
     { id: 1, posIndex: 1, yokeX: 104, bridgeX: 104, isPrimary: true },
     { id: 2, posIndex: null, yokeX: 117, bridgeX: 117, isPrimary: false },
@@ -94,21 +46,80 @@ export default function PixelBegena({
     { pos: 5, note: currentTuning[5]?.note ?? 'G' },
   ];
 
-  // Proportions matching photograph (ViewBox 320 x 520)
-  const width = size === 'hero' ? 300 : 210;
-  const height = size === 'hero' ? 488 : 341;
-
-  return (
-    <div className="relative inline-flex flex-col items-center select-none">
+  // Exact scaled-down Begena SVG for app logo
+  if (size === 'icon') {
+    return (
       <svg
         viewBox="0 0 320 520"
-        width={width}
-        height={height}
-        className="pixel-art select-none"
+        className="w-5 h-7 pixel-art select-none inline-block shrink-0"
+        shapeRendering="crispEdges"
+      >
+        {/* Top Scroll Horns */}
+        <g fill="#FFFFFF">
+          <rect x="36" y="52" width="24" height="26" />
+          <rect x="26" y="38" width="16" height="20" />
+          <rect x="28" y="24" width="22" height="18" />
+          <rect x="44" y="18" width="28" height="14" />
+          <rect x="66" y="24" width="14" height="18" />
+          <rect x="62" y="36" width="12" height="12" />
+
+          <rect x="260" y="52" width="24" height="26" />
+          <rect x="278" y="38" width="16" height="20" />
+          <rect x="270" y="24" width="22" height="18" />
+          <rect x="248" y="18" width="28" height="14" />
+          <rect x="240" y="24" width="14" height="18" />
+          <rect x="246" y="36" width="12" height="12" />
+        </g>
+        {/* Yoke */}
+        <rect x="48" y="56" width="224" height="22" fill="#FFFFFF" />
+        {/* 10 Pegs */}
+        {stringPositions.map((s) => (
+          <rect key={s.id} x={s.yokeX - 2} y="28" width="4" height="28" fill="#FFFFFF" />
+        ))}
+        {/* Hanging Weight */}
+        <line x1="236" y1="78" x2="236" y2="230" stroke="#FFFFFF" strokeWidth="2" strokeDasharray="3 3" />
+        <rect x="228" y="230" width="16" height="24" fill="#FFFFFF" />
+        {/* Arms */}
+        <polygon points="64,78 80,78 104,350 88,350" fill="#FFFFFF" />
+        <polygon points="240,78 256,78 232,350 216,350" fill="#FFFFFF" />
+        {/* Soundbox */}
+        <polygon points="84,346 236,346 242,468 78,468" fill="#FFFFFF" />
+        <polygon points="92,354 228,354 234,460 86,460" fill="#000000" />
+        {/* Bridge */}
+        <rect x="94" y="404" width="134" height="14" fill="#FFFFFF" />
+        {/* Tailpiece */}
+        <rect x="98" y="454" width="126" height="8" fill="#FFFFFF" />
+        {/* Feet */}
+        <polygon points="104,468 116,468 112,498 102,498" fill="#FFFFFF" />
+        <polygon points="204,468 216,468 218,498 208,498" fill="#FFFFFF" />
+        {/* 10 Strings */}
+        {stringPositions.map((s) => (
+          <line
+            key={`str-${s.id}`}
+            x1={s.yokeX}
+            y1={78}
+            x2={s.bridgeX}
+            y2={454}
+            stroke="#FFFFFF"
+            strokeWidth={s.isPrimary ? '2' : '1'}
+            opacity={s.isPrimary ? 0.95 : 0.35}
+          />
+        ))}
+      </svg>
+    );
+  }
+
+  // Responsive width & height
+  const containerMaxWidth = size === 'hero' ? 'max-w-[280px] sm:max-w-[300px]' : 'max-w-[190px] sm:max-w-[210px]';
+
+  return (
+    <div className={`relative inline-flex flex-col items-center select-none w-full ${containerMaxWidth}`}>
+      <svg
+        viewBox="0 0 320 520"
+        className="w-full h-auto pixel-art select-none"
         shapeRendering="crispEdges"
       >
         <defs>
-          {/* 1-bit Checkerboard Dither for Parchment Hide */}
           <pattern id="parchmentDither" width="4" height="4" patternUnits="userSpaceOnUse">
             <rect x="0" y="0" width="2" height="2" fill="#000000" opacity="0.08" />
             <rect x="2" y="2" width="2" height="2" fill="#000000" opacity="0.08" />
@@ -127,8 +138,7 @@ export default function PixelBegena({
           strokeDasharray="4 4"
         />
 
-        {/* 1. TOP CURVED SCROLL HORNS (Volute / Ram's Horns from Photo) */}
-        {/* Left Scroll Horn */}
+        {/* 1. TOP CURVED SCROLL HORNS */}
         <g>
           <rect x="36" y="52" width="24" height="26" fill="#000000" />
           <rect x="26" y="38" width="16" height="20" fill="#000000" />
@@ -140,7 +150,6 @@ export default function PixelBegena({
           <rect x="50" y="32" width="2" height="2" fill="#000000" />
         </g>
 
-        {/* Right Scroll Horn */}
         <g>
           <rect x="260" y="52" width="24" height="26" fill="#000000" />
           <rect x="278" y="38" width="16" height="20" fill="#000000" />
@@ -152,9 +161,8 @@ export default function PixelBegena({
           <rect x="268" y="32" width="2" height="2" fill="#000000" />
         </g>
 
-        {/* 2. TOP CROSSBAR (YOKE / BERENTA) */}
+        {/* 2. TOP CROSSBAR (YOKE) */}
         <rect x="48" y="56" width="224" height="22" fill="#000000" />
-        {/* Traditional Carved Geometric Band */}
         {Array.from({ length: 24 }).map((_, i) => (
           <rect
             key={i}
@@ -167,7 +175,7 @@ export default function PixelBegena({
           />
         ))}
 
-        {/* 3. 10 WOODEN TUNING PEGS WITH LEATHER COILS */}
+        {/* 3. 10 WOODEN TUNING PEGS */}
         {stringPositions.map((s) => (
           <g key={s.id}>
             <rect x={s.yokeX - 3} y="26" width="7" height="6" fill="#000000" />
@@ -180,7 +188,7 @@ export default function PixelBegena({
           </g>
         ))}
 
-        {/* 4. HANGING LEATHER TUNING WEIGHT (Korkoro) ON RIGHT */}
+        {/* 4. HANGING LEATHER TUNING WEIGHT (Korkoro) */}
         <line
           x1="236"
           y1="78"
@@ -195,8 +203,7 @@ export default function PixelBegena({
         <polygon points="229,270 243,270 236,278" fill="#000000" />
         <rect x="230" y="250" width="12" height="18" fill="#27272A" />
 
-        {/* 5. TALL, SLENDER UPRIGHT ARMS (Tenten) - Outward Splay Trapeze */}
-        {/* Left Arm */}
+        {/* 5. TALL SLENDER UPRIGHT ARMS */}
         <polygon points="64,78 80,78 104,350 88,350" fill="#000000" />
         {Array.from({ length: 14 }).map((_, i) => {
           const cy = 96 + i * 18;
@@ -211,7 +218,6 @@ export default function PixelBegena({
           );
         })}
 
-        {/* Right Arm */}
         <polygon points="240,78 256,78 232,350 216,350" fill="#000000" />
         {Array.from({ length: 14 }).map((_, i) => {
           const cy = 96 + i * 18;
@@ -226,12 +232,12 @@ export default function PixelBegena({
           );
         })}
 
-        {/* 6. RECTANGULAR SOUNDBOX (Body / Parchment Hide Face) */}
+        {/* 6. SOUNDBOX */}
         <polygon points="84,346 236,346 242,468 78,468" fill="#000000" />
         <polygon points="90,352 230,352 236,462 84,462" fill="#F4F4F5" />
         <polygon points="90,352 230,352 236,462 84,462" fill="url(#parchmentDither)" />
 
-        {/* Ethiopian Cross / Diamond Soundhole in Center */}
+        {/* Center Ge'ez Diamond Cross */}
         <g transform="translate(160, 380)">
           <rect x="-6" y="-6" width="12" height="12" fill="#000000" />
           <rect x="-10" y="-2" width="20" height="4" fill="#000000" />
@@ -239,7 +245,7 @@ export default function PixelBegena({
           <rect x="-2" y="-2" width="4" height="4" fill="#FAFAFA" />
         </g>
 
-        {/* 7. WIDE WOODEN BRIDGE WITH 10 LEATHER DAMPERS (Birr / Enshish) */}
+        {/* 7. WIDE BRIDGE WITH 10 DAMPERS */}
         <rect x="94" y="404" width="134" height="14" fill="#000000" />
         <rect x="96" y="406" width="130" height="4" fill="#27272A" />
         {stringPositions.map((s) => (
@@ -255,7 +261,7 @@ export default function PixelBegena({
           />
         ))}
 
-        {/* 8. LOWER TAILPIECE ANCHORING ALL 10 STRINGS */}
+        {/* 8. TAILPIECE */}
         <rect x="98" y="454" width="126" height="8" fill="#000000" />
         {stringPositions.map((s) => (
           <rect
@@ -269,7 +275,7 @@ export default function PixelBegena({
           />
         ))}
 
-        {/* 9. TWO POINTED BONE / IVORY FEET */}
+        {/* 9. POINTED IVORY FEET */}
         <polygon
           points="104,468 116,468 112,498 102,498"
           fill="#FFFFFF"
@@ -286,7 +292,7 @@ export default function PixelBegena({
         />
         <rect x="211" y="488" width="4" height="8" fill="#000000" opacity="0.3" />
 
-        {/* 10. THE 10 STRINGS (1, skip 2, 2, skip 1, 3, skip 1, 4, skip 1, 5) */}
+        {/* 10. 10 STRINGS (1, skip 2, 2, skip 1, 3, skip 1, 4, skip 1, 5) */}
         {stringPositions.map((str) => {
           const isPrimary = str.isPrimary;
           const posNum = str.posIndex;
@@ -298,7 +304,6 @@ export default function PixelBegena({
               className={interactive && posNum !== null ? 'cursor-pointer group' : ''}
               onClick={() => posNum !== null && handleStringClick(posNum)}
             >
-              {/* Wide click hitbox for playable strings */}
               {interactive && posNum !== null && (
                 <rect
                   x={str.yokeX - 8}
@@ -309,7 +314,6 @@ export default function PixelBegena({
                 />
               )}
 
-              {/* String Plucking Vibration Animation */}
               {isPlucked ? (
                 <g>
                   <line
@@ -362,7 +366,7 @@ export default function PixelBegena({
         })}
       </svg>
 
-      {/* Primary Playing String Selector Pills (1, 2, 3, 4, 5) */}
+      {/* String Pills [1] through [5] */}
       {interactive && (
         <div className="flex items-center justify-between w-full max-w-[280px] mt-3 px-1 font-mono">
           {primaryPlayingStrings.map((str) => {
