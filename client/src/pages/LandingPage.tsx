@@ -167,21 +167,33 @@ export default function LandingPage() {
   const currentTuningNotes = BEGENA_TUNINGS[currentMode];
 
   return (
-    <div className="min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white">
-      {/* Top Navbar - Clean, necessary links only. Transparent at top, glassmorphic on scroll */}
+    <div className="relative min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white overflow-hidden">
+      {/* Wind-Blown Sand Particles Drift (Matching reference image) */}
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] sm:h-[820px] overflow-hidden select-none z-0"
+        aria-hidden="true"
+      >
+        <img
+          src="/sand-wind.svg"
+          alt=""
+          className="w-full h-full object-cover object-top opacity-65 pointer-events-none"
+        />
+      </div>
+
+      {/* Top Navbar - Enlarged slightly, prominent logo, transparent at top, glassmorphic on scroll */}
       <header
         className={`sticky top-0 z-40 transition-all duration-200 ${
           isScrolled
-            ? 'bg-white/80 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
+            ? 'bg-white/85 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <div className="w-6 h-8 flex items-center justify-center shrink-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[68px] flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3">
+            <div className="w-8 h-10 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span className="font-bold tracking-tight text-base text-black">
+            <span className="font-bold tracking-tight text-lg text-black">
               Begenarxiv
             </span>
           </Link>
@@ -195,7 +207,7 @@ export default function LandingPage() {
       </header>
 
       {/* Hero Section */}
-      <section className="pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16 bg-transparent" id="studio">
+      <section className="relative z-10 pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16 bg-transparent" id="studio">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Headline, Mode Selector, Description & Actions */}
@@ -500,10 +512,21 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Bottom CTA */}
-      <section className="py-12 sm:py-14 bg-transparent border-t border-zinc-200">
-        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6">
+      {/* Bottom CTA with Subtle Sand Wind Drift */}
+      <section className="relative py-12 sm:py-16 bg-transparent border-t border-zinc-200 overflow-hidden">
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-full overflow-hidden select-none z-0 opacity-40"
+          aria-hidden="true"
+        >
+          <img
+            src="/sand-wind.svg"
+            alt=""
+            className="w-full h-full object-cover object-bottom pointer-events-none rotate-180"
+          />
+        </div>
+
+        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xs">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
                 Explore the Mezmur Repertoire
@@ -525,11 +548,11 @@ export default function LandingPage() {
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-white py-6 sm:py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 text-black font-semibold">
-            <div className="w-6 h-8 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 text-black font-semibold">
+            <div className="w-7 h-9 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span>Begenarxiv</span>
+            <span className="text-sm font-bold">Begenarxiv</span>
             <span className="text-zinc-300">/</span>
             <span className="text-zinc-500 font-normal">Ethiopian Begena Archive</span>
           </div>

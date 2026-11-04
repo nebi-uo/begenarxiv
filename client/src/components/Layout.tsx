@@ -26,13 +26,13 @@ export default function Layout({ children }: { children: ReactNode }) {
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-14 flex items-center justify-between">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[68px] flex items-center justify-between">
           {/* Logo with Scaled-Down Begena on Transparent Background */}
-          <Link to="/" className="flex items-center gap-2.5 group">
-            <div className="w-6 h-8 flex items-center justify-center shrink-0">
+          <Link to="/" className="flex items-center gap-3 group">
+            <div className="w-8 h-10 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span className="font-bold tracking-tight text-base text-zinc-950">
+            <span className="font-bold tracking-tight text-lg text-zinc-950">
               Begenarxiv
             </span>
           </Link>
@@ -59,11 +59,11 @@ export default function Layout({ children }: { children: ReactNode }) {
       {/* Minimalist Footer */}
       <footer className="border-t border-zinc-200 bg-white mt-auto">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 py-6 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2.5 text-zinc-900 font-semibold">
-            <div className="w-6 h-8 flex items-center justify-center shrink-0">
+          <div className="flex items-center gap-3 text-zinc-900 font-semibold">
+            <div className="w-7 h-9 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span>Begenarxiv</span>
+            <span className="text-sm font-bold">Begenarxiv</span>
             <span className="text-zinc-300">/</span>
             <span className="text-zinc-500 font-normal">Ethiopian Begena Archive</span>
           </div>

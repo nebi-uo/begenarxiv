@@ -51,7 +51,7 @@ export default function PixelBegena({
     return (
       <svg
         viewBox="0 0 320 520"
-        className="w-5 h-7 pixel-art select-none inline-block shrink-0"
+        className="w-8 h-10 pixel-art select-none inline-block shrink-0"
         shapeRendering="crispEdges"
       >
         {/* Top Scroll Horns */}
@@ -75,12 +75,12 @@ export default function PixelBegena({
 
           {/* 10 Pegs */}
           {stringPositions.map((s) => (
-            <rect key={s.id} x={s.yokeX - 2} y="26" width="4" height="30" />
+            <rect key={s.id} x={s.yokeX - 2} y="24" width="4.5" height="32" />
           ))}
         </g>
 
         {/* Hanging Weight */}
-        <line x1="236" y1="78" x2="236" y2="230" stroke="#000000" strokeWidth="2" strokeDasharray="3 3" />
+        <line x1="236" y1="78" x2="236" y2="230" stroke="#000000" strokeWidth="2.5" strokeDasharray="3 3" />
         <rect x="228" y="230" width="16" height="24" rx="2" fill="#000000" />
 
         {/* Arms */}
@@ -88,15 +88,15 @@ export default function PixelBegena({
         <polygon points="238,78 256,78 230,346 212,346" fill="#000000" />
 
         {/* Soundbox (Light subtle parchment fill so strings stand out cleanly) */}
-        <polygon points="84,346 234,346 242,466 76,466" fill="#FAFAFA" stroke="#000000" strokeWidth="3" />
+        <polygon points="84,346 234,346 242,466 76,466" fill="#FAFAFA" stroke="#000000" strokeWidth="3.5" />
         <rect x="90" y="352" width="138" height="4" fill="#000000" opacity="0.15" />
 
         {/* Bridge */}
-        <rect x="92" y="404" width="134" height="14" fill="#000000" rx="1" />
+        <rect x="92" y="402" width="134" height="16" fill="#000000" rx="1" />
         {/* String Notches on Bridge */}
         <g fill="#FFFFFF">
           {stringPositions.map((s) => (
-            <rect key={`notch-${s.id}`} x={s.bridgeX - 1} y="405" width="2" height="12" />
+            <rect key={`notch-${s.id}`} x={s.bridgeX - 1} y="403" width="2" height="14" />
           ))}
         </g>
 
@@ -116,8 +116,8 @@ export default function PixelBegena({
             x2={s.bridgeX}
             y2={452}
             stroke="#000000"
-            strokeWidth={s.isPrimary ? 2.5 : 1.2}
-            opacity={s.isPrimary ? 1 : 0.45}
+            strokeWidth={s.isPrimary ? 3.2 : 1.5}
+            opacity={s.isPrimary ? 1 : 0.6}
           />
         ))}
       </svg>
