@@ -110,7 +110,7 @@ export default function InteractiveSoundboard({ initialMode = 'Tizita' }: Props)
             <h3 className="font-semibold text-zinc-950 text-sm md:text-base tracking-tight">
               10-String Begena Audio Board
             </h3>
-            <span className="pixel-tag-blue">
+            <span className="pixel-tag">
               MODE: {mode.toUpperCase()}
             </span>
           </div>
@@ -225,7 +225,7 @@ export default function InteractiveSoundboard({ initialMode = 'Tizita' }: Props)
           >
             <div className="bg-zinc-950 text-white rounded-lg p-3 flex items-center justify-between text-xs font-mono border border-zinc-800">
               <div className="flex items-center gap-2">
-                <Volume2 size={13} className="text-sky-400" />
+                <Volume2 size={13} className="text-white" />
                 <span className="text-zinc-400">PLAYING [{mode.toUpperCase()}]:</span>
                 <div className="flex items-center gap-1">
                   {SAMPLE_DEMO_SEQUENCE.map((s, idx) => (

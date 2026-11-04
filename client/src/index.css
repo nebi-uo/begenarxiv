@@ -5,22 +5,16 @@
   --color-surface: #FAFAFA;
   --color-surface-subtle: #F4F4F5;
   --color-card: #FFFFFF;
-  --color-ink: #09090B;
+  --color-ink: #000000;
   --color-ink-secondary: #52525B;
   --color-muted: #71717A;
   --color-subtle: #A1A1AA;
   --color-border: #E4E4E7;
-  --color-border-dark: #09090B;
+  --color-border-dark: #000000;
 
-  /* Pixel art night palette from reference image */
-  --color-pixel-night: #0D122B;
-  --color-pixel-indigo: #161E4A;
-  --color-pixel-deep: #1F2A66;
-  --color-pixel-cyan: #38BDF8;
-
-  --radius-card: 10px;
+  --radius-card: 8px;
   --radius-pill: 9999px;
-  --radius-btn: 6px;
+  --radius-btn: 4px;
 
   --font-sans: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   --font-display: "Inter Tight", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
@@ -34,7 +28,7 @@
 
   body {
     background-color: #FFFFFF;
-    color: #09090B;
+    color: #000000;
     font-family: var(--font-sans);
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
@@ -43,30 +37,30 @@
   }
 
   ::selection {
-    background-color: #161E4A;
+    background-color: #000000;
     color: #FFFFFF;
   }
 }
 
 @layer components {
-  /* Pixel art rendering */
+  /* Crisp Pixel Art Rendering */
   .pixel-art {
     image-rendering: pixelated;
     image-rendering: crisp-edges;
     shape-rendering: crispEdges;
   }
 
-  /* Pixel box with retro shadow */
+  /* 8-bit Stepped Pixel Box */
   .pixel-box {
     background: #FFFFFF;
-    border: 2px solid #09090B;
-    box-shadow: 3px 3px 0px #09090B;
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px #000000;
   }
 
-  .pixel-box-night {
-    background: #0D122B;
-    border: 2px solid #1F2A66;
-    box-shadow: 3px 3px 0px #09090B;
+  .pixel-box-black {
+    background: #000000;
+    border: 2px solid #000000;
+    box-shadow: 3px 3px 0px #71717A;
     color: #FFFFFF;
   }
 
@@ -75,19 +69,8 @@
     font-size: 10px;
     letter-spacing: 0.05em;
     padding: 2px 6px;
-    background: #09090B;
+    background: #000000;
     color: #FFFFFF;
-    border-radius: 2px;
-  }
-
-  .pixel-tag-blue {
-    font-family: var(--font-mono);
-    font-size: 10px;
-    letter-spacing: 0.05em;
-    padding: 2px 6px;
-    background: #161E4A;
-    color: #38BDF8;
-    border: 1px solid #1F2A66;
     border-radius: 2px;
   }
 
@@ -97,23 +80,32 @@
     letter-spacing: 0.05em;
     padding: 2px 6px;
     background: #FFFFFF;
-    color: #09090B;
-    border: 1px solid #09090B;
+    color: #000000;
+    border: 1px solid #000000;
     border-radius: 2px;
   }
 
-  /* 16-bit 2x2 checkerboard dither pattern */
-  .pixel-dither-subtle {
-    background-image: 
-      radial-gradient(#161E4A 0.75px, transparent 0.75px);
+  /* 1-bit Checkerboard Dither Patterns (Pure Black & White) */
+  .pixel-dither-50 {
+    background-image: radial-gradient(#000000 1px, transparent 1px);
+    background-size: 4px 4px;
+    opacity: 0.2;
+  }
+
+  .pixel-dither-light {
+    background-image: radial-gradient(#000000 0.8px, transparent 0.8px);
     background-size: 4px 4px;
     opacity: 0.08;
   }
 
-  .pixel-dither-night {
+  .pixel-dither-dense {
     background-image: 
-      radial-gradient(#38BDF8 0.75px, transparent 0.75px);
+      linear-gradient(45deg, #000000 25%, transparent 25%), 
+      linear-gradient(-45deg, #000000 25%, transparent 25%), 
+      linear-gradient(45deg, transparent 75%, #000000 75%), 
+      linear-gradient(-45deg, transparent 75%, #000000 75%);
     background-size: 4px 4px;
+    background-position: 0 0, 0 2px, 2px -2px, -2px 0px;
     opacity: 0.15;
   }
 }

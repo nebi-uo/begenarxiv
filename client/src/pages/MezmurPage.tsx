@@ -137,7 +137,7 @@ export default function MezmurPage() {
           <ChevronLeft size={14} /> CATALOGUE
         </Link>
         <div className="flex items-center gap-2 font-mono text-[10px] text-zinc-400">
-          <span className="pixel-tag-blue">10 STRINGS</span>
+          <span className="pixel-tag">10 STRINGS</span>
           <span className="hidden sm:inline">SHORTCUTS: [1-5] PLUCK · [SPACE] PLAY/PAUSE</span>
         </div>
       </div>
