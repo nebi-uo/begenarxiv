@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Filter, AlertCircle, RefreshCw } from 'lucide-react';
+import { Filter, AlertCircle, RefreshCw, Tag } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurListItem } from '../types';
 import Layout from '../components/Layout';
@@ -17,6 +17,7 @@ export default function CataloguePage() {
   const [query, setQuery] = useState('');
   const [difficultyFilter, setDifficultyFilter] = useState<string>('all');
   const [modeFilter, setModeFilter] = useState<string>('all');
+  const [artistFilter, setArtistFilter] = useState<string>('all');
   const navigate = useNavigate();
 
   const fetchSongs = () => {
@@ -31,6 +32,14 @@ export default function CataloguePage() {
   useEffect(() => {
     fetchSongs();
   }, []);
+
+  const availableArtists = useMemo(() => {
+    const set = new Set<string>();
+    mezmurs.forEach((m) => {
+      if (m.artist_name && m.artist_name.trim()) set.add(m.artist_name.trim());
+    });
+    return Array.from(set).sort();
+  }, [mezmurs]);
 
   const filtered = useMemo(() => {
     const q = query.trim().toLowerCase();
@@ -48,9 +57,13 @@ export default function CataloguePage() {
         modeFilter === 'all' ||
         (m.tune_name && m.tune_name.toLowerCase().includes(modeFilter.toLowerCase()));
 
-      return matchesQuery && matchesDifficulty && matchesMode;
+      const matchesArtist =
+        artistFilter === 'all' ||
+        (m.artist_name && m.artist_name.toLowerCase() === artistFilter.toLowerCase());
+
+      return matchesQuery && matchesDifficulty && matchesMode && matchesArtist;
     });
-  }, [mezmurs, query, difficultyFilter, modeFilter]);
+  }, [mezmurs, query, difficultyFilter, modeFilter, artistFilter]);
 
   const artistCount = new Set(mezmurs.map((m) => m.artist_name).filter(Boolean)).size;
   const tuneCount = new Set(mezmurs.map((m) => m.tune_name).filter(Boolean)).size;
@@ -109,8 +122,8 @@ export default function CataloguePage() {
             onRandom={handleRandom}
           />
 
-          {/* Mode & Difficulty Filter Chips Bar */}
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4 font-mono text-xs">
+          {/* Mode & Difficulty & Artist Filter Chips Bar */}
+          <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 mb-4 font-mono text-xs">
             {/* 3 Modes Filter */}
             <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
               <span className="text-zinc-400 text-[11px] uppercase mr-1">Mode:</span>
@@ -129,24 +142,47 @@ export default function CataloguePage() {
               ))}
             </div>
 
-            {/* Difficulty Filter */}
-            <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
-              <span className="text-zinc-400 flex items-center gap-1 mr-1 text-[11px]">
-                <Filter size={11} /> Level:
-              </span>
-              {['all', 'practice', 'beginner', 'intermediate', 'advanced'].map((lvl) => (
-                <button
-                  key={lvl}
-                  onClick={() => setDifficultyFilter(lvl)}
-                  className={`px-2.5 py-1 rounded text-xs uppercase transition-colors cursor-pointer ${
-                    difficultyFilter === lvl
-                      ? 'bg-zinc-950 text-white font-medium'
-                      : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
-                  }`}
-                >
-                  {lvl}
-                </button>
-              ))}
+            <div className="flex flex-wrap items-center gap-3">
+              {/* Artist Tag Filter */}
+              {availableArtists.length > 0 && (
+                <div className="flex items-center gap-1.5">
+                  <span className="text-zinc-400 flex items-center gap-1 text-[11px]">
+                    <Tag size={11} /> Artist:
+                  </span>
+                  <select
+                    value={artistFilter}
+                    onChange={(e) => setArtistFilter(e.target.value)}
+                    className="px-2.5 py-1 rounded text-xs bg-white text-zinc-900 border border-zinc-200 focus:border-black outline-hidden cursor-pointer font-sans"
+                  >
+                    <option value="all">All Artists ({availableArtists.length})</option>
+                    {availableArtists.map((a) => (
+                      <option key={a} value={a}>
+                        {a}
+                      </option>
+                    ))}
+                  </select>
+                </div>
+              )}
+
+              {/* Difficulty Filter */}
+              <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
+                <span className="text-zinc-400 flex items-center gap-1 mr-1 text-[11px]">
+                  <Filter size={11} /> Level:
+                </span>
+                {['all', 'practice', 'beginner', 'intermediate', 'advanced'].map((lvl) => (
+                  <button
+                    key={lvl}
+                    onClick={() => setDifficultyFilter(lvl)}
+                    className={`px-2.5 py-1 rounded text-xs uppercase transition-colors cursor-pointer ${
+                      difficultyFilter === lvl
+                        ? 'bg-zinc-950 text-white font-medium'
+                        : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200 border border-zinc-200'
+                    }`}
+                  >
+                    {lvl}
+                  </button>
+                ))}
+              </div>
             </div>
           </div>
 

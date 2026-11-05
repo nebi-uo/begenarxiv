@@ -3,11 +3,45 @@ import { query } from '../db';
 
 export const getAllArtists = async (req: Request, res: Response) => {
   try {
-    const result = await query('SELECT id, name FROM artists ORDER BY name');
+    const result = await query(`
+      SELECT a.id, a.name, COUNT(m.id)::int AS mezmur_count
+      FROM artists a
+      LEFT JOIN mezmurs m ON m.artist_id = a.id AND (m.status = 'approved' OR m.status IS NULL)
+      WHERE a.name IS NOT NULL AND TRIM(a.name) != ''
+      GROUP BY a.id, a.name
+      ORDER BY a.name ASC
+    `);
     res.json(result.rows);
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to fetch artists' });
+  }
+};
+
+export const createArtist = async (req: Request, res: Response) => {
+  const { name } = req.body;
+  if (!name || typeof name !== 'string' || !name.trim()) {
+    res.status(400).json({ error: 'Artist name is required' });
+    return;
+  }
+  const trimmed = name.trim();
+  try {
+    const existing = await query(
+      'SELECT id, name FROM artists WHERE LOWER(TRIM(name)) = LOWER($1)',
+      [trimmed]
+    );
+    if (existing.rows.length > 0) {
+      res.json(existing.rows[0]);
+      return;
+    }
+    const inserted = await query(
+      'INSERT INTO artists (name) VALUES ($1) RETURNING id, name',
+      [trimmed]
+    );
+    res.status(201).json(inserted.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to create artist' });
   }
 };
 

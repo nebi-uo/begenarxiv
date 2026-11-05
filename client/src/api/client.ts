@@ -71,7 +71,14 @@ export const api = {
     ),
 
   getArtists: () =>
-    fetch(`${BASE_URL}/artists`).then((res) => handleResponse<{ id: number; name: string }[]>(res)),
+    fetch(`${BASE_URL}/artists`).then((res) => handleResponse<{ id: number; name: string; mezmur_count?: number }[]>(res)),
+
+  createArtist: (name: string) =>
+    fetch(`${BASE_URL}/artists`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name }),
+    }).then((res) => handleResponse<{ id: number; name: string }>(res)),
 
   getTunes: () =>
     fetch(`${BASE_URL}/tunes`).then((res) => handleResponse<{ id: number; name: string }[]>(res)),

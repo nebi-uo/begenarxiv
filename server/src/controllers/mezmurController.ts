@@ -4,10 +4,11 @@ import { MezmurWithSequence } from '../types';
 import { sendContributorApprovalEmail } from '../services/emailService';
 
 async function findOrCreate(table: 'artists' | 'tunes', name: string): Promise<number> {
-  const existing = await query(`SELECT id FROM ${table} WHERE name = $1`, [name]);
+  const trimmed = name.trim();
+  const existing = await query(`SELECT id FROM ${table} WHERE LOWER(TRIM(name)) = LOWER($1)`, [trimmed]);
   if (existing.rows.length > 0) return existing.rows[0].id;
 
-  const inserted = await query(`INSERT INTO ${table} (name) VALUES ($1) RETURNING id`, [name]);
+  const inserted = await query(`INSERT INTO ${table} (name) VALUES ($1) RETURNING id`, [trimmed]);
   return inserted.rows[0].id;
 }
 

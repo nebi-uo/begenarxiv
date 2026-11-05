@@ -23,6 +23,7 @@ import {
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import LyricsViewer from '../components/LyricsViewer';
+import ArtistSelector from '../components/ArtistSelector';
 import { insertRepeatTagAtCursor } from '../utils/lyrics';
 import {
   parseRawNotation,
@@ -963,18 +964,12 @@ export default function PortalPage() {
                   />
                 </div>
 
-                <div>
-                  <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                    Artist / Performer
-                  </label>
-                  <input
-                    type="text"
-                    value={artist}
-                    onChange={(e) => setArtist(e.target.value)}
-                    placeholder="e.g. Alemu Aga or Traditional"
-                    className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden font-sans text-sm"
-                  />
-                </div>
+                <ArtistSelector
+                  value={artist}
+                  onChange={setArtist}
+                  label="Artist / Performer Tag"
+                  placeholder="e.g. Alemu Aga or Traditional"
+                />
               </div>
 
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">

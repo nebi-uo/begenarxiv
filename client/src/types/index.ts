@@ -94,3 +94,9 @@ export interface PendingMezmur {
   contributor_email: string | null;
   created_at: string;
 }
+
+export interface ArtistItem {
+  id: number;
+  name: string;
+  mezmur_count?: number;
+}
