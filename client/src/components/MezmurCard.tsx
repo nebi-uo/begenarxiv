@@ -39,8 +39,15 @@ export default function MezmurCard({ mezmur, index, onClick }: Props) {
         </p>
       </div>
 
-      <div className="mt-5 pt-3 border-t border-zinc-100 flex items-center justify-between">
+      <div className="mt-5 pt-3 border-t border-zinc-100 flex items-center justify-between text-[11px] font-mono">
         <DifficultyBar difficulty={mezmur.difficulty} />
+        {mezmur.contributor_name && mezmur.contributor_name.toLowerCase() !== 'begenarxiv' ? (
+          <span className="text-zinc-600 truncate max-w-[120px]" title={`Contributed by ${mezmur.contributor_name}`}>
+            by {mezmur.contributor_name}
+          </span>
+        ) : (
+          <span className="text-zinc-400">Begenarxiv</span>
+        )}
       </div>
     </motion.button>
   );

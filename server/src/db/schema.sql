@@ -47,6 +47,10 @@ CREATE TABLE mezmurs (
   artist_id INT REFERENCES artists(id),
   tune_id INT REFERENCES tunes(id),
   tuning_profile_id INT REFERENCES tuning_profiles(id),
+  status TEXT DEFAULT 'approved' CHECK (status IN ('approved', 'pending', 'rejected')),
+  contributor_name TEXT DEFAULT 'Begenarxiv',
+  contributor_email TEXT,
+  approved_at TIMESTAMP DEFAULT NOW(),
   created_at TIMESTAMP DEFAULT NOW()
 );
 

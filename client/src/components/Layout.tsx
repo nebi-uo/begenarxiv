@@ -37,17 +37,37 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Navigation Links: On /catalogue, no unnecessary buttons. On /mezmur/:id, only CATALOGUE */}
-          {!isCatalogue && (
-            <nav className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
-              <Link
-                to="/catalogue"
-                className="hover:text-black text-zinc-700 font-semibold tracking-wider transition-colors px-3 py-1.5 rounded hover:bg-zinc-100/60"
-              >
-                CATALOGUE
-              </Link>
-            </nav>
-          )}
+          {/* Navigation Links: Catalogue, Add a Mezmur, Request a Mezmur */}
+          <nav className="flex items-center gap-1.5 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
+            <Link
+              to="/catalogue"
+              className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
+                location.pathname === '/catalogue' ? 'text-black' : 'text-zinc-600'
+              }`}
+            >
+              CATALOGUE
+            </Link>
+
+            <Link
+              to="/contribute"
+              className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
+                location.pathname === '/contribute' ? 'text-black' : 'text-zinc-600'
+              }`}
+            >
+              <span className="hidden sm:inline">ADD A MEZMUR</span>
+              <span className="sm:hidden">ADD</span>
+            </Link>
+
+            <Link
+              to="/request"
+              className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
+                location.pathname === '/request' ? 'text-black' : 'text-zinc-600'
+              }`}
+            >
+              <span className="hidden sm:inline">REQUEST A MEZMUR</span>
+              <span className="sm:hidden">REQUEST</span>
+            </Link>
+          </nav>
         </div>
       </header>
 

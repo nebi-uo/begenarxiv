@@ -56,7 +56,7 @@ export const NOTE_TO_FREQUENCY: Record<string, number> = {
   B: 246.94,
 };
 
-export const ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast ornament roll
+export const ROLL_OFFSET_SEC = 0.050; // ~50ms between notes in a fast ornament roll (natural finger speed)
 
 export function useTonePlayer(mode: BegenaTuneMode = 'Tizita') {
   const playTone = useCallback(

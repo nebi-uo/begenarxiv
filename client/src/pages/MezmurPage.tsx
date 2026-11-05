@@ -1,6 +1,6 @@
 import { useEffect, useState, useCallback } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
-import { ChevronLeft, PlayCircle, Music, AlignLeft, AlertCircle, RefreshCw } from 'lucide-react';
+import { ChevronLeft, PlayCircle, Music, AlignLeft, AlertCircle, RefreshCw, ShieldCheck, Award } from 'lucide-react';
 import { api } from '../api/client';
 import type { MezmurDetail, MezmurListItem } from '../types';
 import TapToHearPlayer from '../components/TapToHearPlayer';
@@ -149,6 +149,18 @@ export default function MezmurPage() {
               <span>{mezmur.artist_name ?? 'Unknown artist'}</span>
               <span>/</span>
               <span>{mezmur.tune_name ?? 'Tizita Mode'}</span>
+              <span>·</span>
+              {mezmur.contributor_name && mezmur.contributor_name.toLowerCase() !== 'begenarxiv' ? (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-800 text-[11px] font-mono font-medium">
+                  <Award size={12} className="text-zinc-900" />
+                  Contributed by {mezmur.contributor_name}
+                </span>
+              ) : (
+                <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-700 text-[11px] font-mono">
+                  <ShieldCheck size={12} className="text-zinc-900" />
+                  Verified by Begenarxiv
+                </span>
+              )}
             </div>
 
             <h1 className="text-2xl md:text-3xl font-bold tracking-tight text-zinc-950">

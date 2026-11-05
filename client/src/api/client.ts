@@ -1,4 +1,10 @@
-import type { MezmurListItem, MezmurDetail, MezmurRequest, CreateMezmurPayload } from '../types';
+import type {
+  MezmurListItem,
+  MezmurDetail,
+  MezmurRequest,
+  CreateMezmurPayload,
+  PendingMezmur,
+} from '../types';
 
 const BASE_URL = 'http://localhost:4000/api';
 
@@ -22,7 +28,29 @@ export const api = {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload),
-    }).then((res) => handleResponse<{ success: boolean; mezmurId: number; title: string }>(res)),
+    }).then((res) =>
+      handleResponse<{
+        success: boolean;
+        mezmurId: number;
+        title: string;
+        message?: string;
+        status?: string;
+      }>(res)
+    ),
+
+  // Community Submission review (Admin)
+  getPendingMezmurs: () =>
+    fetch(`${BASE_URL}/mezmurs/pending`).then((res) => handleResponse<PendingMezmur[]>(res)),
+
+  approveMezmur: (id: number) =>
+    fetch(`${BASE_URL}/mezmurs/${id}/approve`, {
+      method: 'POST',
+    }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
+
+  rejectMezmur: (id: number) =>
+    fetch(`${BASE_URL}/mezmurs/${id}/reject`, {
+      method: 'POST',
+    }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
 
   getArtists: () =>
     fetch(`${BASE_URL}/artists`).then((res) => handleResponse<{ id: number; name: string }[]>(res)),
@@ -44,7 +72,14 @@ export const api = {
   getRequests: () =>
     fetch(`${BASE_URL}/requests`).then((res) => handleResponse<MezmurRequest[]>(res)),
 
-  createRequest: (data: { title: string; artist?: string; youtube_url?: string; notes?: string }) =>
+  createRequest: (data: {
+    title: string;
+    artist?: string;
+    youtube_url?: string;
+    notes?: string;
+    requester_name?: string;
+    requester_email?: string;
+  }) =>
     fetch(`${BASE_URL}/requests`, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },

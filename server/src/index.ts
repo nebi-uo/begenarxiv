@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { query } from './db';
+import { runMigrations } from './db/migrate';
 import mezmurRoutes from './routes/mezmurRoutes';
 import artistRoutes from './routes/artistRoutes';
 import tuneRoutes from './routes/tuneRoutes';
@@ -15,6 +16,9 @@ const PORT = process.env.PORT || 4000;
 
 app.use(cors());
 app.use(express.json());
+
+// Run safe DB migrations on boot
+runMigrations().catch((err) => console.warn('Migrations warning:', err));
 
 app.use('/api/mezmurs', mezmurRoutes);
 app.use('/api/artists', artistRoutes);

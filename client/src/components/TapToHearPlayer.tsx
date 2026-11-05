@@ -12,7 +12,7 @@ interface Props {
   onActiveStringChange?: (pos: number | null) => void;
 }
 
-const BASE_ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast roll
+const BASE_ROLL_OFFSET_SEC = 0.050; // ~50ms between notes in a fast roll (natural finger speed)
 
 function groupByLine(sequence: SequenceStep[]) {
   const lines = new Map<number, SequenceStep[]>();

@@ -246,13 +246,29 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
+          <nav className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
             <Link
               to="/catalogue"
-              className="inline-flex items-center gap-2 bg-black hover:bg-zinc-800 text-white text-xs sm:text-sm font-mono px-4 py-2 sm:px-5 sm:py-2.5 rounded transition-all duration-150 shadow-xs"
+              className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
             >
-              <span>CATALOGUE</span>
-              <ArrowRight size={14} />
+              CATALOGUE
+            </Link>
+
+            <Link
+              to="/contribute"
+              className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
+            >
+              <span className="hidden sm:inline">ADD A MEZMUR</span>
+              <span className="sm:hidden">ADD</span>
+            </Link>
+
+            <Link
+              to="/request"
+              className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs sm:text-sm font-mono px-3 py-1.5 sm:px-4 sm:py-2 rounded transition-all duration-150 shadow-xs"
+            >
+              <span className="hidden sm:inline">REQUEST A MEZMUR</span>
+              <span className="sm:hidden">REQUEST</span>
+              <ArrowRight size={13} />
             </Link>
           </nav>
         </div>
@@ -491,11 +507,11 @@ export default function LandingPage() {
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-black font-bold mb-2">
                   <span>GROUPED DIGITS [ 42 ]</span>
-                  <span>35 MS MICRO-ROLL</span>
+                  <span>50 MS MICRO-ROLL</span>
                 </div>
                 <h3 className="text-base font-bold text-black mb-1">Two-String Ornament [ 4 2 ]</h3>
                 <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-                  String 4 ({currentTuningNotes[4]?.note}) followed 35ms later by String 2 ({currentTuningNotes[2]?.note}), the way ornaments actually sound in church mezmurs.
+                  String 4 ({currentTuningNotes[4]?.note}) followed 50ms later by String 2 ({currentTuningNotes[2]?.note}), the way ornaments actually sound in church mezmurs.
                 </p>
               </div>
 

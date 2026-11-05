@@ -7,6 +7,10 @@ export interface Mezmur {
   artist_id: number | null;
   tune_id: number | null;
   tuning_profile_id: number | null;
+  status: 'approved' | 'pending' | 'rejected';
+  contributor_name: string | null;
+  contributor_email: string | null;
+  approved_at: string | null;
 }
 
 export interface SequenceStep {
@@ -24,6 +28,16 @@ export interface MezmurWithSequence extends Mezmur {
   artist_name: string | null;
   tune_name: string | null;
   sequence: SequenceStep[];
+}
+
+export interface MezmurListItem {
+  id: number;
+  title: string;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  artist_name: string | null;
+  tune_name: string | null;
+  status: 'approved' | 'pending' | 'rejected';
+  contributor_name: string | null;
 }
 
 export interface Artist {

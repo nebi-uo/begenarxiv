@@ -10,12 +10,15 @@ import {
   ExternalLink,
   ChevronLeft,
   Sparkles,
+  Award,
+  Check,
+  X,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import { api } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
-import type { MezmurRequest } from '../types';
+import type { MezmurRequest, PendingMezmur } from '../types';
 
 interface ParsedToken {
   text: string;
@@ -33,9 +36,9 @@ export default function PortalPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Active tab: 'decode' | 'requests' | 'request-form'
-  const [activeTab, setActiveTab] = useState<'decode' | 'requests' | 'request-form'>(
-    (searchParams.get('tab') as 'decode' | 'requests' | 'request-form') || 'decode'
+  // Active tab: 'pending' | 'decode' | 'requests'
+  const [activeTab, setActiveTab] = useState<'pending' | 'decode' | 'requests'>(
+    (searchParams.get('tab') as 'pending' | 'decode' | 'requests') || 'decode'
   );
 
   // Form states for decoding / publishing
@@ -64,15 +67,11 @@ export default function PortalPage() {
   const [loadingRequests, setLoadingRequests] = useState(false);
   const [linkedRequestId, setLinkedRequestId] = useState<number | null>(null);
 
-  // New Request Form states
-  const [reqTitle, setReqTitle] = useState('');
-  const [reqArtist, setReqArtist] = useState('');
-  const [reqYoutube, setReqYoutube] = useState('');
-  const [reqNotes, setReqNotes] = useState('');
-  const [reqSuccess, setReqSuccess] = useState(false);
-  const [reqSubmitting, setReqSubmitting] = useState(false);
+  // Community Pending Submissions (Admin Review)
+  const [pendingMezmurs, setPendingMezmurs] = useState<PendingMezmur[]>([]);
+  const [loadingPending, setLoadingPending] = useState(false);
+  const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
 
-  // Fetch requests on mount or tab change
   const fetchRequests = useCallback(() => {
     setLoadingRequests(true);
     api.getRequests()
@@ -81,9 +80,18 @@ export default function PortalPage() {
       .finally(() => setLoadingRequests(false));
   }, []);
 
+  const fetchPending = useCallback(() => {
+    setLoadingPending(true);
+    api.getPendingMezmurs()
+      .then(setPendingMezmurs)
+      .catch(() => {})
+      .finally(() => setLoadingPending(false));
+  }, []);
+
   useEffect(() => {
     fetchRequests();
-  }, [fetchRequests]);
+    fetchPending();
+  }, [fetchRequests, fetchPending]);
 
   // Clean up timeouts
   useEffect(() => {
@@ -132,18 +140,18 @@ export default function PortalPage() {
     if (auditionTimeoutRef.current) clearTimeout(auditionTimeoutRef.current);
   }, []);
 
-  // Play a single parsed token (solo pluck or fast 35ms roll)
+  // Play a single parsed token (solo pluck or natural 50ms roll)
   const playToken = useCallback(
     (token: ParsedToken, key: string) => {
       if (!token.isValid) return;
       setPlayingTokenKey(key);
 
       if (token.isRoll) {
-        // Fast 35ms ornament roll
+        // Natural 50ms ornament roll
         token.positions.forEach((pos, i) => {
           setTimeout(() => {
             pluckString(pos, 220);
-          }, i * 35);
+          }, i * 50);
         });
       } else {
         pluckString(token.positions[0], 500);
@@ -188,7 +196,7 @@ export default function PortalPage() {
     step(0);
   }, [parsedLines, playToken]);
 
-  // Handle publishing to database
+  // Admin Direct Publish
   const handlePublish = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!title.trim()) {
@@ -217,18 +225,19 @@ export default function PortalPage() {
         youtube_url: youtubeUrl.trim(),
         lyrics: lyrics.trim(),
         raw_notation: rawNotation.trim(),
+        is_admin: true,
+        contributor_name: 'Begenarxiv',
+        status: 'approved',
       });
 
       setPublishSuccess({ mezmurId: res.mezmurId, title: res.title });
 
-      // If this was linked to a request, mark it completed
       if (linkedRequestId) {
         await api.updateRequestStatus(linkedRequestId, 'completed').catch(() => {});
         setLinkedRequestId(null);
         fetchRequests();
       }
 
-      // Reset notation and title
       setTitle('');
       setYoutubeUrl('');
       setLyrics('');
@@ -241,6 +250,30 @@ export default function PortalPage() {
     }
   };
 
+  // Admin Approval Action (Green Light)
+  const handleApproveSubmission = async (id: number) => {
+    try {
+      const res = await api.approveMezmur(id);
+      setReviewFeedback(res.message);
+      fetchPending();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Approval failed';
+      setReviewFeedback(msg);
+    }
+  };
+
+  // Admin Reject Action
+  const handleRejectSubmission = async (id: number) => {
+    try {
+      const res = await api.rejectMezmur(id);
+      setReviewFeedback(res.message);
+      fetchPending();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Rejection failed';
+      setReviewFeedback(msg);
+    }
+  };
+
   // Pre-fill decoder from request
   const handleLoadRequest = (req: MezmurRequest) => {
     setTitle(req.title);
@@ -250,33 +283,6 @@ export default function PortalPage() {
     setLinkedRequestId(req.id);
     setActiveTab('decode');
     window.scrollTo({ top: 0, behavior: 'smooth' });
-  };
-
-  // Submit request form
-  const handleSubmitRequest = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!reqTitle.trim()) return;
-
-    setReqSubmitting(true);
-    try {
-      await api.createRequest({
-        title: reqTitle.trim(),
-        artist: reqArtist.trim() || undefined,
-        youtube_url: reqYoutube.trim() || undefined,
-        notes: reqNotes.trim() || undefined,
-      });
-
-      setReqSuccess(true);
-      setReqTitle('');
-      setReqArtist('');
-      setReqYoutube('');
-      setReqNotes('');
-      fetchRequests();
-    } catch (e) {
-      console.error(e);
-    } finally {
-      setReqSubmitting(false);
-    }
   };
 
   const loadSampleHymn = () => {
@@ -301,7 +307,7 @@ export default function PortalPage() {
             <ChevronLeft size={14} /> BACK TO CATALOGUE
           </Link>
           <span className="font-mono text-[10px] uppercase bg-black text-white px-2 py-0.5 rounded font-bold">
-            ADMIN PORTAL
+            ADMIN CURATOR PORTAL
           </span>
         </div>
 
@@ -310,14 +316,13 @@ export default function PortalPage() {
           <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-black">
-                Population Portal
+                Curation &amp; Population Portal
               </h1>
               <p className="text-xs sm:text-sm text-zinc-500 font-mono mt-1">
-                Fast mezmur decoder studio, live notation audition, and request queue.
+                Admin studio: review community contributions, decode requests, and publish to archive.
               </p>
             </div>
 
-            {/* Quick Sample Button */}
             <button
               onClick={loadSampleHymn}
               className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs font-mono text-zinc-700 hover:text-black transition-colors cursor-pointer self-start sm:self-auto"
@@ -328,7 +333,24 @@ export default function PortalPage() {
           </div>
 
           {/* Navigation Tabs */}
-          <div className="flex items-center gap-2 mt-6 pt-4 border-t border-zinc-100 font-mono text-xs">
+          <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-zinc-100 font-mono text-xs">
+            <button
+              onClick={() => setActiveTab('pending')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
+                activeTab === 'pending'
+                  ? 'bg-black text-white font-bold'
+                  : 'bg-zinc-100 text-zinc-600 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              <Award size={12} />
+              <span>PENDING REVIEWS</span>
+              {pendingMezmurs.length > 0 && (
+                <span className="px-1.5 py-0.2 rounded-full bg-white text-black text-[10px] font-bold">
+                  {pendingMezmurs.length}
+                </span>
+              )}
+            </button>
+
             <button
               onClick={() => setActiveTab('decode')}
               className={`px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
@@ -353,30 +375,116 @@ export default function PortalPage() {
                 {requests.filter((r) => r.status === 'pending').length}
               </span>
             </button>
-
-            <button
-              onClick={() => setActiveTab('request-form')}
-              className={`px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
-                activeTab === 'request-form'
-                  ? 'bg-black text-white font-bold'
-                  : 'bg-zinc-100 text-zinc-600 hover:text-black hover:bg-zinc-200'
-              }`}
-            >
-              SUBMIT REQUEST
-            </button>
           </div>
         </div>
 
-        {/* TAB 1: DECODE & PUBLISH */}
+        {/* TAB 1: PENDING COMMUNITY SUBMISSIONS (ADMIN REVIEW) */}
+        {activeTab === 'pending' && (
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs font-mono">
+            <div className="flex items-center justify-between pb-3 mb-4 border-b border-zinc-100 text-xs">
+              <span className="font-bold text-black uppercase">
+                Community Submissions Awaiting Approval ({pendingMezmurs.length})
+              </span>
+              <button
+                onClick={fetchPending}
+                disabled={loadingPending}
+                className="text-zinc-500 hover:text-black cursor-pointer text-xs"
+              >
+                {loadingPending ? 'Refreshing...' : 'Refresh List'}
+              </button>
+            </div>
+
+            {reviewFeedback && (
+              <div className="p-3 mb-4 bg-zinc-950 text-white rounded text-xs flex items-center justify-between">
+                <span>{reviewFeedback}</span>
+                <button onClick={() => setReviewFeedback(null)} className="text-zinc-400 hover:text-white">
+                  Dismiss
+                </button>
+              </div>
+            )}
+
+            {pendingMezmurs.length === 0 ? (
+              <div className="py-12 text-center text-xs text-zinc-500">
+                No submissions waiting for review. When users submit hymns at <code className="bg-zinc-100 px-1 py-0.5 rounded">/contribute</code>, they appear here for your green light!
+              </div>
+            ) : (
+              <div className="divide-y divide-zinc-200">
+                {pendingMezmurs.map((sub) => (
+                  <div key={sub.id} className="py-5 flex flex-col md:flex-row md:items-start justify-between gap-4">
+                    <div className="space-y-1.5 flex-1">
+                      <div className="flex items-center gap-2">
+                        <span className="font-bold text-base text-black">{sub.title}</span>
+                        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 font-bold">
+                          {sub.tune_name ?? 'Tizita'}
+                        </span>
+                        <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800">
+                          {sub.difficulty ?? 'beginner'}
+                        </span>
+                      </div>
+
+                      <div className="flex items-center gap-2 text-xs text-zinc-600">
+                        <span>Artist: {sub.artist_name || 'Traditional'}</span>
+                        <span>·</span>
+                        <span className="text-black font-semibold flex items-center gap-1">
+                          <Award size={12} /> Contributor: {sub.contributor_name}
+                        </span>
+                        {sub.contributor_email && (
+                          <span className="text-zinc-400">({sub.contributor_email})</span>
+                        )}
+                      </div>
+
+                      {sub.lyrics && (
+                        <p className="text-xs text-zinc-700 bg-zinc-50 p-2.5 rounded border border-zinc-200 font-sans max-w-xl whitespace-pre-line leading-relaxed">
+                          {sub.lyrics}
+                        </p>
+                      )}
+
+                      {sub.youtube_url && (
+                        <a
+                          href={sub.youtube_url}
+                          target="_blank"
+                          rel="noreferrer"
+                          className="inline-flex items-center gap-1 text-[11px] text-zinc-600 hover:text-black underline mt-1"
+                        >
+                          <span>Listen Reference Video</span>
+                          <ExternalLink size={10} />
+                        </a>
+                      )}
+                    </div>
+
+                    <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0">
+                      <button
+                        onClick={() => handleApproveSubmission(sub.id)}
+                        className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs px-3.5 py-2 rounded font-bold cursor-pointer transition-colors shadow-xs"
+                      >
+                        <Check size={13} />
+                        <span>Green Light &amp; Approve</span>
+                      </button>
+
+                      <button
+                        onClick={() => handleRejectSubmission(sub.id)}
+                        className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-300 text-xs px-3 py-2 rounded cursor-pointer transition-colors"
+                      >
+                        <X size={13} />
+                        <span>Reject</span>
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* TAB 2: DECODE & PUBLISH */}
         {activeTab === 'decode' && (
           <form onSubmit={handlePublish} className="space-y-6">
-            {/* Success Message Banner */}
             {publishSuccess && (
               <div className="p-4 rounded-xl bg-zinc-950 text-white flex items-center justify-between font-mono text-xs">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 size={18} className="text-white" />
                   <span>
-                    Successfully published <strong>"{publishSuccess.title}"</strong> to the catalogue!
+                    Published <strong>"{publishSuccess.title}"</strong> directly to the catalogue!
                   </span>
                 </div>
                 <button
@@ -390,7 +498,6 @@ export default function PortalPage() {
               </div>
             )}
 
-            {/* Error Message Banner */}
             {publishError && (
               <div className="p-4 rounded-xl bg-zinc-100 border border-zinc-300 text-black flex items-center gap-2.5 font-mono text-xs">
                 <AlertCircle size={18} className="text-black shrink-0" />
@@ -411,10 +518,10 @@ export default function PortalPage() {
               </div>
             )}
 
-            {/* Step 1: Hymn Metadata Block */}
+            {/* Hymn Metadata Block */}
             <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
               <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2 border-b border-zinc-100">
-                1. Hymn Metadata
+                1. Hymn Metadata (Direct Admin Publish)
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -505,11 +612,11 @@ export default function PortalPage() {
               </div>
             </div>
 
-            {/* Step 2: Raw Numbers Notation Input */}
+            {/* Raw Numbers Notation Input */}
             <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
                 <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  2. Fast Notation Input (Type / Paste Space-Separated Numbers)
+                  2. Fast Notation Input (Space-Separated Numbers)
                 </h2>
                 <span className="font-mono text-[11px] text-zinc-500">
                   {totalTokens} TOKENS DETECTED
@@ -517,9 +624,8 @@ export default function PortalPage() {
               </div>
 
               <p className="text-xs text-zinc-500 font-mono">
-                Type numbers separated by spaces. Each line in the textarea creates one musical phrase.
-                Grouped digits (like <code className="bg-zinc-100 px-1 py-0.5 rounded font-bold text-black">42</code>)
-                become fast 35ms ornament rolls. Active Begena strings: <strong>1, 2, 3, 4, 5</strong>.
+                Type numbers separated by spaces. Grouped digits (like <code className="bg-zinc-100 px-1 py-0.5 rounded font-bold text-black">42</code>)
+                become natural 50ms ornament rolls. Active Begena strings: <strong>1, 2, 3, 4, 5</strong>.
               </p>
 
               <textarea
@@ -539,7 +645,7 @@ export default function PortalPage() {
               )}
             </div>
 
-            {/* Step 3: Interactive Real-Time Audition Player */}
+            {/* In-Portal Audition Player */}
             {parsedLines.length > 0 && (
               <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
                 <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-2 border-b border-zinc-100 font-mono text-xs">
@@ -575,11 +681,6 @@ export default function PortalPage() {
                   </div>
                 </div>
 
-                <p className="text-[11px] font-mono text-zinc-500">
-                  Tap any number below to audition its sound. Dashed borders indicate fast two-string rolls.
-                </p>
-
-                {/* Parsed Visual Grid */}
                 <div className="space-y-3 font-mono">
                   {parsedLines.map((line) => (
                     <div
@@ -634,7 +735,7 @@ export default function PortalPage() {
                   <span>Publishing to Database...</span>
                 ) : (
                   <>
-                    <span>PUBLISH MEZMUR TO ARCHIVE</span>
+                    <span>DIRECT PUBLISH AS ADMIN (BEGENARXIV)</span>
                     <ArrowRight size={15} />
                   </>
                 )}
@@ -643,12 +744,12 @@ export default function PortalPage() {
           </form>
         )}
 
-        {/* TAB 2: DECODE REQUESTS QUEUE */}
+        {/* TAB 3: DECODE REQUESTS QUEUE */}
         {activeTab === 'requests' && (
-          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs">
-            <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-100 font-mono text-xs">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs font-mono">
+            <div className="flex items-center justify-between mb-4 pb-2 border-b border-zinc-100 text-xs">
               <span className="font-bold text-black uppercase">
-                Incoming Mezmur Requests ({requests.length})
+                Community Decode Requests ({requests.length})
               </span>
               <button
                 onClick={fetchRequests}
@@ -660,11 +761,11 @@ export default function PortalPage() {
             </div>
 
             {requests.length === 0 ? (
-              <div className="py-12 text-center font-mono text-xs text-zinc-500">
+              <div className="py-12 text-center text-xs text-zinc-500">
                 No decode requests in the queue yet.
               </div>
             ) : (
-              <div className="divide-y divide-zinc-100 font-mono">
+              <div className="divide-y divide-zinc-100">
                 {requests.map((req) => (
                   <div key={req.id} className="py-4 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
                     <div>
@@ -684,6 +785,7 @@ export default function PortalPage() {
                       <p className="text-xs text-zinc-500">
                         {req.artist ? `Artist: ${req.artist} · ` : ''}
                         Submitted {new Date(req.created_at).toLocaleDateString()}
+                        {req.requester_name ? ` by ${req.requester_name}` : ''}
                       </p>
 
                       {req.notes && (
@@ -707,6 +809,7 @@ export default function PortalPage() {
 
                     <div className="flex items-center gap-2 shrink-0">
                       <Button
+                        type="button"
                         variant="secondary"
                         onClick={() => handleLoadRequest(req)}
                         className="text-xs py-1.5 px-3"
@@ -720,88 +823,7 @@ export default function PortalPage() {
             )}
           </div>
         )}
-
-        {/* TAB 3: SUBMIT REQUEST */}
-        {activeTab === 'request-form' && (
-          <form onSubmit={handleSubmitRequest} className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
-            <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-black pb-2 border-b border-zinc-100">
-              Request a Mezmur for Decoding
-            </h2>
-
-            {reqSuccess && (
-              <div className="p-3 bg-zinc-950 text-white rounded font-mono text-xs flex items-center gap-2">
-                <CheckCircle2 size={16} />
-                <span>Your mezmur decode request has been added to the queue!</span>
-              </div>
-            )}
-
-            <div>
-              <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                Mezmur Title *
-              </label>
-              <input
-                type="text"
-                required
-                value={reqTitle}
-                onChange={(e) => setReqTitle(e.target.value)}
-                placeholder="e.g. በገናዬም መጣሁ"
-                className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden text-sm"
-              />
-            </div>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-              <div>
-                <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                  Artist Name
-                </label>
-                <input
-                  type="text"
-                  value={reqArtist}
-                  onChange={(e) => setReqArtist(e.target.value)}
-                  placeholder="e.g. Alemu Aga"
-                  className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden text-sm"
-                />
-              </div>
-
-              <div>
-                <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                  YouTube Reference Link
-                </label>
-                <input
-                  type="url"
-                  value={reqYoutube}
-                  onChange={(e) => setReqYoutube(e.target.value)}
-                  placeholder="https://youtube.com/watch?v=..."
-                  className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden text-xs font-mono"
-                />
-              </div>
-            </div>
-
-            <div>
-              <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                Notes / Requested Verses / Lyrics snippet
-              </label>
-              <textarea
-                rows={3}
-                value={reqNotes}
-                onChange={(e) => setReqNotes(e.target.value)}
-                placeholder="Any details or parts of the song you want decoded..."
-                className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden text-sm"
-              />
-            </div>
-
-            <Button
-              type="submit"
-              variant="primary"
-              disabled={reqSubmitting}
-              className="w-full py-2.5 text-xs font-mono mt-2"
-            >
-              {reqSubmitting ? 'Submitting Request...' : 'Submit Request to Queue'}
-            </Button>
-          </form>
-        )}
       </div>
     </Layout>
   );
 }
-

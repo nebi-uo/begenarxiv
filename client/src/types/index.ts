@@ -4,6 +4,8 @@ export interface MezmurListItem {
   difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
   artist_name: string | null;
   tune_name: string | null;
+  status?: 'approved' | 'pending' | 'rejected';
+  contributor_name?: string | null;
 }
 
 export interface SequenceStep {
@@ -11,7 +13,7 @@ export interface SequenceStep {
   line_number: number;
   duration_ms: number | null;
   string_id: number;
-  group_id: number | null
+  group_id: number | null;
   string_position: number;
   note_name: string;
   audio_file_url: string;
@@ -28,9 +30,12 @@ export interface MezmurDetail {
   artist_name: string | null;
   tune_name: string | null;
   tuning_profile_id: number | null;
+  status?: 'approved' | 'pending' | 'rejected';
+  contributor_name?: string | null;
+  contributor_email?: string | null;
+  approved_at?: string | null;
   sequence: SequenceStep[];
 }
-
 
 export interface MezmurRequest {
   id: number;
@@ -38,6 +43,8 @@ export interface MezmurRequest {
   artist: string | null;
   youtube_url: string | null;
   notes: string | null;
+  requester_name?: string | null;
+  requester_email?: string | null;
   status: 'pending' | 'in_progress' | 'completed';
   created_at: string;
 }
@@ -50,4 +57,22 @@ export interface CreateMezmurPayload {
   lyrics?: string;
   youtube_url?: string;
   raw_notation?: string;
+  is_admin?: boolean;
+  status?: 'approved' | 'pending';
+  contributor_name?: string;
+  contributor_email?: string;
+}
+
+export interface PendingMezmur {
+  id: number;
+  title: string;
+  lyrics: string | null;
+  youtube_url: string | null;
+  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  artist_name: string | null;
+  tune_name: string | null;
+  status: 'pending';
+  contributor_name: string | null;
+  contributor_email: string | null;
+  created_at: string;
 }
