@@ -125,20 +125,14 @@ export default function ContributePage() {
 
   // Return smoothly to top of page whenever an outcome (success or error) occurs
   useEffect(() => {
-    if (submittedSuccess) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    if (submittedSuccess || submitError) {
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
     }
-  }, [submittedSuccess]);
-
-  useEffect(() => {
-    if (submitError) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    }
-  }, [submitError]);
+  }, [submittedSuccess, submitError]);
 
   // Parse raw notation into structured lines and tokens
   const parsedLines: ParsedNotationLine[] = useMemo(() => {

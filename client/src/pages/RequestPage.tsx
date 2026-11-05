@@ -35,9 +35,11 @@ export default function RequestPage() {
   // Return smoothly to top of page when request is submitted or an error occurs
   useEffect(() => {
     if (submittedSuccess || error) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
     }
   }, [submittedSuccess, error]);
 

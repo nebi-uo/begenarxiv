@@ -8,6 +8,7 @@ import artistRoutes from './routes/artistRoutes';
 import tuneRoutes from './routes/tuneRoutes';
 import tuningRoutes from './routes/tuningRoutes';
 import requestRoutes from './routes/requestRoutes';
+import authRoutes from './routes/authRoutes';
 
 dotenv.config();
 
@@ -25,6 +26,7 @@ app.use('/api/artists', artistRoutes);
 app.use('/api/tunes', tuneRoutes);
 app.use('/api/tuning-profiles', tuningRoutes);
 app.use('/api/requests', requestRoutes);
+app.use('/api/admin', authRoutes);
 
 // Health check route: confirms Express is running AND can reach Postgres
 app.get('/health', async (req, res) => {

@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useMemo, useRef, useCallback } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import {
   Play,
@@ -21,6 +21,11 @@ import {
   ShieldCheck,
   Loader2,
   RefreshCw,
+  Lock,
+  Key,
+  Eye,
+  EyeOff,
+  LogOut,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
@@ -40,7 +45,7 @@ import {
   type ParsedNotationToken,
   type ParsedNotationLine,
 } from '../utils/notation';
-import { api } from '../api/client';
+import { api, authStorage } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
 import type { MezmurRequest, PendingMezmur, AdminMezmurItem } from '../types';
 
@@ -52,6 +57,13 @@ export default function PortalPage() {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'decode' | 'pending' | 'requests'>(
     (searchParams.get('tab') as 'dashboard' | 'decode' | 'pending' | 'requests') || 'dashboard'
   );
+
+  // Security & Authentication states
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+  const [passwordInput, setPasswordInput] = useState<string>('');
+  const [showPassword, setShowPassword] = useState<boolean>(false);
+  const [isLoggingIn, setIsLoggingIn] = useState<boolean>(false);
+  const [loginError, setLoginError] = useState<string | null>(null);
 
   // Form states for decoding / publishing
   const [title, setTitle] = useState('');
@@ -166,17 +178,21 @@ export default function PortalPage() {
   // Smooth scroll to top when feedback or messages appear
   useEffect(() => {
     if (publishSuccess || publishError || reviewFeedback || actionFeedback) {
-      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      try {
+        window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      } catch {
+        window.scrollTo(0, 0);
+      }
     }
   }, [publishSuccess, publishError, reviewFeedback, actionFeedback]);
 
   // Smooth scroll to top on tab switch
   useEffect(() => {
-    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
-    document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    try {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    } catch {
+      window.scrollTo(0, 0);
+    }
   }, [activeTab]);
 
   const fetchAdminMezmurs = useCallback(() => {
@@ -203,11 +219,83 @@ export default function PortalPage() {
       .finally(() => setLoadingPending(false));
   }, []);
 
+  // Check existing curator session on mount (seamless background check)
   useEffect(() => {
-    fetchAdminMezmurs();
-    fetchRequests();
-    fetchPending();
-  }, [fetchAdminMezmurs, fetchRequests, fetchPending]);
+    const token = authStorage.getToken();
+    if (!token) {
+      setIsAuthenticated(false);
+      return;
+    }
+
+    api.verifyAdmin()
+      .then((res) => {
+        if (res.valid) {
+          setIsAuthenticated(true);
+        } else {
+          authStorage.removeToken();
+          setIsAuthenticated(false);
+        }
+      })
+      .catch(() => {
+        authStorage.removeToken();
+        setIsAuthenticated(false);
+      });
+  }, []);
+
+  // Listen for session expiry event from API client
+  useEffect(() => {
+    const handleAuthExpired = () => {
+      setIsAuthenticated(false);
+      setLoginError('Your curator session expired or was revoked. Please authenticate again.');
+    };
+    window.addEventListener('begenarxiv:auth-expired', handleAuthExpired);
+    return () => window.removeEventListener('begenarxiv:auth-expired', handleAuthExpired);
+  }, []);
+
+  // Fetch admin datasets only when authenticated
+  useEffect(() => {
+    if (isAuthenticated) {
+      fetchAdminMezmurs();
+      fetchRequests();
+      fetchPending();
+    }
+  }, [isAuthenticated, fetchAdminMezmurs, fetchRequests, fetchPending]);
+
+  const handleLogin = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!passwordInput.trim()) return;
+
+    setIsLoggingIn(true);
+    setLoginError(null);
+
+    try {
+      const res = await api.loginAdmin(passwordInput.trim());
+      if (res.success && res.token) {
+        authStorage.setToken(res.token);
+        setIsAuthenticated(true);
+        setPasswordInput('');
+        setLoginError(null);
+      } else {
+        setLoginError('Invalid curator password.');
+      }
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Invalid administrator password';
+      if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
+        setLoginError('Unable to connect to backend server (http://localhost:4000). Please check if server is running.');
+      } else {
+        setLoginError(msg);
+      }
+    } finally {
+      setIsLoggingIn(false);
+    }
+  };
+
+  const handleLogout = async () => {
+    await api.logoutAdmin();
+    setIsAuthenticated(false);
+    setPasswordInput('');
+    setLoginError(null);
+  };
 
   const handleDeleteMezmur = async (id: number, hymnTitle: string) => {
     if (!window.confirm(`Are you sure you want to permanently delete "${hymnTitle}" from the archive?`)) {
@@ -539,6 +627,116 @@ export default function PortalPage() {
     setRawNotation('1 3 2 4 | 2 1 3 1\n42 2 - 1 3 1\n1 3 2 4 | 13 3 1');
   };
 
+  if (!isAuthenticated) {
+    return (
+      <Layout>
+        <div className="max-w-4xl mx-auto py-4">
+          {/* Breadcrumb / Top Bar */}
+          <div className="mb-6 flex items-center justify-between">
+            <Link
+              to="/catalogue"
+              className="inline-flex items-center gap-1.5 text-xs font-mono text-zinc-500 hover:text-black transition-colors"
+            >
+              <ChevronLeft size={14} /> BACK TO CATALOGUE
+            </Link>
+            <span className="font-mono text-[10px] uppercase bg-zinc-950 text-white px-2 py-0.5 rounded font-bold flex items-center gap-1">
+              <Lock size={10} /> ADMIN PORTAL LOCKED
+            </span>
+          </div>
+
+          {/* Portal Header */}
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 mb-8 shadow-xs">
+            <h1 className="text-2xl sm:text-3xl font-bold tracking-tight text-black">
+              Curation &amp; Population Portal
+            </h1>
+            <p className="text-xs sm:text-sm text-zinc-500 font-mono mt-1">
+              Master studio: review contributions, decode hymns, and curate the live archive.
+            </p>
+          </div>
+
+          {/* Centered Lock Card */}
+          <div className="max-w-md mx-auto">
+            <div className="bg-white border border-zinc-200 rounded-2xl p-6 sm:p-8 shadow-xs">
+              <div className="w-12 h-12 bg-black text-white rounded-xl flex items-center justify-center mb-5">
+                <Lock size={20} />
+              </div>
+
+              <div className="space-y-1 mb-5">
+                <span className="font-mono text-[10px] uppercase bg-zinc-100 text-zinc-700 px-2 py-0.5 rounded font-bold tracking-wider">
+                  CURATOR AUTHENTICATION
+                </span>
+                <h2 className="text-xl font-bold tracking-tight text-black pt-1">
+                  Unlock Admin Portal
+                </h2>
+                <p className="text-xs text-zinc-500 font-mono leading-relaxed">
+                  Enter your master curator password to review community submissions, decode hymns, and curate the live archive.
+                </p>
+              </div>
+
+              {loginError && (
+                <div className="mb-5 p-3.5 rounded-lg bg-zinc-50 border border-zinc-300 text-xs font-mono text-zinc-800 flex items-start gap-2.5">
+                  <AlertCircle size={15} className="mt-0.5 shrink-0 text-black" />
+                  <span>{loginError}</span>
+                </div>
+              )}
+
+              <form onSubmit={handleLogin} className="space-y-4">
+                <div>
+                  <label className="block text-xs font-mono uppercase tracking-wider text-zinc-600 mb-1.5 font-bold">
+                    Curator Password
+                  </label>
+                  <div className="relative">
+                    <input
+                      type={showPassword ? 'text' : 'password'}
+                      value={passwordInput}
+                      onChange={(e) => setPasswordInput(e.target.value)}
+                      placeholder="Enter curator password..."
+                      autoFocus
+                      required
+                      className="w-full px-3.5 py-2.5 pr-10 border border-zinc-300 rounded-lg text-sm font-mono focus:outline-none focus:border-black transition-colors"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-zinc-400 hover:text-black transition-colors cursor-pointer"
+                      aria-label={showPassword ? 'Hide password' : 'Show password'}
+                    >
+                      {showPassword ? <EyeOff size={16} /> : <Eye size={16} />}
+                    </button>
+                  </div>
+                </div>
+
+                <button
+                  type="submit"
+                  disabled={isLoggingIn || !passwordInput.trim()}
+                  className="w-full inline-flex items-center justify-center py-2.5 px-4 rounded-lg bg-black hover:bg-zinc-800 text-white font-mono text-xs tracking-wider uppercase font-bold transition-colors cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isLoggingIn ? (
+                    <>
+                      <Loader2 size={14} className="animate-spin mr-2" />
+                      AUTHENTICATING...
+                    </>
+                  ) : (
+                    <>
+                      <Key size={14} className="mr-1.5" />
+                      UNLOCK PORTAL
+                    </>
+                  )}
+                </button>
+              </form>
+
+              <div className="mt-6 pt-5 border-t border-zinc-100 flex items-center justify-between text-[11px] font-mono text-zinc-400">
+                <span>Default: begena2026</span>
+                <span className="text-zinc-300">·</span>
+                <span>Configured in .env</span>
+              </div>
+            </div>
+          </div>
+        </div>
+      </Layout>
+    );
+  }
+
   return (
     <Layout>
       <div className="max-w-4xl mx-auto py-4">
@@ -550,9 +748,11 @@ export default function PortalPage() {
           >
             <ChevronLeft size={14} /> BACK TO CATALOGUE
           </Link>
-          <span className="font-mono text-[10px] uppercase bg-black text-white px-2 py-0.5 rounded font-bold">
-            ADMIN CURATOR PORTAL
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="font-mono text-[10px] uppercase bg-black text-white px-2 py-0.5 rounded font-bold flex items-center gap-1">
+              <ShieldCheck size={11} /> CURATOR VERIFIED
+            </span>
+          </div>
         </div>
 
         {/* Portal Header */}
@@ -567,13 +767,23 @@ export default function PortalPage() {
               </p>
             </div>
 
-            <button
-              onClick={loadSampleHymn}
-              className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs font-mono text-zinc-700 hover:text-black transition-colors cursor-pointer self-start sm:self-auto"
-            >
-              <Sparkles size={13} />
-              <span>Load Template</span>
-            </button>
+            <div className="flex items-center gap-2 self-start sm:self-auto">
+              <button
+                onClick={loadSampleHymn}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs font-mono text-zinc-700 hover:text-black transition-colors cursor-pointer"
+              >
+                <Sparkles size={13} />
+                <span>Load Template</span>
+              </button>
+              <button
+                onClick={handleLogout}
+                className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs font-mono text-zinc-700 hover:text-black transition-colors cursor-pointer"
+                title="Lock admin portal and terminate current session"
+              >
+                <LogOut size={13} />
+                <span>Lock</span>
+              </button>
+            </div>
           </div>
 
           {/* Navigation Tabs */}

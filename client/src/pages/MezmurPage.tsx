@@ -18,7 +18,7 @@ function getYoutubeEmbedUrl(url: string): string | null {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
-export default function MezmurPage() {
+function MezmurPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
   const [mezmur, setMezmur] = useState<MezmurDetail | null>(null);
@@ -278,3 +278,7 @@ export default function MezmurPage() {
     </Layout>
   );
 }
+
+export default MezmurPage;
+export { MezmurPage };
+

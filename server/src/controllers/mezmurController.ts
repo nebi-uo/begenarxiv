@@ -2,6 +2,7 @@ import { Request, Response } from 'express';
 import { query } from '../db';
 import { MezmurWithSequence } from '../types';
 import { sendContributorApprovalEmail, sendContributorRejectionEmail } from '../services/emailService';
+import { extractBearerToken, verifyAdminToken } from '../middleware/auth';
 
 async function findOrCreate(table: 'artists' | 'tunes', name: string): Promise<number> {
   const trimmed = name.trim();
@@ -153,7 +154,10 @@ export const getMezmurById = async (req: Request, res: Response) => {
     }
 
     const mezmurRow = mezmurResult.rows[0];
-    if (mezmurRow.status !== 'approved' && !isAdmin) {
+    const token = extractBearerToken(req);
+    const isAuthorizedAdmin = isAdmin && verifyAdminToken(token);
+
+    if (mezmurRow.status !== 'approved' && !isAuthorizedAdmin) {
       return res.status(404).json({ error: 'Mezmur not found or awaiting curator approval' });
     }
 
@@ -221,9 +225,12 @@ export const createMezmur = async (req: Request, res: Response) => {
 
   // Determine publication status:
   // User submissions are strictly 'pending' awaiting admin review.
-  // Only explicitly authorized admin creations can be 'approved'.
-  const finalStatus: 'approved' | 'pending' = is_admin ? (explicitStatus || 'approved') : 'pending';
-  const finalContributor = contributor_name?.trim() || (is_admin ? 'Begenarxiv' : 'Anonymous Learner');
+  // Only explicitly authorized curators with a valid cryptographic token can be 'approved'.
+  const token = extractBearerToken(req);
+  const isAuthorizedAdmin = Boolean(is_admin && verifyAdminToken(token));
+
+  const finalStatus: 'approved' | 'pending' = isAuthorizedAdmin ? (explicitStatus || 'approved') : 'pending';
+  const finalContributor = contributor_name?.trim() || (isAuthorizedAdmin ? 'Begenarxiv' : 'Anonymous Learner');
   const finalEmail = contributor_email?.trim() || null;
 
   // Parse raw_notation if provided

@@ -8,9 +8,41 @@ import type {
 } from '../types';
 
 const BASE_URL = 'http://localhost:4000/api';
+const ADMIN_TOKEN_KEY = 'begenarxiv_admin_token';
+
+export const authStorage = {
+  getToken: (): string | null => {
+    try {
+      return localStorage.getItem(ADMIN_TOKEN_KEY);
+    } catch {
+      return null;
+    }
+  },
+  setToken: (token: string): void => {
+    try {
+      localStorage.setItem(ADMIN_TOKEN_KEY, token);
+    } catch {}
+  },
+  removeToken: (): void => {
+    try {
+      localStorage.removeItem(ADMIN_TOKEN_KEY);
+    } catch {}
+  },
+};
+
+function getAuthHeaders(): Record<string, string> {
+  const token = authStorage.getToken();
+  return token ? { Authorization: `Bearer ${token}` } : {};
+}
 
 async function handleResponse<T>(res: Response): Promise<T> {
   if (!res.ok) {
+    if (res.status === 401) {
+      authStorage.removeToken();
+      if (typeof window !== 'undefined') {
+        window.dispatchEvent(new CustomEvent('begenarxiv:auth-expired'));
+      }
+    }
     const errorBody = await res.json().catch(() => null);
     throw new Error(errorBody?.error || `API error: ${res.status} ${res.statusText}`);
   }
@@ -18,16 +50,54 @@ async function handleResponse<T>(res: Response): Promise<T> {
 }
 
 export const api = {
+  // Authentication
+  loginAdmin: (password: string) =>
+    fetch(`${BASE_URL}/admin/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ password }),
+    }).then((res) =>
+      handleResponse<{
+        success: boolean;
+        token: string;
+        message: string;
+      }>(res)
+    ),
+
+  verifyAdmin: () =>
+    fetch(`${BASE_URL}/admin/verify`, {
+      headers: { ...getAuthHeaders() },
+    }).then((res) => handleResponse<{ success: boolean; valid: boolean }>(res)),
+
+  logoutAdmin: async () => {
+    try {
+      await fetch(`${BASE_URL}/admin/logout`, {
+        method: 'POST',
+        headers: { ...getAuthHeaders() },
+      });
+    } catch {
+      // Ignore network failure on logout
+    } finally {
+      authStorage.removeToken();
+    }
+  },
+
+  // Catalogue
   getMezmurs: () =>
     fetch(`${BASE_URL}/mezmurs`).then((res) => handleResponse<MezmurListItem[]>(res)),
 
   getMezmurById: (id: string, admin = false) =>
-    fetch(`${BASE_URL}/mezmurs/${id}${admin ? '?admin=true' : ''}`).then((res) => handleResponse<MezmurDetail>(res)),
+    fetch(`${BASE_URL}/mezmurs/${id}${admin ? '?admin=true' : ''}`, {
+      headers: { ...getAuthHeaders() },
+    }).then((res) => handleResponse<MezmurDetail>(res)),
 
   createMezmur: (payload: CreateMezmurPayload) =>
     fetch(`${BASE_URL}/mezmurs`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(payload),
     }).then((res) =>
       handleResponse<{
@@ -41,39 +111,53 @@ export const api = {
 
   // Community Submission review (Admin)
   getPendingMezmurs: () =>
-    fetch(`${BASE_URL}/mezmurs/pending`).then((res) => handleResponse<PendingMezmur[]>(res)),
+    fetch(`${BASE_URL}/mezmurs/pending`, {
+      headers: { ...getAuthHeaders() },
+    }).then((res) => handleResponse<PendingMezmur[]>(res)),
 
   approveMezmur: (id: number) =>
     fetch(`${BASE_URL}/mezmurs/${id}/approve`, {
       method: 'POST',
+      headers: { ...getAuthHeaders() },
     }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
 
   rejectMezmur: (id: number, reason?: string) =>
     fetch(`${BASE_URL}/mezmurs/${id}/reject`, {
       method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({ reason }),
     }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
 
   getAllMezmursAdmin: () =>
-    fetch(`${BASE_URL}/mezmurs/admin/all`).then((res) => handleResponse<AdminMezmurItem[]>(res)),
+    fetch(`${BASE_URL}/mezmurs/admin/all`, {
+      headers: { ...getAuthHeaders() },
+    }).then((res) => handleResponse<AdminMezmurItem[]>(res)),
 
   deleteMezmur: (id: number) =>
     fetch(`${BASE_URL}/mezmurs/${id}`, {
       method: 'DELETE',
+      headers: { ...getAuthHeaders() },
     }).then((res) => handleResponse<{ success: boolean; message: string; id: number }>(res)),
 
   updateMezmur: (id: number, payload: Partial<CreateMezmurPayload>) =>
     fetch(`${BASE_URL}/mezmurs/${id}`, {
       method: 'PUT',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify(payload),
     }).then((res) =>
       handleResponse<{ success: boolean; message: string; mezmurId: number }>(res)
     ),
 
   getArtists: () =>
-    fetch(`${BASE_URL}/artists`).then((res) => handleResponse<{ id: number; name: string; mezmur_count?: number }[]>(res)),
+    fetch(`${BASE_URL}/artists`).then((res) =>
+      handleResponse<{ id: number; name: string; mezmur_count?: number }[]>(res)
+    ),
 
   createArtist: (name: string) =>
     fetch(`${BASE_URL}/artists`, {
@@ -116,7 +200,10 @@ export const api = {
   updateRequestStatus: (id: number, status: 'pending' | 'in_progress' | 'completed') =>
     fetch(`${BASE_URL}/requests/${id}`, {
       method: 'PATCH',
-      headers: { 'Content-Type': 'application/json' },
+      headers: {
+        'Content-Type': 'application/json',
+        ...getAuthHeaders(),
+      },
       body: JSON.stringify({ status }),
     }).then((res) => handleResponse<{ success: boolean; request: MezmurRequest }>(res)),
 };
