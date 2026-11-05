@@ -224,7 +224,7 @@ export default function LandingPage() {
         <img
           src="/sand-wind.svg"
           alt=""
-          className="w-full h-full object-cover object-top opacity-65 pointer-events-none"
+          className="w-full h-full object-cover object-top opacity-35 pointer-events-none"
         />
       </motion.div>
 
@@ -581,7 +581,7 @@ export default function LandingPage() {
       <section className="relative py-14 sm:py-20 bg-transparent border-t border-zinc-200 overflow-hidden">
         <motion.div
           style={{ y: sandBottomY }}
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-full overflow-hidden select-none z-0 opacity-40"
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-full overflow-hidden select-none z-0 opacity-20"
           aria-hidden="true"
         >
           <img
