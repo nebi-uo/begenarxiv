@@ -32,47 +32,63 @@ const SAMPLE_HYMN_SEQUENCE: DemoStep[] = [
 
 const TELEMETRY_CARDS = [
   {
-    num: '01 / STRINGS',
-    title: '10 Physical Strings',
-    desc: 'String 1, skips 2 drone strings to string 2, then skips 1 string between digits 3, 4, and 5.',
-    sub: 'Parchment Box · Bone Feet',
+    num: '01 / TAP & HEAR',
+    title: 'Hear How Songs Move',
+    desc: 'Every number in the song is tappable and plays that string. Play the whole hymn while each number lights up in time.',
+    sub: 'Tap-to-Hear Audio',
   },
   {
-    num: '02 / QENETS',
-    title: 'Traditional Scales',
-    desc: 'Tizita (1=E), Selamta (1=F), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#).',
-    sub: 'Liturgical Pentatonics',
-  },
-  {
-    num: '03 / ROLLS',
-    title: 'Micro-Timed Rolls',
-    desc: 'Grouped digits (e.g. "42") schedule notes 35ms apart on the Web Audio hardware clock.',
+    num: '02 / TWO-STRING ROLLS',
+    title: 'Fast Ornament Rolls',
+    desc: 'Numbers alone hide the feel. Grouped digits (like "42") play the way fast two-string ornaments actually sound.',
     sub: 'Sub-millisecond Timing',
   },
   {
-    num: '04 / RESONANCE',
-    title: 'Leather Damper Buzz',
-    desc: 'Leather dampers on the bridge vibrate against the strings, creating the sacred drone.',
-    sub: 'Acoustic Harmonics',
+    num: '03 / ACCURATE MATERIAL',
+    title: 'Lyrics & Notation Together',
+    desc: 'Lyrics, verified numbers notation, reference videos, and difficulty levels on one page so you can pick what fits you.',
+    sub: 'All on One Page',
+  },
+  {
+    num: '04 / LEARNER-FIRST',
+    title: 'Free for Begena Learners',
+    desc: 'No accounts, no paywall. Built for self-taught and semi-taught players who need to hear songs properly.',
+    sub: 'No Accounts · No Paywall',
   },
 ];
 
 const FAQS = [
   {
-    q: 'How are the 10 Begena strings arranged?',
-    a: 'A Begena has 10 physical strings. In authentic tradition, plucking starts on string 1, skips 2 drone strings to reach string 2, then skips 1 string between each remaining digit: string 1, skip 2, string 2, skip 1, string 3, skip 1, string 4, skip 1, string 5.',
+    q: 'Who is Begenarxiv for?',
+    a: 'Begena players who are learning, especially self-taught or semi-taught ones. People who already have numbers for a song but cannot tell how it should actually sound.',
+  },
+  {
+    q: 'What problem does Begenarxiv solve?',
+    a: 'Learning the Begena has two real obstacles: accurate material is scattered across apps and hard to verify, and numbers alone do not teach you how a song moves. Notation tells you which strings to play, but not the rhythm, feel, or fast ornamented notes. Hearing a song teaches more than reading it.',
+  },
+  {
+    q: 'What can I do on each mezmur page?',
+    a: 'Every mezmur page has lyrics, numbers notation, a reference video, and a difficulty rating. Every number is tappable and plays that string, or you can play the whole song while each number lights up in sync, including fast two-string ornaments.',
+  },
+  {
+    q: 'Are these real acoustic recordings?',
+    a: 'The sounds you hear are synthesized string tones that show which string is played and when. Real Begena string recordings are planned for future updates.',
+  },
+  {
+    q: 'Is Begenarxiv a tuner or community platform?',
+    a: 'Not yet. A tuning tool is planned for a later release. There are no accounts, paywalls, uploads, or comments—Begenarxiv is completely free and learner-first.',
   },
   {
     q: 'What are the 3 Begena tuning modes?',
-    a: 'Tizita (1=E, 2=C, 3=D, 4=A, 5=G), Selamta (1=F, 2=C, 3=D, 4=A, 5=G), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#). Tizita is the contemplative mode for nocturnal hymns, Selamta shifts string 1 to F, and Anchi-Hoye introduces minor-second intervals.',
+    a: 'Tizita (1=E, 2=C, 3=D, 4=A, 5=G), Selamta (1=F, 2=C, 3=D, 4=A, 5=G), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#). Tizita is the contemplative nocturnal mode, Selamta shifts string 1 to F, and Anchi-Hoye introduces minor-second intervals.',
   },
   {
-    q: 'How are grouped numbers (ornament rolls) played?',
-    a: 'Grouped numbers like "42" represent a micro-timed ornament roll: string 4 is plucked immediately followed by string 2 (about 35 milliseconds apart). Begenarxiv schedules these on the Web Audio clock for rhythmic accuracy.',
+    q: 'How are the 10 Begena strings arranged?',
+    a: 'A Begena has 10 physical strings. In authentic tradition, plucking starts on string 1, skips 2 drone strings to reach string 2, then skips 1 string between each remaining active position: string 1, skip 2, string 2, skip 1, string 3, skip 1, string 4, skip 1, string 5.',
   },
   {
-    q: 'Why does the Begena produce a buzzing sound?',
-    a: 'Between the 10 strings and the wooden bridge, small pieces of leather (called birr or dampers) are inserted. As the string vibrates against the leather piece, it creates the iconic buzzing drone (bzzzz).',
+    q: 'What is the beta status of this project?',
+    a: 'This is an early beta. The catalogue is small and growing, and the sounds are string tones that show which string plays when. Tell us what is wrong, what is missing, and which songs you want next.',
   },
 ];
 
@@ -246,20 +262,28 @@ export default function LandingPage() {
       <section className="relative z-10 pt-8 sm:pt-14 md:pt-20 pb-12 sm:pb-20 bg-transparent" id="studio">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
-            {/* Left Column: Headline, Mode Selector, Description & Actions */}
+            {/* Left Column: Headline, Subheadline, About & Actions */}
             <motion.div
               initial={{ opacity: 0, y: 28 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
               className="lg:col-span-7"
             >
-              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-4">
-                Numbers notation for Ethiopia's sacred lyre.
+              {/* Ready-to-use Headline */}
+              <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-3">
+                Learn Begena. Properly.
               </h1>
 
-              <p className="text-sm sm:text-base text-zinc-600 leading-relaxed max-w-xl mb-6">
-                Ten strings, five active positions. Audition verified liturgical tunings,
-                listen to micro-timed ornament rolls, and study church mezmurs.
+              {/* Ready-to-use Subheadline */}
+              <p className="text-base sm:text-lg text-black font-medium leading-snug max-w-xl mb-4">
+                Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
+              </p>
+
+              {/* About description */}
+              <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-xl mb-6">
+                Reading numbers tells you which strings to play. It does not tell you how the song moves.
+                Begenarxiv puts a mezmur's lyrics and numbers on one page and lets you tap any number to hear it,
+                or play the whole song with each number lighting up in time, including the fast ornamented notes.
               </p>
 
               {/* 3 Traditional Tune Modes */}
@@ -368,7 +392,7 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* Telemetry Overview Cards (Clean, flat, on-scroll animated) */}
+      {/* Overview Cards (Clean, flat, on-scroll animated) */}
       <section className="py-14 sm:py-20 bg-transparent border-t border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
@@ -413,10 +437,10 @@ export default function LandingPage() {
             className="mb-8"
           >
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
-              Solo Pluck vs. 35ms Ornament Roll
+              Solo Pluck vs. Two-String Ornament Roll
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-              Compare a single note sustain against a micro-timed roll (token <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded">42</code>).
+              Numbers alone do not show how a song moves. Compare a single note sustain against a fast two-string roll (token <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded">42</code>) played the way it actually sounds.
             </p>
           </motion.div>
 
@@ -437,7 +461,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-base font-bold text-black mb-1">Solo Pluck [ 1 ]</h3>
                 <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-                  String 1 ({currentTuningNotes[1]?.note}) sustained cleanly.
+                  String 1 ({currentTuningNotes[1]?.note}) sustained cleanly without ornament.
                 </p>
               </div>
 
@@ -469,9 +493,9 @@ export default function LandingPage() {
                   <span>GROUPED DIGITS [ 42 ]</span>
                   <span>35 MS MICRO-ROLL</span>
                 </div>
-                <h3 className="text-base font-bold text-black mb-1">Ornament Roll [ 4 2 ]</h3>
+                <h3 className="text-base font-bold text-black mb-1">Two-String Ornament [ 4 2 ]</h3>
                 <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-                  String 4 ({currentTuningNotes[4]?.note}) followed 35ms later by String 2 ({currentTuningNotes[2]?.note}).
+                  String 4 ({currentTuningNotes[4]?.note}) followed 35ms later by String 2 ({currentTuningNotes[2]?.note}), the way ornaments actually sound in church mezmurs.
                 </p>
               </div>
 
@@ -485,7 +509,7 @@ export default function LandingPage() {
                 }`}
               >
                 <Play size={12} className="fill-current" />
-                <span>Test 35ms Roll [42]</span>
+                <span>Test Ornament Roll [42]</span>
               </button>
             </motion.div>
           </div>
@@ -581,7 +605,7 @@ export default function LandingPage() {
                 Explore the Mezmur Repertoire
               </h2>
               <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-md">
-                Browse traditional hymns with synchronized numbers notation and tap-to-hear audio.
+                Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
               </p>
             </div>
 
@@ -603,9 +627,9 @@ export default function LandingPage() {
             </div>
             <span className="text-sm font-bold">Begenarxiv</span>
             <span className="text-zinc-300">/</span>
-            <span className="text-zinc-500 font-normal">Ethiopian Begena Archive</span>
+            <span className="text-zinc-500 font-normal">A free home for Begena learners</span>
           </div>
-          <p>&copy; {new Date().getFullYear()} Begenarxiv. Open source.</p>
+          <p>&copy; {new Date().getFullYear()} Begenarxiv. All rights reserved.</p>
         </div>
       </footer>
     </div>

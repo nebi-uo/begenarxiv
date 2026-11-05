@@ -186,8 +186,8 @@ export default function MezmurPage() {
         <div className="lg:col-span-8 space-y-6">
           <SectionCard
             icon={Music}
-            title="Numbers Notation Sequence"
-            description="Tap numbers to hear string audio. Click Play to step through the sequence."
+            title="Numbers Notation & Playback"
+            description="Tap any number to hear that string, or press Play to hear the song in sync."
           >
             <TapToHearPlayer
               sequence={mezmur.sequence}
@@ -199,8 +199,8 @@ export default function MezmurPage() {
           {mezmur.lyrics && (
             <SectionCard
               icon={AlignLeft}
-              title="Liturgical Lyrics"
-              description="Hymn poetry aligned with notation movements."
+              title="Mezmur Lyrics"
+              description="Liturgical hymn lyrics aligned with the numbers notation."
             >
               <div className="p-4 bg-zinc-50 rounded border border-zinc-200 text-zinc-800 text-sm whitespace-pre-line leading-relaxed font-sans">
                 {mezmur.lyrics}
@@ -214,7 +214,7 @@ export default function MezmurPage() {
           {/* Live String Visualizer: 10-String Pixel Begena */}
           <div className="p-5 border border-zinc-200 rounded-lg bg-zinc-50/50 flex flex-col items-center">
             <div className="w-full flex items-center justify-between text-[10px] font-mono text-zinc-500 mb-3 pb-2 border-b border-zinc-200">
-              <span className="font-semibold text-zinc-900">10_STRINGS</span>
+              <span className="font-semibold text-zinc-900">10 PHYSICAL STRINGS</span>
               <span className="text-zinc-900 font-bold">
                 {activeString
                   ? `STR ${activeString}: ${currentTuningNotes[activeString]?.note}`
@@ -235,7 +235,7 @@ export default function MezmurPage() {
             <SectionCard
               icon={PlayCircle}
               title="Reference Video"
-              description="Master performance reference."
+              description="Performance reference to see and hear traditional phrasing."
             >
               <div className="aspect-video rounded overflow-hidden border border-zinc-200 bg-black">
                 <iframe

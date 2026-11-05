@@ -241,7 +241,7 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
               className="flex items-center gap-1.5 text-xs py-1.5 px-3"
             >
               <Play size={12} className="fill-current" />
-              <span>PLAY ALL [SPACE]</span>
+              <span>PLAY SONG [SPACE]</span>
             </Button>
           )}
 
@@ -265,9 +265,9 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
           </div>
         </div>
 
-        <div className="flex items-center gap-2 text-zinc-500 text-[11px]">
+        <div className="flex items-center gap-2 text-zinc-500 text-[11px] font-mono">
           <Volume2 size={13} className="text-zinc-950" />
-          <span>{sequence.length} TOKENS · {mode.toUpperCase()}</span>
+          <span>{sequence.length} NOTES · {mode.toUpperCase()} · TAP TO HEAR</span>
         </div>
       </div>
 

@@ -65,7 +65,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </div>
             <span className="text-sm font-bold">Begenarxiv</span>
             <span className="text-zinc-300">/</span>
-            <span className="text-zinc-500 font-normal">Ethiopian Begena Archive</span>
+            <span className="text-zinc-500 font-normal">A free home for Begena learners</span>
           </div>
           <div className="flex items-center gap-4 text-xs">
             {!isCatalogue && (
@@ -76,7 +76,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <span className="text-zinc-300">·</span>
               </>
             )}
-            <span>Open Source</span>
+            <span>Beta · Free &amp; No Accounts</span>
           </div>
         </div>
       </footer>

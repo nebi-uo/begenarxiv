@@ -24,15 +24,15 @@ export default function CatalogueHero({
             Mezmur Repertoire
           </h1>
           <p className="text-zinc-500 text-xs sm:text-sm mt-1">
-            Traditional hymns in Tizita, Selamta, and Anchi-Hoye with numbers notation.
+            Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
           </p>
 
           <div className="flex items-center gap-2.5 mt-3 text-xs font-mono text-zinc-500">
-            <span>{total} Songs</span>
+            <span>{total} Mezmurs</span>
             <span>·</span>
             <span>{artistCount} Artists</span>
             <span>·</span>
-            <span>{tuneCount} Modes</span>
+            <span>{tuneCount} Tuning Modes</span>
           </div>
         </div>
 
@@ -42,7 +42,7 @@ export default function CatalogueHero({
           className="flex items-center gap-2 bg-zinc-950 hover:bg-zinc-800 text-white text-xs font-mono px-3.5 py-2 rounded transition-colors cursor-pointer w-full sm:w-auto justify-center"
         >
           <Shuffle size={12} />
-          <span>Random Song</span>
+          <span>Random Mezmur</span>
         </motion.button>
       </div>
     </div>
