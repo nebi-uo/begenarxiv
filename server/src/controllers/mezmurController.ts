@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { query } from '../db';
 import { MezmurWithSequence } from '../types';
-import { sendContributorApprovalEmail } from '../services/emailService';
+import { sendContributorApprovalEmail, sendContributorRejectionEmail } from '../services/emailService';
 
 async function findOrCreate(table: 'artists' | 'tunes', name: string): Promise<number> {
   const trimmed = name.trim();
@@ -409,10 +409,14 @@ export const approveMezmur = async (req: Request, res: Response) => {
 // POST /api/mezmurs/:id/reject — admin rejects a submission
 export const rejectMezmur = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const { reason } = req.body || {};
 
   try {
     const result = await query(
-      `UPDATE mezmurs SET status = 'rejected' WHERE id = $1 RETURNING id, title`,
+      `UPDATE mezmurs
+       SET status = 'rejected'
+       WHERE id = $1
+       RETURNING id, title, contributor_name, contributor_email`,
       [id]
     );
 
@@ -420,7 +424,23 @@ export const rejectMezmur = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Mezmur not found' });
     }
 
-    res.json({ success: true, message: 'Mezmur submission marked as rejected.' });
+    const mezmur = result.rows[0];
+
+    // Send rejection notification email if contributor provided an email
+    if (mezmur.contributor_email) {
+      await sendContributorRejectionEmail({
+        contributorName: mezmur.contributor_name || 'Contributor',
+        contributorEmail: mezmur.contributor_email,
+        mezmurTitle: mezmur.title,
+        reason: reason || undefined,
+      }).catch((e) => console.warn('Rejection email dispatch failed:', e));
+    }
+
+    res.json({
+      success: true,
+      message: `Mezmur "${mezmur.title}" rejected and contributor notification dispatched.`,
+      mezmur,
+    });
   } catch (err) {
     console.error(err);
     res.status(500).json({ error: 'Failed to reject mezmur' });

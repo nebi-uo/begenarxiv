@@ -25,7 +25,7 @@ export async function runMigrations() {
         CHECK (difficulty IN ('practice', 'beginner', 'intermediate', 'advanced'));
     `);
 
-    // 3. Ensure mezmur_requests table exists
+    // 3. Ensure mezmur_requests table exists and has requester details
     await query(`
       CREATE TABLE IF NOT EXISTS mezmur_requests (
         id SERIAL PRIMARY KEY,
@@ -38,6 +38,8 @@ export async function runMigrations() {
         status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
         created_at TIMESTAMP DEFAULT NOW()
       );
+      ALTER TABLE mezmur_requests ADD COLUMN IF NOT EXISTS requester_name TEXT;
+      ALTER TABLE mezmur_requests ADD COLUMN IF NOT EXISTS requester_email TEXT;
     `);
 
     // 4. Support in-notation pauses and rests in mezmur_sequences

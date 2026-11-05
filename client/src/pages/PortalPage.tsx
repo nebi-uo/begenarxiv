@@ -467,8 +467,13 @@ export default function PortalPage() {
 
   // Admin Reject Action
   const handleRejectSubmission = async (id: number) => {
+    const reason = window.prompt(
+      'Optional: Enter feedback or reason for the contributor (or leave empty for standard notification):'
+    );
+    if (reason === null) return;
+
     try {
-      const res = await api.rejectMezmur(id);
+      const res = await api.rejectMezmur(id, reason.trim() || undefined);
       setReviewFeedback(res.message);
       fetchPending();
       fetchAdminMezmurs();
@@ -1483,6 +1488,7 @@ export default function PortalPage() {
                         {req.artist ? `Artist: ${req.artist} · ` : ''}
                         Submitted {new Date(req.created_at).toLocaleDateString()}
                         {req.requester_name ? ` by ${req.requester_name}` : ''}
+                        {req.requester_email ? ` (${req.requester_email})` : ''}
                       </p>
 
                       {req.notes && (

@@ -48,9 +48,11 @@ export const api = {
       method: 'POST',
     }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
 
-  rejectMezmur: (id: number) =>
+  rejectMezmur: (id: number, reason?: string) =>
     fetch(`${BASE_URL}/mezmurs/${id}/reject`, {
       method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ reason }),
     }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
 
   getAllMezmursAdmin: () =>
