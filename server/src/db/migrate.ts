@@ -17,7 +17,14 @@ export async function runMigrations() {
       UPDATE mezmurs SET contributor_name = 'Begenarxiv' WHERE contributor_name IS NULL;
     `);
 
-    // 2. Ensure mezmur_requests table exists
+    // 2. Update difficulty check constraint to include 'practice'
+    await query(`
+      ALTER TABLE mezmurs DROP CONSTRAINT IF EXISTS mezmurs_difficulty_check;
+      ALTER TABLE mezmurs ADD CONSTRAINT mezmurs_difficulty_check 
+        CHECK (difficulty IN ('practice', 'beginner', 'intermediate', 'advanced'));
+    `);
+
+    // 3. Ensure mezmur_requests table exists
     await query(`
       CREATE TABLE IF NOT EXISTS mezmur_requests (
         id SERIAL PRIMARY KEY,
@@ -37,4 +44,14 @@ export async function runMigrations() {
     console.warn('Migration warning (non-fatal):', err);
   }
 }
+
+if (require.main === module) {
+  runMigrations()
+    .then(() => process.exit(0))
+    .catch((e) => {
+      console.error(e);
+      process.exit(1);
+    });
+}
+
 

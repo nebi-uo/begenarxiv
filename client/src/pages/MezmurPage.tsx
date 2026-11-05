@@ -8,6 +8,7 @@ import DifficultyBar from '../components/DifficultyBar';
 import SectionCard from '../components/SectionCard';
 import HorizontalMezmurScroll from '../components/HorizontalMezmurScroll';
 import Layout from '../components/Layout';
+import LyricsViewer from '../components/LyricsViewer';
 import IndiePageLoader from '../components/IndiePageLoader';
 import PixelBegena from '../components/PixelBegena';
 import { useTonePlayer, type BegenaTuneMode, BEGENA_TUNINGS } from '../hooks/useTonePlayer';
@@ -214,9 +215,7 @@ export default function MezmurPage() {
               title="Mezmur Lyrics"
               description="Liturgical hymn lyrics aligned with the numbers notation."
             >
-              <div className="p-4 bg-zinc-50 rounded border border-zinc-200 text-zinc-800 text-sm whitespace-pre-line leading-relaxed font-sans">
-                {mezmur.lyrics}
-              </div>
+              <LyricsViewer lyrics={mezmur.lyrics} />
             </SectionCard>
           )}
         </div>

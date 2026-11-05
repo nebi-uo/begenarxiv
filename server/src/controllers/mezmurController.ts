@@ -81,7 +81,7 @@ interface CreateMezmurBody {
   title: string;
   artist?: string;
   tune?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'practice' | 'beginner' | 'intermediate' | 'advanced';
   lyrics?: string;
   youtube_url?: string;
   sequence?: { line: number; notes: string[] }[];

@@ -3,7 +3,7 @@ export interface Mezmur {
   title: string;
   lyrics: string | null;
   youtube_url: string | null;
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
   artist_id: number | null;
   tune_id: number | null;
   tuning_profile_id: number | null;
@@ -33,7 +33,7 @@ export interface MezmurWithSequence extends Mezmur {
 export interface MezmurListItem {
   id: number;
   title: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
   artist_name: string | null;
   tune_name: string | null;
   status: 'approved' | 'pending' | 'rejected';

@@ -1,8 +1,9 @@
-const LEVELS = ['beginner', 'intermediate', 'advanced'] as const;
+const LEVELS = ['practice', 'beginner', 'intermediate', 'advanced'] as const;
 
 export default function DifficultyBar({ difficulty }: { difficulty: string | null }) {
   if (!difficulty) return null;
-  const filledIndex = LEVELS.indexOf(difficulty as (typeof LEVELS)[number]) + 1;
+  const levelIdx = LEVELS.indexOf(difficulty.toLowerCase() as (typeof LEVELS)[number]);
+  const filledIndex = levelIdx !== -1 ? levelIdx + 1 : 0;
 
   return (
     <div className="inline-flex items-center gap-2">
@@ -10,7 +11,7 @@ export default function DifficultyBar({ difficulty }: { difficulty: string | nul
         {LEVELS.map((_, i) => (
           <span
             key={i}
-            className={`h-1 w-3 rounded-full transition-colors ${
+            className={`h-1 w-2.5 rounded-full transition-colors ${
               i < filledIndex ? 'bg-zinc-950' : 'bg-zinc-200'
             }`}
           />

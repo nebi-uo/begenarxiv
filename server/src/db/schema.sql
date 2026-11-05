@@ -43,7 +43,7 @@ CREATE TABLE mezmurs (
   title TEXT NOT NULL,
   lyrics TEXT,
   youtube_url TEXT,
-  difficulty TEXT CHECK (difficulty IN ('beginner', 'intermediate', 'advanced')),
+  difficulty TEXT CHECK (difficulty IN ('practice', 'beginner', 'intermediate', 'advanced')),
   artist_id INT REFERENCES artists(id),
   tune_id INT REFERENCES tunes(id),
   tuning_profile_id INT REFERENCES tuning_profiles(id),

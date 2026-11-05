@@ -1,7 +1,7 @@
 export interface MezmurListItem {
   id: number;
   title: string;
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
   artist_name: string | null;
   tune_name: string | null;
   status?: 'approved' | 'pending' | 'rejected';
@@ -24,7 +24,7 @@ export interface MezmurDetail {
   title: string;
   lyrics: string | null;
   youtube_url: string | null;
-  difficulty: 'beginner' | 'intermediate' | 'advanced' | null;
+  difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
   artist_id: number | null;
   tune_id: number | null;
   artist_name: string | null;
@@ -53,7 +53,7 @@ export interface CreateMezmurPayload {
   title: string;
   artist?: string;
   tune?: string;
-  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  difficulty?: 'practice' | 'beginner' | 'intermediate' | 'advanced';
   lyrics?: string;
   youtube_url?: string;
   raw_notation?: string;

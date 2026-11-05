@@ -134,7 +134,7 @@ export default function CataloguePage() {
               <span className="text-zinc-400 flex items-center gap-1 mr-1 text-[11px]">
                 <Filter size={11} /> Level:
               </span>
-              {['all', 'beginner', 'intermediate', 'advanced'].map((lvl) => (
+              {['all', 'practice', 'beginner', 'intermediate', 'advanced'].map((lvl) => (
                 <button
                   key={lvl}
                   onClick={() => setDifficultyFilter(lvl)}

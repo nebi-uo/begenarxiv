@@ -12,6 +12,8 @@ import {
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
+import LyricsViewer from '../components/LyricsViewer';
+import { insertRepeatTagAtCursor } from '../utils/lyrics';
 import { api } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
 
@@ -33,10 +35,27 @@ export default function ContributePage() {
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [tune, setTune] = useState<BegenaTuneMode>('Tizita');
-  const [difficulty, setDifficulty] = useState<'beginner' | 'intermediate' | 'advanced'>('beginner');
+  const [difficulty, setDifficulty] = useState<'practice' | 'beginner' | 'intermediate' | 'advanced'>('beginner');
   const [youtubeUrl, setYoutubeUrl] = useState('');
   const [lyrics, setLyrics] = useState('');
   const [rawNotation, setRawNotation] = useState('');
+  const lyricsTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleInsertRepeat = (tag: string) => {
+    const el = lyricsTextareaRef.current;
+    if (!el) {
+      setLyrics((prev) => (prev ? `${prev} ${tag}` : tag));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const { text: newText, nextCursor } = insertRepeatTagAtCursor(lyrics, tag, start, end);
+    setLyrics(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
 
   // Audio preview player
   const { pluckString } = useTonePlayer(tune);
@@ -202,7 +221,7 @@ export default function ContributePage() {
     setTune('Tizita');
     setDifficulty('beginner');
     setYoutubeUrl('https://www.youtube.com/watch?v=sample');
-    setLyrics('በገናዬም መጣሁ ምስጋና ላቀርብ\nየሰራዊት ጌታ እግዚአብሔርን ላከብር');
+    setLyrics('በገናዬም መጣሁ ምስጋና ላቀርብ (x2)\nየሰራዊት ጌታ እግዚአብሔርን ላከብር (x2)');
     setRawNotation('1 3 2 4 2 1\n42 2 1 3 1');
   };
 
@@ -385,9 +404,10 @@ export default function ContributePage() {
                   </label>
                   <select
                     value={difficulty}
-                    onChange={(e) => setDifficulty(e.target.value as 'beginner' | 'intermediate' | 'advanced')}
+                    onChange={(e) => setDifficulty(e.target.value as 'practice' | 'beginner' | 'intermediate' | 'advanced')}
                     className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden font-mono text-xs bg-white"
                   >
+                    <option value="practice">Practice (Warm-up / Drills)</option>
                     <option value="beginner">Beginner</option>
                     <option value="intermediate">Intermediate</option>
                     <option value="advanced">Advanced</option>
@@ -409,16 +429,50 @@ export default function ContributePage() {
               </div>
 
               <div>
-                <label className="block text-xs font-mono font-medium text-zinc-700 mb-1">
-                  Lyrics (Optional)
-                </label>
+                <div className="flex flex-wrap items-center justify-between gap-2 mb-1.5">
+                  <label className="block text-xs font-mono font-medium text-zinc-700">
+                    Lyrics (Optional)
+                  </label>
+                  <div className="flex items-center gap-1 font-mono text-[11px]">
+                    <span className="text-zinc-400 text-[10px] uppercase mr-0.5">Repeat Tag:</span>
+                    {['(x2)', '(x3)', '(x4)', '(፪ ጊዜ)'].map((tag) => (
+                      <button
+                        key={tag}
+                        type="button"
+                        onClick={() => handleInsertRepeat(tag)}
+                        className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                        title={`Insert ${tag} at cursor / current line`}
+                      >
+                        + {tag}
+                      </button>
+                    ))}
+                  </div>
+                </div>
+
                 <textarea
-                  rows={3}
+                  ref={lyricsTextareaRef}
+                  rows={4}
                   value={lyrics}
                   onChange={(e) => setLyrics(e.target.value)}
-                  placeholder="Paste hymn lyrics..."
+                  placeholder="Paste hymn lyrics line by line. Add (x2) or (x3) for verses sung multiple times..."
                   className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden font-sans text-sm leading-relaxed"
                 />
+
+                <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 mt-1">
+                  <span>
+                    Add <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(x2)</code> or{' '}
+                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(፪ ጊዜ)</code> to render repeated verse badges.
+                  </span>
+                </div>
+
+                {lyrics.trim() && (
+                  <div className="mt-3 pt-3 border-t border-zinc-100">
+                    <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400 block mb-1">
+                      Live Lyrics Preview:
+                    </span>
+                    <LyricsViewer lyrics={lyrics} />
+                  </div>
+                )}
               </div>
             </div>
 
