@@ -12,11 +12,22 @@ async function findOrCreate(table: 'artists' | 'tunes', name: string): Promise<n
   return inserted.rows[0].id;
 }
 
-function getTuningProfileId(tuneName: string): number {
-  const lower = tuneName.toLowerCase();
-  if (lower.includes('selamta')) return 2;
-  if (lower.includes('anchi')) return 3;
-  return 1; // Tizita
+async function getTuningProfileId(tuneName: string): Promise<number> {
+  const lower = (tuneName || '').toLowerCase();
+  let targetName = 'Tizita';
+  if (lower.includes('selamta')) targetName = 'Selamta';
+  else if (lower.includes('anchi')) targetName = 'Anchi-Hoye';
+
+  // 1. Try matching by exact or partial name in tuning_profiles
+  const match = await query(
+    `SELECT id FROM tuning_profiles WHERE LOWER(name) LIKE $1 ORDER BY id ASC LIMIT 1`,
+    [`%${targetName.toLowerCase()}%`]
+  );
+  if (match.rows.length > 0) return match.rows[0].id;
+
+  // 2. Fallback to first available tuning profile or 1
+  const first = await query('SELECT id FROM tuning_profiles ORDER BY id ASC LIMIT 1');
+  return first.rows[0]?.id ?? 1;
 }
 
 const GEEZ_NUMERAL_MAP: Record<string, number> = {
@@ -219,7 +230,7 @@ export const createMezmur = async (req: Request, res: Response) => {
   try {
     const artistId = await findOrCreate('artists', artist.trim() || 'Traditional');
     const tuneId = await findOrCreate('tunes', tune.trim() || 'Tizita');
-    const tuningProfileId = getTuningProfileId(tune);
+    const tuningProfileId = await getTuningProfileId(tune);
 
     const mezmurResult = await query(
       `INSERT INTO mezmurs (title, lyrics, youtube_url, difficulty, artist_id, tune_id, tuning_profile_id, status, contributor_name, contributor_email, approved_at, raw_notation)
@@ -310,9 +321,15 @@ export const createMezmur = async (req: Request, res: Response) => {
           ? 'Mezmur published to catalogue successfully.'
           : 'Your submission is pending approval, thanks for your contribution!',
     });
-  } catch (err) {
+  } catch (err: unknown) {
+    const errorMsg =
+      (err && typeof err === 'object' && 'detail' in err && typeof (err as { detail: string }).detail === 'string')
+        ? (err as { detail: string }).detail
+        : err instanceof Error
+        ? err.message
+        : 'Failed to create mezmur';
     console.error('Failed to create mezmur:', err);
-    res.status(500).json({ error: 'Failed to create mezmur' });
+    res.status(500).json({ error: errorMsg });
   }
 };
 
@@ -459,7 +476,7 @@ export const updateMezmur = async (req: Request, res: Response) => {
   try {
     const artistId = await findOrCreate('artists', artist.trim() || 'Traditional');
     const tuneId = await findOrCreate('tunes', tune.trim() || 'Tizita');
-    const tuningProfileId = getTuningProfileId(tune);
+    const tuningProfileId = await getTuningProfileId(tune);
 
     const updateRes = await query(
       `UPDATE mezmurs
@@ -551,8 +568,14 @@ export const updateMezmur = async (req: Request, res: Response) => {
       message: `Updated "${updateRes.rows[0].title}" successfully`,
       mezmurId: updateRes.rows[0].id,
     });
-  } catch (err) {
-    console.error(err);
-    res.status(500).json({ error: 'Failed to update mezmur' });
+  } catch (err: unknown) {
+    const errorMsg =
+      (err && typeof err === 'object' && 'detail' in err && typeof (err as { detail: string }).detail === 'string')
+        ? (err as { detail: string }).detail
+        : err instanceof Error
+        ? err.message
+        : 'Failed to update mezmur';
+    console.error('Failed to update mezmur:', err);
+    res.status(500).json({ error: errorMsg });
   }
 };

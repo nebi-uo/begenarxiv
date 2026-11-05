@@ -51,6 +51,25 @@ export async function runMigrations() {
       ALTER TABLE mezmurs ADD COLUMN IF NOT EXISTS raw_notation TEXT;
     `);
 
+    // 6. Ensure the 3 standard Begena tuning profiles and tunes exist
+    await query(`
+      INSERT INTO tuning_profiles (id, name, description) VALUES
+        (1, 'Tizita', 'Tizita mode: 1=E, 2=C, 3=D, 4=A, 5=G'),
+        (2, 'Selamta', 'Selamta mode: 1=F, 2=C, 3=D, 4=A, 5=G'),
+        (3, 'Anchi-Hoye', 'Anchi-Hoye mode: 1=F, 2=C, 3=C#, 4=A, 5=F#')
+      ON CONFLICT (id) DO UPDATE 
+        SET name = EXCLUDED.name, description = EXCLUDED.description;
+
+      SELECT setval('tuning_profiles_id_seq', (SELECT GREATEST(MAX(id), 3) FROM tuning_profiles));
+    `);
+
+    await query(`
+      DELETE FROM tunes WHERE name IN ('Sample Tune', 'Second Sample Tune', '');
+      INSERT INTO tunes (name) VALUES ('Tizita') ON CONFLICT (name) DO NOTHING;
+      INSERT INTO tunes (name) VALUES ('Selamta') ON CONFLICT (name) DO NOTHING;
+      INSERT INTO tunes (name) VALUES ('Anchi-Hoye') ON CONFLICT (name) DO NOTHING;
+    `);
+
     console.log('✓ Database schema migrations applied successfully.');
   } catch (err) {
     console.warn('Migration warning (non-fatal):', err);

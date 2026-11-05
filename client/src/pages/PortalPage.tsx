@@ -446,6 +446,7 @@ export default function PortalPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to save mezmur';
       setPublishError(msg);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsPublishing(false);
     }
@@ -1387,6 +1388,23 @@ export default function PortalPage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Bottom Error Notification */}
+            {publishError && (
+              <div className="p-4 rounded-xl bg-zinc-100 border border-zinc-900 text-black flex items-center justify-between font-mono text-xs shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle size={18} className="text-black shrink-0" />
+                  <span>{publishError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setPublishError(null)}
+                  className="text-zinc-500 hover:text-black font-bold text-[11px] cursor-pointer"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
 

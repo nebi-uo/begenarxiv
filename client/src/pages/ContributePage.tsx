@@ -256,6 +256,7 @@ export default function ContributePage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to submit mezmur';
       setSubmitError(msg);
+      window.scrollTo({ top: 0, behavior: 'smooth' });
     } finally {
       setIsSubmitting(false);
     }
@@ -820,6 +821,23 @@ export default function ContributePage() {
                     </div>
                   ))}
                 </div>
+              </div>
+            )}
+
+            {/* Bottom Error Notification */}
+            {submitError && (
+              <div className="p-4 rounded-xl bg-zinc-100 border border-zinc-900 text-black flex items-center justify-between font-mono text-xs shadow-xs">
+                <div className="flex items-center gap-2.5">
+                  <AlertCircle size={18} className="text-black shrink-0" />
+                  <span>{submitError}</span>
+                </div>
+                <button
+                  type="button"
+                  onClick={() => setSubmitError(null)}
+                  className="text-zinc-500 hover:text-black font-bold text-[11px] cursor-pointer"
+                >
+                  Dismiss
+                </button>
               </div>
             )}
 
