@@ -28,8 +28,16 @@ function clusterByGroup(steps: SequenceStep[]): SequenceStep[][] {
   const sorted = [...steps].sort((a, b) => a.step_order - b.step_order);
   const clusters: SequenceStep[][] = [];
   for (const step of sorted) {
+    if (step.phrase_break || step.is_rest) {
+      clusters.push([step]);
+      continue;
+    }
     const last = clusters[clusters.length - 1];
-    if (step.group_id !== null && last?.[0]?.group_id === step.group_id) {
+    if (
+      step.group_id !== null &&
+      step.group_id !== undefined &&
+      last?.[0]?.group_id === step.group_id
+    ) {
       last.push(step);
     } else {
       clusters.push([step]);
@@ -44,8 +52,16 @@ function buildPlaybackUnits(sequence: SequenceStep[]): SequenceStep[][] {
   );
   const units: SequenceStep[][] = [];
   for (const step of ordered) {
+    if (step.phrase_break || step.is_rest) {
+      units.push([step]);
+      continue;
+    }
     const last = units[units.length - 1];
-    if (step.group_id !== null && last?.[0]?.group_id === step.group_id) {
+    if (
+      step.group_id !== null &&
+      step.group_id !== undefined &&
+      last?.[0]?.group_id === step.group_id
+    ) {
       last.push(step);
     } else {
       units.push([step]);
@@ -87,7 +103,21 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
   const stepKey = (step: SequenceStep) => `${step.line_number}-${step.step_order}`;
 
   const playUnit = (unit: SequenceStep[], speed: number, onEnded?: () => void) => {
-    const duration = (unit[0]?.duration_ms ?? 500) / speed;
+    const first = unit[0];
+    const duration = (first?.duration_ms ?? 500) / speed;
+
+    if (first?.phrase_break || first?.is_rest) {
+      // Pause or Rest: hold for duration without plucking string
+      setActiveKeys([stepKey(first)]);
+      if (onActiveStringChange) onActiveStringChange(null);
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+      timeoutRef.current = setTimeout(() => {
+        setActiveKeys((prev) => prev.filter((k) => k !== stepKey(first)));
+        if (onEnded) onEnded();
+      }, duration);
+      return;
+    }
+
     const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
 
     setActiveKeys([]);
@@ -112,6 +142,15 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       highlightTimeoutsRef.current.forEach(clearTimeout);
       setActiveKeys([stepKey(step)]);
+
+      if (step.phrase_break || step.is_rest) {
+        if (onActiveStringChange) onActiveStringChange(null);
+        setTimeout(() => {
+          setActiveKeys((prev) => prev.filter((k) => k !== stepKey(step)));
+        }, 350);
+        return;
+      }
+
       if (onActiveStringChange) onActiveStringChange(step.string_position);
 
       scheduleTone(
@@ -248,6 +287,43 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
 
             <div className="flex flex-wrap items-center gap-2">
               {clusterByGroup(steps).map((cluster, cIdx) => {
+                if (cluster[0].phrase_break) {
+                  const isActive = activeKeys.includes(stepKey(cluster[0]));
+                  return (
+                    <div
+                      key={cIdx}
+                      className={`flex items-center justify-center px-2 py-1 select-none transition-all ${
+                        isActive ? 'scale-125 text-black font-bold' : 'text-zinc-300'
+                      }`}
+                      title="Phrase pause (musical breath)"
+                    >
+                      <span className="font-mono text-xl font-light leading-none">|</span>
+                    </div>
+                  );
+                }
+
+                if (cluster[0].is_rest) {
+                  const isActive = activeKeys.includes(stepKey(cluster[0]));
+                  return (
+                    <motion.button
+                      key={cIdx}
+                      onClick={() => handleTapStep(cluster[0])}
+                      whileTap={{ scale: 0.94 }}
+                      animate={isActive ? { scale: 1.08 } : { scale: 1 }}
+                      transition={{ duration: 0.15 }}
+                      className={`relative flex flex-col items-center justify-center rounded font-mono font-bold cursor-pointer transition-colors w-9 h-9 text-xs ${
+                        isActive
+                          ? 'bg-zinc-950 text-white border border-zinc-950 z-10'
+                          : 'bg-zinc-50 text-zinc-400 border border-dashed border-zinc-300 hover:border-zinc-950 hover:text-zinc-700'
+                      }`}
+                      title={`Beat rest (${cluster[0].duration_ms ?? 500}ms)`}
+                    >
+                      <span>—</span>
+                      <span className="text-[7px] -mt-0.5 uppercase tracking-tighter">REST</span>
+                    </motion.button>
+                  );
+                }
+
                 const isGrouped = cluster.length > 1;
 
                 return (

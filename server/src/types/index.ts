@@ -17,11 +17,13 @@ export interface SequenceStep {
   step_order: number;
   line_number: number;
   duration_ms: number | null;
-  string_id: number;
+  string_id: number | null;
   group_id: number | null;
   string_position: number;
   note_name: string;
   audio_file_url: string;
+  is_rest?: boolean;
+  phrase_break?: boolean;
 }
 
 export interface MezmurWithSequence extends Mezmur {

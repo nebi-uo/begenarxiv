@@ -39,6 +39,13 @@ export async function runMigrations() {
       );
     `);
 
+    // 4. Support in-notation pauses and rests in mezmur_sequences
+    await query(`
+      ALTER TABLE mezmur_sequences ALTER COLUMN string_id DROP NOT NULL;
+      ALTER TABLE mezmur_sequences ADD COLUMN IF NOT EXISTS is_rest BOOLEAN DEFAULT FALSE;
+      ALTER TABLE mezmur_sequences ADD COLUMN IF NOT EXISTS phrase_break BOOLEAN DEFAULT FALSE;
+    `);
+
     console.log('✓ Database schema migrations applied successfully.');
   } catch (err) {
     console.warn('Migration warning (non-fatal):', err);

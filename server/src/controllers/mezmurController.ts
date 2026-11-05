@@ -57,9 +57,13 @@ export const getMezmurById = async (req: Request, res: Response) => {
 
     const sequenceResult = await query(
       `SELECT ms.step_order, ms.line_number, ms.duration_ms, ms.group_id,
-              s.id AS string_id, s.string_position, s.note_name, s.audio_file_url
+              ms.is_rest, ms.phrase_break,
+              s.id AS string_id,
+              COALESCE(s.string_position, 0) AS string_position,
+              COALESCE(s.note_name, '') AS note_name,
+              COALESCE(s.audio_file_url, '') AS audio_file_url
       FROM mezmur_sequences ms
-      JOIN strings s ON ms.string_id = s.id
+      LEFT JOIN strings s ON ms.string_id = s.id
       WHERE ms.mezmur_id = $1
       ORDER BY ms.line_number, ms.step_order`,
       [id]
@@ -129,7 +133,7 @@ export const createMezmur = async (req: Request, res: Response) => {
       const tokens = lineStr
         .split(/[\s,]+/)
         .map((t) => t.trim())
-        .filter((t) => /^[1-5]+$/.test(t));
+        .filter((t) => /^([1-5]+|\||\-+)$/.test(t));
       return { line: idx + 1, notes: tokens };
     }).filter((l) => l.notes.length > 0);
   }
@@ -170,6 +174,29 @@ export const createMezmur = async (req: Request, res: Response) => {
 
     for (const { line, notes } of parsedSequence) {
       for (const token of notes) {
+        if (token === '|') {
+          // Phrase pause / boundary: ~700ms natural breath pause
+          await query(
+            `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, is_rest, phrase_break)
+             VALUES ($1, NULL, $2, $3, $4, FALSE, TRUE)`,
+            [mezmurId, stepOrder, line, 700]
+          );
+          stepOrder++;
+          continue;
+        }
+
+        if (/^\-+$/.test(token)) {
+          // Rest pause: 500ms per hyphen beat
+          const restDuration = Math.min(token.length * 500, 3000);
+          await query(
+            `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, is_rest, phrase_break)
+             VALUES ($1, NULL, $2, $3, $4, TRUE, FALSE)`,
+            [mezmurId, stepOrder, line, restDuration]
+          );
+          stepOrder++;
+          continue;
+        }
+
         const isGrouped = token.length > 1;
         const groupId = isGrouped ? groupCounter : null;
         const duration = isGrouped ? 200 : 500;
@@ -180,8 +207,8 @@ export const createMezmur = async (req: Request, res: Response) => {
           if (!stringId) continue;
 
           await query(
-            `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, group_id)
-             VALUES ($1, $2, $3, $4, $5, $6)`,
+            `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, group_id, is_rest, phrase_break)
+             VALUES ($1, $2, $3, $4, $5, $6, FALSE, FALSE)`,
             [mezmurId, stringId, stepOrder, line, duration, groupId]
           );
           stepOrder++;

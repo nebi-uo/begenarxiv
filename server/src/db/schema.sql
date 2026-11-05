@@ -58,11 +58,13 @@ CREATE TABLE mezmurs (
 CREATE TABLE mezmur_sequences (
   id SERIAL PRIMARY KEY,
   mezmur_id INT NOT NULL REFERENCES mezmurs(id) ON DELETE CASCADE,
-  string_id INT NOT NULL REFERENCES strings(id),
+  string_id INT REFERENCES strings(id) ON DELETE CASCADE,
   group_id INT DEFAULT NULL,
   line_number INT NOT NULL DEFAULT 1,
   step_order INT NOT NULL,
   duration_ms INT,
+  is_rest BOOLEAN DEFAULT FALSE,
+  phrase_break BOOLEAN DEFAULT FALSE,
   UNIQUE(mezmur_id, step_order) -- prevents two rows claiming to be "step 3" of the same song
 );
 

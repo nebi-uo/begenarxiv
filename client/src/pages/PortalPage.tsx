@@ -18,21 +18,15 @@ import Layout from '../components/Layout';
 import Button from '../components/Button';
 import LyricsViewer from '../components/LyricsViewer';
 import { insertRepeatTagAtCursor } from '../utils/lyrics';
+import {
+  parseRawNotation,
+  insertNotationTokenAtCursor,
+  type ParsedNotationToken,
+  type ParsedNotationLine,
+} from '../utils/notation';
 import { api } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
 import type { MezmurRequest, PendingMezmur } from '../types';
-
-interface ParsedToken {
-  text: string;
-  isRoll: boolean;
-  isValid: boolean;
-  positions: number[];
-}
-
-interface ParsedLine {
-  lineNumber: number;
-  tokens: ParsedToken[];
-}
 
 export default function PortalPage() {
   const [searchParams] = useSearchParams();
@@ -63,6 +57,24 @@ export default function PortalPage() {
     const end = el.selectionEnd ?? el.value.length;
     const { text: newText, nextCursor } = insertRepeatTagAtCursor(lyrics, tag, start, end);
     setLyrics(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
+
+  const notationTextareaRef = useRef<HTMLTextAreaElement | null>(null);
+
+  const handleInsertNotation = (token: string) => {
+    const el = notationTextareaRef.current;
+    if (!el) {
+      setRawNotation((prev) => (prev ? `${prev} ${token}` : token));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const { text: newText, nextCursor } = insertNotationTokenAtCursor(rawNotation, token, start, end);
+    setRawNotation(newText);
     setTimeout(() => {
       el.focus();
       el.setSelectionRange(nextCursor, nextCursor);
@@ -120,27 +132,8 @@ export default function PortalPage() {
   }, []);
 
   // Parse raw notation into structured lines and tokens in real time
-  const parsedLines: ParsedLine[] = useMemo(() => {
-    if (!rawNotation.trim()) return [];
-    const lines = rawNotation.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-
-    return lines.map((lineStr, lineIdx) => {
-      const rawTokens = lineStr.split(/[\s,]+/).filter(Boolean);
-      const tokens: ParsedToken[] = rawTokens.map((tok) => {
-        const digits = tok.split('').map((d) => parseInt(d, 10));
-        const isValid = digits.length > 0 && digits.every((d) => d >= 1 && d <= 5);
-        return {
-          text: tok,
-          isRoll: tok.length > 1,
-          isValid,
-          positions: digits,
-        };
-      });
-      return {
-        lineNumber: lineIdx + 1,
-        tokens,
-      };
-    });
+  const parsedLines: ParsedNotationLine[] = useMemo(() => {
+    return parseRawNotation(rawNotation);
   }, [rawNotation]);
 
   const totalTokens = useMemo(() => {
@@ -159,13 +152,21 @@ export default function PortalPage() {
     if (auditionTimeoutRef.current) clearTimeout(auditionTimeoutRef.current);
   }, []);
 
-  // Play a single parsed token (solo pluck or natural 50ms roll)
+  // Play a single parsed token (solo pluck, natural 50ms roll, phrase pause, or rest)
   const playToken = useCallback(
-    (token: ParsedToken, key: string) => {
+    (token: ParsedNotationToken, key: string) => {
       if (!token.isValid) return;
       setPlayingTokenKey(key);
 
-      if (token.isRoll) {
+      if (token.type === 'phrase_break' || token.type === 'rest') {
+        // Silent pause or rest
+        setTimeout(() => {
+          setPlayingTokenKey((curr) => (curr === key ? null : curr));
+        }, Math.min(token.durationMs, 700));
+        return;
+      }
+
+      if (token.type === 'roll') {
         // Natural 50ms ornament roll
         token.positions.forEach((pos, i) => {
           setTimeout(() => {
@@ -178,7 +179,7 @@ export default function PortalPage() {
 
       setTimeout(() => {
         setPlayingTokenKey((curr) => (curr === key ? null : curr));
-      }, token.isRoll ? 250 : 350);
+      }, token.type === 'roll' ? 250 : 350);
     },
     [pluckString]
   );
@@ -189,7 +190,7 @@ export default function PortalPage() {
     stopAuditionRef.current = false;
     setIsAuditioning(true);
 
-    const allItems: { token: ParsedToken; key: string }[] = [];
+    const allItems: { token: ParsedNotationToken; key: string }[] = [];
     parsedLines.forEach((line) => {
       line.tokens.forEach((tok, tIdx) => {
         allItems.push({ token: tok, key: `${line.lineNumber}-${tIdx}` });
@@ -206,7 +207,15 @@ export default function PortalPage() {
       const item = allItems[idx];
       playToken(item.token, item.key);
 
-      const nextDelay = item.token.isRoll ? 280 : 480;
+      const nextDelay =
+        item.token.type === 'phrase_break'
+          ? item.token.durationMs
+          : item.token.type === 'rest'
+          ? item.token.durationMs
+          : item.token.type === 'roll'
+          ? 280
+          : 480;
+
       auditionTimeoutRef.current = setTimeout(() => {
         step(idx + 1);
       }, nextDelay);
@@ -311,7 +320,7 @@ export default function PortalPage() {
     setDifficulty('beginner');
     setYoutubeUrl('https://www.youtube.com/watch?v=sample');
     setLyrics('በገናዬም መጣሁ ምስጋና ላቀርብ (x2)\nየሰራዊት ጌታ እግዚአብሔርን ላከብር (x2)\nበገናዬም መጣሁ... (፪ ጊዜ)');
-    setRawNotation('1 3 2 4 2 1\n42 2 1 3 1\n1 3 2 4 2 1\n13 3 1');
+    setRawNotation('1 3 2 4 | 2 1 3 1\n42 2 - 1 3 1\n1 3 2 4 | 13 3 1');
   };
 
   return (
@@ -670,31 +679,93 @@ export default function PortalPage() {
             <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
               <div className="flex items-center justify-between pb-2 border-b border-zinc-100">
                 <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400">
-                  2. Fast Notation Input (Space-Separated Numbers)
+                  2. Fast Notation Input (Numbers, Pauses &amp; Rolls)
                 </h2>
                 <span className="font-mono text-[11px] text-zinc-500">
                   {totalTokens} TOKENS DETECTED
                 </span>
               </div>
 
-              <p className="text-xs text-zinc-500 font-mono">
-                Type numbers separated by spaces. Grouped digits (like <code className="bg-zinc-100 px-1 py-0.5 rounded font-bold text-black">42</code>)
-                become natural 50ms ornament rolls. Active Begena strings: <strong>1, 2, 3, 4, 5</strong>.
-              </p>
+              {/* Clear Direction Box */}
+              <div className="bg-zinc-50 border border-zinc-200 rounded-lg p-3.5 font-mono text-xs text-zinc-700 space-y-2">
+                <div className="font-bold text-zinc-950 uppercase text-[11px] tracking-wider">
+                  Notation Syntax Guide
+                </div>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-2 text-[11px] leading-relaxed">
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">1 - 5</span>
+                    <span>Single string plucks (e.g. <code className="text-black font-semibold">1 3 2 4 2 1</code>)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">42</span>
+                    <span>Ornament roll: grouped digits play rapid 50ms thumb/index roll</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">|</span>
+                    <span><strong>Phrase Pause</strong>: separates consecutively plucked groups with a natural musical breath (e.g. <code className="text-black font-semibold">1 3 2 4 | 2 1 3 1</code>)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">-</span>
+                    <span><strong>Beat Rest</strong>: silent pause where previous string rings (<code className="text-black font-semibold">-</code> = 1 beat, <code className="text-black font-semibold">--</code> = 2 beats)</span>
+                  </div>
+                </div>
+              </div>
+
+              {/* Quick Insert Buttons */}
+              <div className="flex flex-wrap items-center justify-between gap-2 pt-1">
+                <span className="text-[10px] font-mono uppercase tracking-wider text-zinc-400">
+                  Quick Insert Notation Tokens:
+                </span>
+                <div className="flex flex-wrap items-center gap-1.5 font-mono text-[11px]">
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotation('|')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-bold"
+                    title="Insert phrase pause (|)"
+                  >
+                    + | (Phrase Pause)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotation('-')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-bold"
+                    title="Insert beat rest (-)"
+                  >
+                    + - (Beat Rest)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotation('42')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-bold"
+                    title="Insert 42 ornament roll"
+                  >
+                    + 42 (Roll)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotation('13')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-bold"
+                    title="Insert 13 ornament roll"
+                  >
+                    + 13 (Roll)
+                  </button>
+                </div>
+              </div>
 
               <textarea
+                ref={notationTextareaRef}
                 rows={5}
                 required
                 value={rawNotation}
                 onChange={(e) => setRawNotation(e.target.value)}
-                placeholder={'1 3 2 4 2 1\n42 2 1 3 1\n1 3 2 4 2 1'}
+                placeholder={'1 3 2 4 | 2 1 3 1\n42 2 - 1 3 1\n1 3 2 4 | 13 3 1'}
                 className="w-full px-4 py-3 rounded-lg border border-zinc-300 focus:border-black outline-hidden font-mono text-sm tracking-widest leading-loose"
               />
 
               {hasInvalidTokens && (
                 <div className="p-3 bg-zinc-50 border border-zinc-300 rounded font-mono text-xs text-black flex items-center gap-2">
                   <AlertCircle size={15} />
-                  <span>Warning: One or more tokens have invalid digits outside 1–5.</span>
+                  <span>Warning: One or more tokens have invalid notation. Use 1–5, 42, |, or -.</span>
                 </div>
               )}
             </div>
@@ -749,13 +820,47 @@ export default function PortalPage() {
                         const key = `${line.lineNumber}-${tIdx}`;
                         const isPlaying = playingTokenKey === key;
 
+                        if (tok.type === 'phrase_break') {
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => playToken(tok, key)}
+                              className={`px-2 py-1 select-none transition-all cursor-pointer font-bold ${
+                                isPlaying ? 'scale-125 text-black' : 'text-zinc-400 hover:text-black'
+                              }`}
+                              title="Phrase pause (~700ms musical breath)"
+                            >
+                              <span className="text-base leading-none">|</span>
+                            </button>
+                          );
+                        }
+
+                        if (tok.type === 'rest') {
+                          return (
+                            <button
+                              key={key}
+                              type="button"
+                              onClick={() => playToken(tok, key)}
+                              className={`px-2 py-1 rounded text-[11px] font-mono transition-all cursor-pointer border border-dashed ${
+                                isPlaying
+                                  ? 'bg-black text-white border-black scale-105'
+                                  : 'border-zinc-300 bg-white text-zinc-500 hover:border-black hover:text-black'
+                              }`}
+                              title={`Beat rest (${tok.durationMs}ms)`}
+                            >
+                              <span>— REST</span>
+                            </button>
+                          );
+                        }
+
                         return (
                           <button
                             key={key}
                             type="button"
                             onClick={() => playToken(tok, key)}
                             className={`px-2.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                              tok.isRoll
+                              tok.type === 'roll'
                                 ? 'border border-dashed border-zinc-400'
                                 : 'border border-zinc-200 bg-white'
                             } ${
