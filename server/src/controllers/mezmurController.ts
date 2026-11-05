@@ -323,3 +323,164 @@ export const rejectMezmur = async (req: Request, res: Response) => {
     res.status(500).json({ error: 'Failed to reject mezmur' });
   }
 };
+
+// GET /api/mezmurs/admin/all — all mezmurs across statuses for the admin catalogue dashboard
+export const getAllMezmursAdmin = async (req: Request, res: Response) => {
+  try {
+    const result = await query(`
+      SELECT m.id, m.title, m.difficulty, m.status, m.contributor_name, m.contributor_email,
+             m.approved_at, m.created_at, m.lyrics, m.youtube_url,
+             a.name AS artist_name, t.name AS tune_name,
+             (SELECT COUNT(*) FROM mezmur_sequences WHERE mezmur_id = m.id) AS step_count
+      FROM mezmurs m
+      LEFT JOIN artists a ON m.artist_id = a.id
+      LEFT JOIN tunes t ON m.tune_id = t.id
+      ORDER BY m.id DESC
+    `);
+    res.json(result.rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to fetch admin catalogue' });
+  }
+};
+
+// DELETE /api/mezmurs/:id — delete a mezmur and its sequences
+export const deleteMezmur = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  try {
+    const result = await query('DELETE FROM mezmurs WHERE id = $1 RETURNING id, title', [id]);
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: 'Mezmur not found' });
+    }
+    res.json({ success: true, message: `Deleted "${result.rows[0].title}"`, id: result.rows[0].id });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to delete mezmur' });
+  }
+};
+
+// PUT /api/mezmurs/:id — edit an existing mezmur and update its notation
+export const updateMezmur = async (req: Request, res: Response) => {
+  const { id } = req.params;
+  const {
+    title,
+    artist = 'Traditional',
+    tune = 'Tizita',
+    difficulty = 'beginner',
+    lyrics = '',
+    youtube_url = '',
+    raw_notation,
+    status: newStatus,
+  }: CreateMezmurBody = req.body;
+
+  if (!title || !title.trim()) {
+    return res.status(400).json({ error: 'Title is required' });
+  }
+
+  try {
+    const artistId = await findOrCreate('artists', artist.trim() || 'Traditional');
+    const tuneId = await findOrCreate('tunes', tune.trim() || 'Tizita');
+    const tuningProfileId = getTuningProfileId(tune);
+
+    const updateRes = await query(
+      `UPDATE mezmurs
+       SET title = $1, lyrics = $2, youtube_url = $3, difficulty = $4,
+           artist_id = $5, tune_id = $6, tuning_profile_id = $7,
+           status = COALESCE($8, status)
+       WHERE id = $9
+       RETURNING id, title, status`,
+      [
+        title.trim(),
+        lyrics.trim() || null,
+        youtube_url.trim() || null,
+        difficulty,
+        artistId,
+        tuneId,
+        tuningProfileId,
+        newStatus || null,
+        id,
+      ]
+    );
+
+    if (updateRes.rows.length === 0) {
+      return res.status(404).json({ error: 'Mezmur not found' });
+    }
+
+    // If raw_notation was provided, re-populate mezmur_sequences
+    if (raw_notation !== undefined && typeof raw_notation === 'string') {
+      await query('DELETE FROM mezmur_sequences WHERE mezmur_id = $1', [id]);
+
+      const rawLines = raw_notation.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+      const parsedSequence = rawLines
+        .map((lineStr, idx) => {
+          const tokens = lineStr
+            .split(/[\s,]+/)
+            .map((t) => t.trim())
+            .filter((t) => /^([1-5]+|\||\-+)$/.test(t));
+          return { line: idx + 1, notes: tokens };
+        })
+        .filter((l) => l.notes.length > 0);
+
+      const stringsResult = await query('SELECT id, string_position FROM strings');
+      const stringIdByPosition = new Map<number, number>(
+        stringsResult.rows.map((s: { id: number; string_position: number }) => [s.string_position, s.id])
+      );
+
+      let stepOrder = 1;
+      let groupCounter = 1;
+
+      for (const { line, notes } of parsedSequence) {
+        for (const token of notes) {
+          if (token === '|') {
+            await query(
+              `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, is_rest, phrase_break)
+               VALUES ($1, NULL, $2, $3, $4, FALSE, TRUE)`,
+              [id, stepOrder, line, 700]
+            );
+            stepOrder++;
+            continue;
+          }
+
+          if (/^\-+$/.test(token)) {
+            const restDuration = Math.min(token.length * 500, 3000);
+            await query(
+              `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, is_rest, phrase_break)
+               VALUES ($1, NULL, $2, $3, $4, TRUE, FALSE)`,
+              [id, stepOrder, line, restDuration]
+            );
+            stepOrder++;
+            continue;
+          }
+
+          const isGrouped = token.length > 1;
+          const groupId = isGrouped ? groupCounter : null;
+          const duration = isGrouped ? 200 : 500;
+
+          for (const digit of token) {
+            const pos = parseInt(digit, 10);
+            const stringId = stringIdByPosition.get(pos);
+            if (!stringId) continue;
+
+            await query(
+              `INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms, group_id, is_rest, phrase_break)
+               VALUES ($1, $2, $3, $4, $5, $6, FALSE, FALSE)`,
+              [id, stringId, stepOrder, line, duration, groupId]
+            );
+            stepOrder++;
+          }
+
+          if (isGrouped) groupCounter++;
+        }
+      }
+    }
+
+    res.json({
+      success: true,
+      message: `Updated "${updateRes.rows[0].title}" successfully`,
+      mezmurId: updateRes.rows[0].id,
+    });
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: 'Failed to update mezmur' });
+  }
+};

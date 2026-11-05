@@ -25,18 +25,38 @@ export default function LyricsViewer({ lyrics, className = '' }: Props) {
           <div
             key={idx}
             className={`flex items-baseline justify-between gap-4 py-0.5 group ${
-              line.repeatCount ? 'bg-zinc-100/50 -mx-2 px-2 rounded' : ''
+              line.lineRepeatCount ? 'bg-zinc-100/50 -mx-2 px-2 rounded' : ''
             }`}
           >
-            <span className="text-zinc-900 tracking-wide font-normal">{line.text}</span>
+            <div className="text-zinc-900 tracking-wide font-normal leading-relaxed">
+              {line.segments.map((seg, sIdx) => {
+                if (seg.type === 'repeat_section') {
+                  return (
+                    <span key={sIdx} className="inline-flex items-baseline gap-1 mx-0.5">
+                      <span className="underline underline-offset-4 decoration-zinc-900 decoration-1.5 font-medium">
+                        {seg.text}
+                      </span>
+                      <span
+                        title={`Repeat "${seg.text}" ${seg.repeatCount} times`}
+                        className="inline-flex items-center gap-0.5 font-mono text-[9px] px-1 py-0.2 rounded bg-zinc-200/90 border border-zinc-300 text-zinc-900 font-bold select-none align-baseline"
+                      >
+                        <Repeat size={8} className="text-zinc-600" />
+                        <span>{seg.repeatCount}x</span>
+                      </span>
+                    </span>
+                  );
+                }
+                return <span key={sIdx}>{seg.text}</span>;
+              })}
+            </div>
 
-            {line.repeatCount && (
+            {line.lineRepeatCount && (
               <span
-                title={`Repeat verse ${line.repeatCount} times`}
+                title={`Repeat entire verse ${line.lineRepeatCount} times`}
                 className="inline-flex items-center gap-1 font-mono text-[10px] sm:text-[11px] px-2 py-0.5 rounded-md bg-white border border-zinc-300 text-zinc-950 font-semibold shrink-0 select-none shadow-2xs"
               >
                 <Repeat size={10} className="text-zinc-500" />
-                <span>{line.repeatCount}x</span>
+                <span>{line.lineRepeatCount}x</span>
               </span>
             )}
           </div>
@@ -45,4 +65,3 @@ export default function LyricsViewer({ lyrics, className = '' }: Props) {
     </div>
   );
 }
-

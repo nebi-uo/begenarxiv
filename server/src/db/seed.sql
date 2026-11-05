@@ -21,21 +21,4 @@ INSERT INTO tuning_profile_notes (tuning_profile_id, string_id, frequency_hz) VA
   (1, 4, 220.00), -- A3
   (1, 5, 196.00); -- G3
 
--- One artist and one tune
-INSERT INTO artists (id, name) VALUES (1, 'Sample Artist')
-ON CONFLICT (id) DO NOTHING;
-
-INSERT INTO tunes (id, name) VALUES (1, 'Tizita Mode')
-ON CONFLICT (id) DO NOTHING;
-
--- One sample mezmur
-INSERT INTO mezmurs (id, title, lyrics, youtube_url, difficulty, artist_id, tune_id, tuning_profile_id) VALUES
-  (1, 'Sample Mezmur', 'Lyrics line one\nLyrics line two', 'https://youtube.com/watch?v=example', 'beginner', 1, 1, 1)
-ON CONFLICT (id) DO NOTHING;
-
--- A short sequence for that mezmur
-INSERT INTO mezmur_sequences (mezmur_id, string_id, step_order, line_number, duration_ms) VALUES
-  (1, 1, 1, 1, 500),
-  (1, 3, 2, 1, 500),
-  (1, 2, 3, 2, 500),
-  (1, 4, 4, 2, 500);
+-- Mezmurs and sequences: populated dynamically via the Begenarxiv curation portal (/portal)

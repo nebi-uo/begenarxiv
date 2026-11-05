@@ -4,6 +4,7 @@ import type {
   MezmurRequest,
   CreateMezmurPayload,
   PendingMezmur,
+  AdminMezmurItem,
 } from '../types';
 
 const BASE_URL = 'http://localhost:4000/api';
@@ -51,6 +52,23 @@ export const api = {
     fetch(`${BASE_URL}/mezmurs/${id}/reject`, {
       method: 'POST',
     }).then((res) => handleResponse<{ success: boolean; message: string }>(res)),
+
+  getAllMezmursAdmin: () =>
+    fetch(`${BASE_URL}/mezmurs/admin/all`).then((res) => handleResponse<AdminMezmurItem[]>(res)),
+
+  deleteMezmur: (id: number) =>
+    fetch(`${BASE_URL}/mezmurs/${id}`, {
+      method: 'DELETE',
+    }).then((res) => handleResponse<{ success: boolean; message: string; id: number }>(res)),
+
+  updateMezmur: (id: number, payload: Partial<CreateMezmurPayload>) =>
+    fetch(`${BASE_URL}/mezmurs/${id}`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    }).then((res) =>
+      handleResponse<{ success: boolean; message: string; mezmurId: number }>(res)
+    ),
 
   getArtists: () =>
     fetch(`${BASE_URL}/artists`).then((res) => handleResponse<{ id: number; name: string }[]>(res)),

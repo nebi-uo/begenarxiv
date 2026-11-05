@@ -39,6 +39,22 @@ export interface MezmurDetail {
   sequence: SequenceStep[];
 }
 
+export interface AdminMezmurItem {
+  id: number;
+  title: string;
+  difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
+  status: 'approved' | 'pending' | 'rejected';
+  artist_name: string | null;
+  tune_name: string | null;
+  contributor_name: string | null;
+  contributor_email: string | null;
+  lyrics: string | null;
+  youtube_url: string | null;
+  step_count: string | number;
+  created_at: string;
+  approved_at: string | null;
+}
+
 export interface MezmurRequest {
   id: number;
   title: string;

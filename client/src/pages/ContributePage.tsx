@@ -51,6 +51,22 @@ export default function ContributePage() {
     }, 0);
   };
 
+  const handleInsertRepeatSection = (tag: string) => {
+    const el = lyricsTextareaRef.current;
+    if (!el) {
+      setLyrics((prev) => (prev ? `${prev} [words]${tag}` : `[words]${tag}`));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const { text: newText, nextCursor } = insertRepeatTagAtCursor(lyrics, tag, start, end, true);
+    setLyrics(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
+
   const notationTextareaRef = useRef<HTMLTextAreaElement | null>(null);
 
   const handleInsertNotation = (token: string) => {
@@ -442,19 +458,40 @@ export default function ContributePage() {
                   <label className="block text-xs font-mono font-medium text-zinc-700">
                     Lyrics (Optional)
                   </label>
-                  <div className="flex items-center gap-1 font-mono text-[11px]">
+                  <div className="flex flex-wrap items-center gap-1 font-mono text-[11px]">
                     <span className="text-zinc-400 text-[10px] uppercase mr-0.5">Repeat Tag:</span>
-                    {['(x2)', '(x3)', '(x4)', '(፪ ጊዜ)'].map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => handleInsertRepeat(tag)}
-                        className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
-                        title={`Insert ${tag} at cursor / current line`}
-                      >
-                        + {tag}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(x2)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat entire verse"
+                    >
+                      + (x2)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeatSection('(x2)')}
+                      className="px-2 py-0.5 rounded bg-zinc-950 text-white hover:bg-zinc-800 border border-zinc-950 transition-colors cursor-pointer text-[10px] font-bold"
+                      title="Repeat specific section with underline: highlight words then click, or inserts [words](x2)"
+                    >
+                      + [Section](x2) Underline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(x3)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat entire verse (x3)"
+                    >
+                      + (x3)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(፪ ጊዜ)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat verse (Ge'ez ፪ ጊዜ)"
+                    >
+                      + (፪ ጊዜ)
+                    </button>
                   </div>
                 </div>
 
@@ -463,9 +500,17 @@ export default function ContributePage() {
                   rows={4}
                   value={lyrics}
                   onChange={(e) => setLyrics(e.target.value)}
-                  placeholder="Paste hymn lyrics line by line. Add (x2) or (x3) for verses sung multiple times..."
+                  placeholder="Paste hymn lyrics line by line. Add (x2) or highlight words to repeat sections..."
                   className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden font-sans text-sm leading-relaxed"
                 />
+
+                <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 mt-1">
+                  <span>
+                    Add <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(x2)</code> to repeat a verse, or highlight words and click{' '}
+                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">+ [Section](x2)</code> to underline &amp; repeat only that part (e.g.{' '}
+                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">[ምስጋና ላቀርብ](x2)</code>).
+                  </span>
+                </div>
 
                 <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 mt-1">
                   <span>

@@ -13,6 +13,12 @@ import {
   Award,
   Check,
   X,
+  Trash2,
+  Edit3,
+  LayoutDashboard,
+  Plus,
+  Search,
+  ShieldCheck,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
@@ -26,15 +32,15 @@ import {
 } from '../utils/notation';
 import { api } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
-import type { MezmurRequest, PendingMezmur } from '../types';
+import type { MezmurRequest, PendingMezmur, AdminMezmurItem } from '../types';
 
 export default function PortalPage() {
   const [searchParams] = useSearchParams();
   const navigate = useNavigate();
 
-  // Active tab: 'pending' | 'decode' | 'requests'
-  const [activeTab, setActiveTab] = useState<'pending' | 'decode' | 'requests'>(
-    (searchParams.get('tab') as 'pending' | 'decode' | 'requests') || 'decode'
+  // Active tab: 'dashboard' | 'decode' | 'pending' | 'requests'
+  const [activeTab, setActiveTab] = useState<'dashboard' | 'decode' | 'pending' | 'requests'>(
+    (searchParams.get('tab') as 'dashboard' | 'decode' | 'pending' | 'requests') || 'dashboard'
   );
 
   // Form states for decoding / publishing
@@ -56,6 +62,22 @@ export default function PortalPage() {
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
     const { text: newText, nextCursor } = insertRepeatTagAtCursor(lyrics, tag, start, end);
+    setLyrics(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
+
+  const handleInsertRepeatSection = (tag: string) => {
+    const el = lyricsTextareaRef.current;
+    if (!el) {
+      setLyrics((prev) => (prev ? `${prev} [words]${tag}` : `[words]${tag}`));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const { text: newText, nextCursor } = insertRepeatTagAtCursor(lyrics, tag, start, end, true);
     setLyrics(newText);
     setTimeout(() => {
       el.focus();
@@ -103,6 +125,23 @@ export default function PortalPage() {
   const [loadingPending, setLoadingPending] = useState(false);
   const [reviewFeedback, setReviewFeedback] = useState<string | null>(null);
 
+  // Catalogue Dashboard state
+  const [adminMezmurs, setAdminMezmurs] = useState<AdminMezmurItem[]>([]);
+  const [loadingAdminMezmurs, setLoadingAdminMezmurs] = useState(false);
+  const [catalogueQuery, setCatalogueQuery] = useState('');
+  const [catalogueStatusFilter, setCatalogueStatusFilter] = useState<string>('all');
+  const [catalogueDifficultyFilter, setCatalogueDifficultyFilter] = useState<string>('all');
+  const [editingMezmurId, setEditingMezmurId] = useState<number | null>(null);
+  const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+
+  const fetchAdminMezmurs = useCallback(() => {
+    setLoadingAdminMezmurs(true);
+    api.getAllMezmursAdmin()
+      .then(setAdminMezmurs)
+      .catch(() => {})
+      .finally(() => setLoadingAdminMezmurs(false));
+  }, []);
+
   const fetchRequests = useCallback(() => {
     setLoadingRequests(true);
     api.getRequests()
@@ -120,9 +159,101 @@ export default function PortalPage() {
   }, []);
 
   useEffect(() => {
+    fetchAdminMezmurs();
     fetchRequests();
     fetchPending();
-  }, [fetchRequests, fetchPending]);
+  }, [fetchAdminMezmurs, fetchRequests, fetchPending]);
+
+  const handleDeleteMezmur = async (id: number, hymnTitle: string) => {
+    if (!window.confirm(`Are you sure you want to permanently delete "${hymnTitle}" from the archive?`)) {
+      return;
+    }
+    try {
+      await api.deleteMezmur(id);
+      setActionFeedback(`Deleted "${hymnTitle}" successfully.`);
+      fetchAdminMezmurs();
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to delete mezmur';
+      setActionFeedback(msg);
+    }
+  };
+
+  const handleStartEdit = async (id: number) => {
+    try {
+      const mezmur = await api.getMezmurById(String(id));
+      setTitle(mezmur.title);
+      setArtist(mezmur.artist_name || 'Traditional');
+      if (mezmur.tune_name?.includes('Selamta')) setTune('Selamta');
+      else if (mezmur.tune_name?.includes('Anchi')) setTune('Anchi-Hoye');
+      else setTune('Tizita');
+      setDifficulty(mezmur.difficulty || 'beginner');
+      setYoutubeUrl(mezmur.youtube_url || '');
+      setLyrics(mezmur.lyrics || '');
+
+      // Reconstruct raw_notation from sequence steps
+      const lineMap = new Map<number, string[]>();
+      mezmur.sequence.forEach((s) => {
+        const tokens = lineMap.get(s.line_number) || [];
+        if (s.phrase_break) {
+          tokens.push('|');
+        } else if (s.is_rest) {
+          tokens.push('-');
+        } else if (s.group_id) {
+          if (tokens.length > 0 && /^[1-5]+$/.test(tokens[tokens.length - 1])) {
+            tokens[tokens.length - 1] += String(s.string_position);
+          } else {
+            tokens.push(String(s.string_position));
+          }
+        } else {
+          tokens.push(String(s.string_position));
+        }
+        lineMap.set(s.line_number, tokens);
+      });
+
+      const notationStr = Array.from(lineMap.values())
+        .map((toks) => toks.join(' '))
+        .join('\n');
+      setRawNotation(notationStr);
+
+      setEditingMezmurId(id);
+      setPublishSuccess(null);
+      setPublishError(null);
+      setActiveTab('decode');
+      window.scrollTo({ top: 0, behavior: 'smooth' });
+    } catch (err: unknown) {
+      const msg = err instanceof Error ? err.message : 'Failed to load mezmur for editing';
+      setActionFeedback(msg);
+    }
+  };
+
+  const handleCancelEdit = () => {
+    setEditingMezmurId(null);
+    setTitle('');
+    setArtist('');
+    setYoutubeUrl('');
+    setLyrics('');
+    setRawNotation('');
+  };
+
+  const filteredAdminMezmurs = useMemo(() => {
+    const q = catalogueQuery.trim().toLowerCase();
+    return adminMezmurs.filter((m) => {
+      const matchesQ =
+        !q ||
+        m.title.toLowerCase().includes(q) ||
+        m.artist_name?.toLowerCase().includes(q) ||
+        m.tune_name?.toLowerCase().includes(q) ||
+        m.contributor_name?.toLowerCase().includes(q);
+
+      const matchesStatus =
+        catalogueStatusFilter === 'all' || m.status === catalogueStatusFilter;
+
+      const matchesDifficulty =
+        catalogueDifficultyFilter === 'all' || m.difficulty === catalogueDifficultyFilter;
+
+      return matchesQ && matchesStatus && matchesDifficulty;
+    });
+  }, [adminMezmurs, catalogueQuery, catalogueStatusFilter, catalogueDifficultyFilter]);
 
   // Clean up timeouts
   useEffect(() => {
@@ -245,33 +376,50 @@ export default function PortalPage() {
     setPublishSuccess(null);
 
     try {
-      const res = await api.createMezmur({
-        title: title.trim(),
-        artist: artist.trim() || 'Traditional',
-        tune,
-        difficulty,
-        youtube_url: youtubeUrl.trim(),
-        lyrics: lyrics.trim(),
-        raw_notation: rawNotation.trim(),
-        is_admin: true,
-        contributor_name: 'Begenarxiv',
-        status: 'approved',
-      });
+      if (editingMezmurId) {
+        await api.updateMezmur(editingMezmurId, {
+          title: title.trim(),
+          artist: artist.trim() || 'Traditional',
+          tune,
+          difficulty,
+          youtube_url: youtubeUrl.trim(),
+          lyrics: lyrics.trim(),
+          raw_notation: rawNotation.trim(),
+        });
 
-      setPublishSuccess({ mezmurId: res.mezmurId, title: res.title });
+        setPublishSuccess({ mezmurId: editingMezmurId, title: title.trim() });
+        setEditingMezmurId(null);
+      } else {
+        const res = await api.createMezmur({
+          title: title.trim(),
+          artist: artist.trim() || 'Traditional',
+          tune,
+          difficulty,
+          youtube_url: youtubeUrl.trim(),
+          lyrics: lyrics.trim(),
+          raw_notation: rawNotation.trim(),
+          is_admin: true,
+          contributor_name: 'Begenarxiv',
+          status: 'approved',
+        });
 
-      if (linkedRequestId) {
-        await api.updateRequestStatus(linkedRequestId, 'completed').catch(() => {});
-        setLinkedRequestId(null);
-        fetchRequests();
+        setPublishSuccess({ mezmurId: res.mezmurId, title: res.title });
+
+        if (linkedRequestId) {
+          await api.updateRequestStatus(linkedRequestId, 'completed').catch(() => {});
+          setLinkedRequestId(null);
+          fetchRequests();
+        }
       }
 
+      fetchAdminMezmurs();
       setTitle('');
+      setArtist('');
       setYoutubeUrl('');
       setLyrics('');
       setRawNotation('');
     } catch (err: unknown) {
-      const msg = err instanceof Error ? err.message : 'Failed to publish mezmur';
+      const msg = err instanceof Error ? err.message : 'Failed to save mezmur';
       setPublishError(msg);
     } finally {
       setIsPublishing(false);
@@ -284,6 +432,7 @@ export default function PortalPage() {
       const res = await api.approveMezmur(id);
       setReviewFeedback(res.message);
       fetchPending();
+      fetchAdminMezmurs();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Approval failed';
       setReviewFeedback(msg);
@@ -296,6 +445,7 @@ export default function PortalPage() {
       const res = await api.rejectMezmur(id);
       setReviewFeedback(res.message);
       fetchPending();
+      fetchAdminMezmurs();
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Rejection failed';
       setReviewFeedback(msg);
@@ -363,6 +513,33 @@ export default function PortalPage() {
           {/* Navigation Tabs */}
           <div className="flex flex-wrap items-center gap-2 mt-6 pt-4 border-t border-zinc-100 font-mono text-xs">
             <button
+              onClick={() => setActiveTab('dashboard')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
+                activeTab === 'dashboard'
+                  ? 'bg-black text-white font-bold'
+                  : 'bg-zinc-100 text-zinc-600 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              <LayoutDashboard size={12} />
+              <span>CATALOGUE DASHBOARD</span>
+              <span className="px-1.5 py-0.2 rounded-full bg-white text-black text-[10px] font-bold">
+                {adminMezmurs.length}
+              </span>
+            </button>
+
+            <button
+              onClick={() => setActiveTab('decode')}
+              className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
+                activeTab === 'decode'
+                  ? 'bg-black text-white font-bold'
+                  : 'bg-zinc-100 text-zinc-600 hover:text-black hover:bg-zinc-200'
+              }`}
+            >
+              <Plus size={12} />
+              <span>{editingMezmurId ? `EDITING #${editingMezmurId}` : 'DECODE & PUBLISH'}</span>
+            </button>
+
+            <button
               onClick={() => setActiveTab('pending')}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
                 activeTab === 'pending'
@@ -380,17 +557,6 @@ export default function PortalPage() {
             </button>
 
             <button
-              onClick={() => setActiveTab('decode')}
-              className={`px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
-                activeTab === 'decode'
-                  ? 'bg-black text-white font-bold'
-                  : 'bg-zinc-100 text-zinc-600 hover:text-black hover:bg-zinc-200'
-              }`}
-            >
-              DECODE &amp; PUBLISH
-            </button>
-
-            <button
               onClick={() => setActiveTab('requests')}
               className={`inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded transition-colors cursor-pointer ${
                 activeTab === 'requests'
@@ -405,6 +571,218 @@ export default function PortalPage() {
             </button>
           </div>
         </div>
+
+        {actionFeedback && (
+          <div className="p-3 mb-6 bg-zinc-950 text-white rounded-xl text-xs font-mono flex items-center justify-between shadow-xs">
+            <span>{actionFeedback}</span>
+            <button onClick={() => setActionFeedback(null)} className="text-zinc-400 hover:text-white cursor-pointer">
+              <X size={14} />
+            </button>
+          </div>
+        )}
+
+        {/* TAB 0: CATALOGUE DASHBOARD (INVENTORY & MANAGEMENT) */}
+        {activeTab === 'dashboard' && (
+          <div className="space-y-6 font-mono">
+            {/* Toolbar */}
+            <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 text-xs">
+                <div>
+                  <h2 className="font-bold text-sm text-black uppercase">
+                    Catalogue Inventory ({adminMezmurs.length} Mezmurs)
+                  </h2>
+                  <p className="text-zinc-500 text-[11px] font-sans mt-0.5">
+                    Live inventory: edit lyrics or notation, audition strings, or remove hymns.
+                  </p>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={fetchAdminMezmurs}
+                    disabled={loadingAdminMezmurs}
+                    className="px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs text-zinc-700 hover:text-black cursor-pointer transition-colors"
+                  >
+                    {loadingAdminMezmurs ? 'Refreshing...' : 'Refresh'}
+                  </button>
+                  <button
+                    onClick={() => {
+                      setEditingMezmurId(null);
+                      setTitle('');
+                      setArtist('');
+                      setLyrics('');
+                      setRawNotation('');
+                      setActiveTab('decode');
+                    }}
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded bg-black text-white hover:bg-zinc-800 text-xs font-bold cursor-pointer transition-colors shadow-xs"
+                  >
+                    <Plus size={12} />
+                    <span>Add New Mezmur</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Filters */}
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-3 text-xs pt-1">
+                {/* Search */}
+                <div className="relative flex-1">
+                  <Search size={13} className="absolute left-3 top-2.5 text-zinc-400 pointer-events-none" />
+                  <input
+                    type="text"
+                    value={catalogueQuery}
+                    onChange={(e) => setCatalogueQuery(e.target.value)}
+                    placeholder="Search by title, artist, mode, or contributor..."
+                    className="w-full pl-8 pr-3 py-1.5 bg-zinc-50 border border-zinc-200 rounded-md text-xs text-black placeholder:text-zinc-400 focus:outline-hidden focus:border-black font-mono"
+                  />
+                </div>
+
+                {/* Status filter */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
+                  <span className="text-zinc-400 uppercase mr-1">Status:</span>
+                  {['all', 'approved', 'pending', 'rejected'].map((st) => (
+                    <button
+                      key={st}
+                      onClick={() => setCatalogueStatusFilter(st)}
+                      className={`px-2 py-0.5 rounded capitalize transition-colors cursor-pointer ${
+                        catalogueStatusFilter === st
+                          ? 'bg-black text-white font-bold'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {st}
+                    </button>
+                  ))}
+                </div>
+
+                {/* Difficulty filter */}
+                <div className="flex items-center gap-1 overflow-x-auto pb-1 text-[11px]">
+                  <span className="text-zinc-400 uppercase mr-1">Diff:</span>
+                  {['all', 'practice', 'beginner', 'intermediate', 'advanced'].map((df) => (
+                    <button
+                      key={df}
+                      onClick={() => setCatalogueDifficultyFilter(df)}
+                      className={`px-2 py-0.5 rounded capitalize transition-colors cursor-pointer ${
+                        catalogueDifficultyFilter === df
+                          ? 'bg-black text-white font-bold'
+                          : 'bg-zinc-100 text-zinc-600 hover:bg-zinc-200'
+                      }`}
+                    >
+                      {df}
+                    </button>
+                  ))}
+                </div>
+              </div>
+            </div>
+
+            {/* List */}
+            {filteredAdminMezmurs.length === 0 ? (
+              <div className="p-12 text-center bg-white border border-zinc-200 rounded-xl text-xs text-zinc-500">
+                <p className="font-bold text-black mb-1">NO MEZMURS IN REPOSITORY</p>
+                <p className="text-zinc-400 text-[11px] max-w-sm mx-auto font-sans mb-4">
+                  {adminMezmurs.length === 0
+                    ? 'The catalogue is clean and ready for your data population.'
+                    : 'No mezmurs match the active search or filter criteria.'}
+                </p>
+                <button
+                  onClick={() => {
+                    setEditingMezmurId(null);
+                    setActiveTab('decode');
+                  }}
+                  className="inline-flex items-center gap-1.5 px-3.5 py-1.5 rounded bg-black text-white text-xs font-bold cursor-pointer"
+                >
+                  <Plus size={12} /> Add First Mezmur
+                </button>
+              </div>
+            ) : (
+              <div className="bg-white border border-zinc-200 rounded-xl overflow-hidden shadow-xs">
+                <div className="divide-y divide-zinc-200">
+                  {filteredAdminMezmurs.map((m) => (
+                    <div
+                      key={m.id}
+                      className="p-5 flex flex-col md:flex-row md:items-center justify-between gap-4 hover:bg-zinc-50/50 transition-colors"
+                    >
+                      <div className="space-y-1.5 flex-1 min-w-0">
+                        <div className="flex flex-wrap items-center gap-2">
+                          <span className="text-xs font-mono text-zinc-400">
+                            #{String(m.id).padStart(2, '0')}
+                          </span>
+                          <span className="font-bold text-sm text-black truncate">
+                            {m.title}
+                          </span>
+                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800 font-bold border border-zinc-200">
+                            {m.tune_name ?? 'Tizita'}
+                          </span>
+                          <span className="text-[10px] uppercase px-1.5 py-0.5 rounded bg-zinc-100 text-zinc-800">
+                            {m.difficulty ?? 'beginner'}
+                          </span>
+                          <span
+                            className={`text-[10px] uppercase px-1.5 py-0.5 rounded font-bold ${
+                              m.status === 'approved'
+                                ? 'bg-black text-white'
+                                : m.status === 'pending'
+                                ? 'bg-zinc-200 text-zinc-800'
+                                : 'bg-zinc-100 text-zinc-400 line-through'
+                            }`}
+                          >
+                            {m.status}
+                          </span>
+                        </div>
+
+                        <div className="flex flex-wrap items-center gap-3 text-xs text-zinc-500 font-mono">
+                          <span>Artist: <strong>{m.artist_name || 'Traditional'}</strong></span>
+                          <span>·</span>
+                          <span className="flex items-center gap-1">
+                            {m.contributor_name && m.contributor_name.toLowerCase() !== 'begenarxiv' ? (
+                              <>
+                                <Award size={11} className="text-zinc-700" />
+                                <span>{m.contributor_name}</span>
+                              </>
+                            ) : (
+                              <>
+                                <ShieldCheck size={11} className="text-zinc-700" />
+                                <span>Begenarxiv</span>
+                              </>
+                            )}
+                          </span>
+                          <span>·</span>
+                          <span>{m.step_count} notation steps</span>
+                        </div>
+                      </div>
+
+                      <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0">
+                        <Link
+                          to={`/mezmur/${m.id}`}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-zinc-200 hover:border-black text-xs text-zinc-700 hover:text-black transition-colors"
+                        >
+                          <span>View</span>
+                          <ExternalLink size={11} />
+                        </Link>
+
+                        <button
+                          type="button"
+                          onClick={() => handleStartEdit(m.id)}
+                          className="inline-flex items-center gap-1 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs text-black font-semibold transition-colors cursor-pointer"
+                        >
+                          <Edit3 size={12} />
+                          <span>Edit</span>
+                        </button>
+
+                        <button
+                          type="button"
+                          onClick={() => handleDeleteMezmur(m.id, m.title)}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-red-200 hover:border-red-500 hover:bg-red-50 text-xs text-red-600 transition-colors cursor-pointer"
+                          title="Delete mezmur"
+                        >
+                          <Trash2 size={12} />
+                          <span>Delete</span>
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* TAB 1: PENDING COMMUNITY SUBMISSIONS (ADMIN REVIEW) */}
         {activeTab === 'pending' && (
@@ -504,15 +882,33 @@ export default function PortalPage() {
           </div>
         )}
 
-        {/* TAB 2: DECODE & PUBLISH */}
+        {/* TAB 2: DECODE & PUBLISH / EDIT */}
         {activeTab === 'decode' && (
           <form onSubmit={handlePublish} className="space-y-6">
+            {editingMezmurId && (
+              <div className="p-4 rounded-xl bg-zinc-950 text-white flex items-center justify-between font-mono text-xs shadow-xs">
+                <div className="flex items-center gap-2">
+                  <Edit3 size={16} />
+                  <span>
+                    Editing Mode: Mezmur <strong>#{editingMezmurId}</strong> ({title || 'Untitled'})
+                  </span>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="px-2.5 py-1 rounded bg-white text-black hover:bg-zinc-200 font-bold transition-colors cursor-pointer"
+                >
+                  Cancel Edit
+                </button>
+              </div>
+            )}
+
             {publishSuccess && (
               <div className="p-4 rounded-xl bg-zinc-950 text-white flex items-center justify-between font-mono text-xs">
                 <div className="flex items-center gap-2.5">
                   <CheckCircle2 size={18} className="text-white" />
                   <span>
-                    Published <strong>"{publishSuccess.title}"</strong> directly to the catalogue!
+                    Saved <strong>"{publishSuccess.title}"</strong> successfully to the catalogue!
                   </span>
                 </div>
                 <button
@@ -549,7 +945,7 @@ export default function PortalPage() {
             {/* Hymn Metadata Block */}
             <div className="bg-white border border-zinc-200 rounded-xl p-6 shadow-xs space-y-4">
               <h2 className="font-mono text-xs font-bold uppercase tracking-wider text-zinc-400 pb-2 border-b border-zinc-100">
-                1. Hymn Metadata (Direct Admin Publish)
+                1. Hymn Metadata {editingMezmurId ? `(Editing #${editingMezmurId})` : '(Direct Admin Publish)'}
               </h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
@@ -632,19 +1028,40 @@ export default function PortalPage() {
                   <label className="block text-xs font-mono font-medium text-zinc-700">
                     Liturgical Lyrics (Optional)
                   </label>
-                  <div className="flex items-center gap-1 font-mono text-[11px]">
+                  <div className="flex flex-wrap items-center gap-1 font-mono text-[11px]">
                     <span className="text-zinc-400 text-[10px] uppercase mr-0.5">Repeat Tag:</span>
-                    {['(x2)', '(x3)', '(x4)', '(፪ ጊዜ)'].map((tag) => (
-                      <button
-                        key={tag}
-                        type="button"
-                        onClick={() => handleInsertRepeat(tag)}
-                        className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
-                        title={`Insert ${tag} at cursor / current line`}
-                      >
-                        + {tag}
-                      </button>
-                    ))}
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(x2)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat entire verse"
+                    >
+                      + (x2)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeatSection('(x2)')}
+                      className="px-2 py-0.5 rounded bg-zinc-950 text-white hover:bg-zinc-800 border border-zinc-950 transition-colors cursor-pointer text-[10px] font-bold"
+                      title="Repeat specific section with underline: highlight words then click, or inserts [words](x2)"
+                    >
+                      + [Section](x2) Underline
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(x3)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat entire verse (x3)"
+                    >
+                      + (x3)
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => handleInsertRepeat('(፪ ጊዜ)')}
+                      className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                      title="Repeat verse (Ge'ez ፪ ጊዜ)"
+                    >
+                      + (፪ ጊዜ)
+                    </button>
                   </div>
                 </div>
 
@@ -653,14 +1070,15 @@ export default function PortalPage() {
                   rows={4}
                   value={lyrics}
                   onChange={(e) => setLyrics(e.target.value)}
-                  placeholder="Paste hymn lyrics line by line. Add (x2) or (x3) for verses sung multiple times..."
+                  placeholder="Paste hymn lyrics line by line. Add (x2) or highlight words to repeat sections..."
                   className="w-full px-3 py-2 rounded border border-zinc-300 focus:border-black outline-hidden font-sans text-sm leading-relaxed"
                 />
 
                 <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 mt-1">
                   <span>
-                    Add <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(x2)</code> or{' '}
-                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(፪ ጊዜ)</code> to render repeated verse badges.
+                    Add <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(x2)</code> to repeat a verse, or highlight words and click{' '}
+                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">+ [Section](x2)</code> to underline &amp; repeat only that part (e.g.{' '}
+                    <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">[ምስጋና ላቀርብ](x2)</code>).
                   </span>
                 </div>
 
@@ -883,7 +1301,7 @@ export default function PortalPage() {
             )}
 
             {/* Submit Action */}
-            <div className="pt-2">
+            <div className="pt-2 flex flex-col sm:flex-row items-center gap-3">
               <Button
                 type="submit"
                 variant="primary"
@@ -891,7 +1309,12 @@ export default function PortalPage() {
                 className="w-full py-3.5 text-sm font-mono flex items-center justify-center gap-2"
               >
                 {isPublishing ? (
-                  <span>Publishing to Database...</span>
+                  <span>Saving to Archive...</span>
+                ) : editingMezmurId ? (
+                  <>
+                    <span>UPDATE MEZMUR #{editingMezmurId}</span>
+                    <Check size={15} />
+                  </>
                 ) : (
                   <>
                     <span>DIRECT PUBLISH AS ADMIN (BEGENARXIV)</span>
@@ -899,6 +1322,16 @@ export default function PortalPage() {
                   </>
                 )}
               </Button>
+
+              {editingMezmurId && (
+                <button
+                  type="button"
+                  onClick={handleCancelEdit}
+                  className="w-full sm:w-auto px-6 py-3.5 rounded border border-zinc-300 hover:border-black font-mono text-xs text-zinc-700 hover:text-black transition-colors cursor-pointer shrink-0"
+                >
+                  Cancel Edit
+                </button>
+              )}
             </div>
           </form>
         )}
