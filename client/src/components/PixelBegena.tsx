@@ -51,7 +51,7 @@ export default function PixelBegena({
     return (
       <svg
         viewBox="0 0 320 520"
-        className="w-8 h-10 pixel-art select-none inline-block shrink-0"
+        className="w-full h-full pixel-art select-none inline-block shrink-0"
         shapeRendering="crispEdges"
       >
         {/* Top Scroll Horns */}

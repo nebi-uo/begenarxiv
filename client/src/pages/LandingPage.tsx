@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useCallback } from 'react';
 import { Link } from 'react-router-dom';
-import { motion, AnimatePresence } from 'framer-motion';
+import { motion, AnimatePresence, useScroll, useTransform } from 'framer-motion';
 import {
   ArrowRight,
   Play,
@@ -30,6 +30,33 @@ const SAMPLE_HYMN_SEQUENCE: DemoStep[] = [
   { position: 1, durationMs: 650 },
 ];
 
+const TELEMETRY_CARDS = [
+  {
+    num: '01 / STRINGS',
+    title: '10 Physical Strings',
+    desc: 'String 1, skips 2 drone strings to string 2, then skips 1 string between digits 3, 4, and 5.',
+    sub: 'Parchment Box · Bone Feet',
+  },
+  {
+    num: '02 / QENETS',
+    title: 'Traditional Scales',
+    desc: 'Tizita (1=E), Selamta (1=F), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#).',
+    sub: 'Liturgical Pentatonics',
+  },
+  {
+    num: '03 / ROLLS',
+    title: 'Micro-Timed Rolls',
+    desc: 'Grouped digits (e.g. "42") schedule notes 35ms apart on the Web Audio hardware clock.',
+    sub: 'Sub-millisecond Timing',
+  },
+  {
+    num: '04 / RESONANCE',
+    title: 'Leather Damper Buzz',
+    desc: 'Leather dampers on the bridge vibrate against the strings, creating the sacred drone.',
+    sub: 'Acoustic Harmonics',
+  },
+];
+
 const FAQS = [
   {
     q: 'How are the 10 Begena strings arranged?',
@@ -57,6 +84,10 @@ export default function LandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [rollTesting, setRollTesting] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+
+  const { scrollY } = useScroll();
+  const sandY = useTransform(scrollY, [0, 900], [0, 75]);
+  const sandBottomY = useTransform(scrollY, [600, 2400], [50, -50]);
 
   const demoTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const stopRequestedRef = useRef(false);
@@ -167,10 +198,11 @@ export default function LandingPage() {
   const currentTuningNotes = BEGENA_TUNINGS[currentMode];
 
   return (
-    <div className="relative min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white overflow-hidden">
-      {/* Wind-Blown Sand Particles Drift (Matching reference image) */}
-      <div
-        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] sm:h-[820px] overflow-hidden select-none z-0"
+    <div className="relative min-h-screen bg-transparent text-black font-sans selection:bg-black selection:text-white">
+      {/* Wind-Blown Sand Particles Drift (Matching reference image with parallax scroll) */}
+      <motion.div
+        style={{ y: sandY }}
+        className="pointer-events-none absolute inset-x-0 top-0 h-[700px] sm:h-[860px] overflow-hidden select-none z-0"
         aria-hidden="true"
       >
         <img
@@ -178,40 +210,49 @@ export default function LandingPage() {
           alt=""
           className="w-full h-full object-cover object-top opacity-65 pointer-events-none"
         />
-      </div>
+      </motion.div>
 
-      {/* Top Navbar - Enlarged slightly, prominent logo, transparent at top, glassmorphic on scroll */}
+      {/* Top Navbar - Scaled up, prominent logo, sticky top, glassmorphic on scroll */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-200 ${
+        className={`sticky top-0 z-50 transition-all duration-200 ${
           isScrolled
-            ? 'bg-white/85 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
+            ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200/90 shadow-xs'
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[68px] flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-3">
-            <div className="w-8 h-10 flex items-center justify-center shrink-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-3.5 group">
+            <div className="w-9 h-11 sm:w-10 sm:h-12 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span className="font-bold tracking-tight text-lg text-black">
+            <span className="font-bold tracking-tight text-xl sm:text-2xl text-black">
               Begenarxiv
             </span>
           </Link>
 
-          <nav className="flex items-center gap-4 sm:gap-6 text-xs font-mono">
-            <Link to="/catalogue" className="hover:text-black text-zinc-600 transition-colors">
-              CATALOGUE
+          <nav className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
+            <Link
+              to="/catalogue"
+              className="inline-flex items-center gap-2 bg-black hover:bg-zinc-800 text-white text-xs sm:text-sm font-mono px-4 py-2 sm:px-5 sm:py-2.5 rounded transition-all duration-150 shadow-xs"
+            >
+              <span>CATALOGUE</span>
+              <ArrowRight size={14} />
             </Link>
           </nav>
         </div>
       </header>
 
       {/* Hero Section */}
-      <section className="relative z-10 pt-8 sm:pt-12 md:pt-16 pb-12 sm:pb-16 bg-transparent" id="studio">
+      <section className="relative z-10 pt-8 sm:pt-14 md:pt-20 pb-12 sm:pb-20 bg-transparent" id="studio">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 lg:gap-12 items-center">
             {/* Left Column: Headline, Mode Selector, Description & Actions */}
-            <div className="lg:col-span-7">
+            <motion.div
+              initial={{ opacity: 0, y: 28 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ duration: 0.65, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-7"
+            >
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-4">
                 Numbers notation for Ethiopia's sacred lyre.
               </h1>
@@ -222,7 +263,12 @@ export default function LandingPage() {
               </p>
 
               {/* 3 Traditional Tune Modes */}
-              <div className="mb-6 p-4 rounded-lg border border-zinc-200 bg-white">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.15, ease: [0.16, 1, 0.3, 1] }}
+                className="mb-6 p-4 rounded-lg border border-zinc-200 bg-white shadow-xs"
+              >
                 <div className="flex items-center justify-between text-xs font-mono mb-2.5">
                   <span className="text-zinc-500 font-semibold uppercase text-[10px]">
                     TUNING MODE (QENET)
@@ -251,10 +297,15 @@ export default function LandingPage() {
                   {currentMode === 'Selamta' && 'Selamta: 1=F · 2=C · 3=D · 4=A · 5=G (String 1 shifted to F)'}
                   {currentMode === 'Anchi-Hoye' && 'Anchi-Hoye: 1=F · 2=C · 3=C# · 4=A · 5=F#'}
                 </div>
-              </div>
+              </motion.div>
 
               {/* Action Buttons */}
-              <div className="flex flex-wrap items-center gap-3">
+              <motion.div
+                initial={{ opacity: 0, y: 16 }}
+                animate={{ opacity: 1, y: 0 }}
+                transition={{ duration: 0.6, delay: 0.25, ease: [0.16, 1, 0.3, 1] }}
+                className="flex flex-wrap items-center gap-3"
+              >
                 <Link to="/catalogue">
                   <Button variant="primary" className="text-xs px-4 py-2.5">
                     Browse Catalogue <ArrowRight size={13} />
@@ -279,12 +330,17 @@ export default function LandingPage() {
                     </>
                   )}
                 </button>
-              </div>
-            </div>
+              </motion.div>
+            </motion.div>
 
             {/* Right Column: Handcrafted 10-String Begena (Single Previewer on Page) */}
-            <div className="lg:col-span-5 flex flex-col items-center w-full">
-              <div className="pixel-box p-4 sm:p-6 md:p-8 bg-white w-full max-w-[320px] sm:max-w-sm flex flex-col items-center rounded-lg">
+            <motion.div
+              initial={{ opacity: 0, scale: 0.94, y: 24 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              transition={{ duration: 0.75, delay: 0.2, ease: [0.16, 1, 0.3, 1] }}
+              className="lg:col-span-5 flex flex-col items-center w-full"
+            >
+              <div className="pixel-box p-4 sm:p-6 md:p-8 bg-white w-full max-w-[320px] sm:max-w-sm flex flex-col items-center rounded-lg shadow-sm">
                 <div className="w-full flex items-center justify-between border-b border-zinc-200 pb-3 mb-4 text-[10px] font-mono text-zinc-600">
                   <span className="font-bold text-black">10_STRING_BEGENA</span>
                   <span className="text-black font-semibold">{currentMode.toUpperCase()}</span>
@@ -307,105 +363,73 @@ export default function LandingPage() {
                   </span>
                 </div>
               </div>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
-      {/* Telemetry Overview Cards (Clean, flat, no top badges) */}
-      <section className="py-12 bg-transparent border-t border-zinc-200">
+      {/* Telemetry Overview Cards (Clean, flat, on-scroll animated) */}
+      <section className="py-14 sm:py-20 bg-transparent border-t border-zinc-200">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-            {/* Card 1: Morphology */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
-              <div>
-                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  01 / STRINGS
+            {TELEMETRY_CARDS.map((card, idx) => (
+              <motion.div
+                key={card.num}
+                initial={{ opacity: 0, y: 32 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: true, margin: '-50px' }}
+                transition={{ duration: 0.5, delay: idx * 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+                whileHover={{ y: -4, transition: { duration: 0.2 } }}
+                className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between shadow-xs hover:border-zinc-400 transition-colors"
+              >
+                <div>
+                  <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
+                    {card.num}
+                  </div>
+                  <h3 className="font-bold text-sm text-black mb-1">
+                    {card.title}
+                  </h3>
+                  <p className="text-xs text-zinc-600 leading-relaxed">
+                    {card.desc}
+                  </p>
                 </div>
-                <h3 className="font-bold text-sm text-black mb-1">
-                  10 Physical Strings
-                </h3>
-                <p className="text-xs text-zinc-600 leading-relaxed">
-                  String 1, skips 2 drone strings to string 2, then skips 1 string between digits 3, 4, and 5.
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-zinc-100 font-mono text-[10px] text-zinc-400">
-                Parchment Box · Bone Feet
-              </div>
-            </div>
-
-            {/* Card 2: 3 Qenets */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
-              <div>
-                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  02 / QENETS
+                <div className="mt-3 pt-2 border-t border-zinc-100 font-mono text-[10px] text-zinc-400">
+                  {card.sub}
                 </div>
-                <h3 className="font-bold text-sm text-black mb-1">
-                  Traditional Scales
-                </h3>
-                <p className="text-xs text-zinc-600 leading-relaxed">
-                  Tizita (1=E), Selamta (1=F), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#).
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-zinc-100 font-mono text-[10px] text-zinc-400">
-                Liturgical Pentatonics
-              </div>
-            </div>
-
-            {/* Card 3: 35ms Ornament Rolls */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
-              <div>
-                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  03 / ROLLS
-                </div>
-                <h3 className="font-bold text-sm text-black mb-1">
-                  Micro-Timed Rolls
-                </h3>
-                <p className="text-xs text-zinc-600 leading-relaxed">
-                  Grouped digits (e.g. "42") schedule notes 35ms apart on the Web Audio hardware clock.
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-zinc-100 font-mono text-[10px] text-zinc-400">
-                Sub-millisecond Timing
-              </div>
-            </div>
-
-            {/* Card 4: Acoustic Buzz */}
-            <div className="p-5 bg-white border border-zinc-200 rounded-lg flex flex-col justify-between">
-              <div>
-                <div className="text-[10px] font-mono text-zinc-500 mb-2 pb-1.5 border-b border-zinc-100">
-                  04 / RESONANCE
-                </div>
-                <h3 className="font-bold text-sm text-black mb-1">
-                  Leather Damper Buzz
-                </h3>
-                <p className="text-xs text-zinc-600 leading-relaxed">
-                  Leather dampers on the bridge vibrate against the strings, creating the sacred drone.
-                </p>
-              </div>
-              <div className="mt-3 pt-2 border-t border-zinc-100 font-mono text-[10px] text-zinc-400">
-                Acoustic Harmonics
-              </div>
-            </div>
+              </motion.div>
+            ))}
           </div>
         </div>
       </section>
 
       {/* The Roll Lab: Fast Ornaments A/B Test */}
-      <section className="py-12 sm:py-16 bg-transparent border-t border-zinc-200" id="rolls">
+      <section className="py-14 sm:py-20 bg-transparent border-t border-zinc-200" id="rolls">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 24 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
               Solo Pluck vs. 35ms Ornament Roll
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
               Compare a single note sustain against a micro-timed roll (token <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded">42</code>).
             </p>
-          </div>
+          </motion.div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             {/* Solo Note Card */}
-            <div className="p-5 border border-zinc-200 rounded-lg bg-white flex flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0, x: -28 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.55, ease: [0.21, 0.47, 0.32, 0.98] }}
+              whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              className="p-5 border border-zinc-200 rounded-lg bg-white flex flex-col justify-between shadow-xs hover:border-zinc-400 transition-colors"
+            >
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-zinc-500 mb-2">
                   <span>SINGLE NOTE</span>
@@ -429,10 +453,17 @@ export default function LandingPage() {
                 <Play size={12} className="fill-current" />
                 <span>Test Solo Note [1]</span>
               </button>
-            </div>
+            </motion.div>
 
             {/* Fast Roll Card */}
-            <div className="p-5 border border-black rounded-lg bg-white flex flex-col justify-between">
+            <motion.div
+              initial={{ opacity: 0, x: 28 }}
+              whileInView={{ opacity: 1, x: 0 }}
+              viewport={{ once: true, margin: '-50px' }}
+              transition={{ duration: 0.55, delay: 0.1, ease: [0.21, 0.47, 0.32, 0.98] }}
+              whileHover={{ y: -3, transition: { duration: 0.2 } }}
+              className="p-5 border border-black rounded-lg bg-white flex flex-col justify-between shadow-xs"
+            >
               <div>
                 <div className="flex items-center justify-between font-mono text-xs text-black font-bold mb-2">
                   <span>GROUPED DIGITS [ 42 ]</span>
@@ -456,27 +487,37 @@ export default function LandingPage() {
                 <Play size={12} className="fill-current" />
                 <span>Test 35ms Roll [42]</span>
               </button>
-            </div>
+            </motion.div>
           </div>
         </div>
       </section>
 
       {/* FAQ Section */}
-      <section className="py-12 sm:py-16 bg-transparent border-t border-zinc-200" id="faq">
+      <section className="py-14 sm:py-20 bg-transparent border-t border-zinc-200" id="faq">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="mb-8">
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            whileInView={{ opacity: 1, y: 0 }}
+            viewport={{ once: true, margin: '-60px' }}
+            transition={{ duration: 0.5 }}
+            className="mb-8"
+          >
             <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
               Frequently asked questions.
             </h2>
-          </div>
+          </motion.div>
 
           <div className="space-y-2">
             {FAQS.map((faq, index) => {
               const isOpen = activeFaq === index;
               return (
-                <div
+                <motion.div
                   key={index}
-                  className="border border-zinc-200 bg-white rounded-lg overflow-hidden"
+                  initial={{ opacity: 0, y: 16 }}
+                  whileInView={{ opacity: 1, y: 0 }}
+                  viewport={{ once: true, margin: '-40px' }}
+                  transition={{ duration: 0.4, delay: index * 0.08 }}
+                  className="border border-zinc-200 bg-white rounded-lg overflow-hidden shadow-xs hover:border-zinc-300 transition-colors"
                 >
                   <button
                     onClick={() => setActiveFaq(isOpen ? null : index)}
@@ -505,7 +546,7 @@ export default function LandingPage() {
                       </motion.div>
                     )}
                   </AnimatePresence>
-                </div>
+                </motion.div>
               );
             })}
           </div>
@@ -513,8 +554,9 @@ export default function LandingPage() {
       </section>
 
       {/* Bottom CTA with Subtle Sand Wind Drift */}
-      <section className="relative py-12 sm:py-16 bg-transparent border-t border-zinc-200 overflow-hidden">
-        <div
+      <section className="relative py-14 sm:py-20 bg-transparent border-t border-zinc-200 overflow-hidden">
+        <motion.div
+          style={{ y: sandBottomY }}
           className="pointer-events-none absolute inset-x-0 bottom-0 h-full overflow-hidden select-none z-0 opacity-40"
           aria-hidden="true"
         >
@@ -523,10 +565,17 @@ export default function LandingPage() {
             alt=""
             className="w-full h-full object-cover object-bottom pointer-events-none rotate-180"
           />
-        </div>
+        </motion.div>
 
-        <div className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-xs">
+        <motion.div
+          initial={{ opacity: 0, y: 32, scale: 0.98 }}
+          whileInView={{ opacity: 1, y: 0, scale: 1 }}
+          viewport={{ once: true, margin: '-50px' }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          whileHover={{ y: -2, transition: { duration: 0.2 } }}
+          className="relative z-10 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8"
+        >
+          <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
                 Explore the Mezmur Repertoire
@@ -537,19 +586,19 @@ export default function LandingPage() {
             </div>
 
             <Link to="/catalogue" className="w-full sm:w-auto">
-              <Button variant="primary" className="text-xs px-5 py-3 w-full sm:w-auto justify-center">
-                Open Catalogue <ArrowRight size={13} />
+              <Button variant="primary" className="text-xs sm:text-sm px-6 py-3.5 w-full sm:w-auto justify-center font-mono">
+                Open Catalogue <ArrowRight size={14} />
               </Button>
             </Link>
           </div>
-        </div>
+        </motion.div>
       </section>
 
       {/* Footer */}
       <footer className="border-t border-zinc-200 bg-white py-6 sm:py-8">
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 text-xs font-mono text-zinc-500 flex flex-col sm:flex-row items-center justify-between gap-4">
           <div className="flex items-center gap-3 text-black font-semibold">
-            <div className="w-7 h-9 flex items-center justify-center shrink-0">
+            <div className="w-8 h-10 flex items-center justify-center shrink-0">
               <PixelBegena size="icon" interactive={false} />
             </div>
             <span className="text-sm font-bold">Begenarxiv</span>

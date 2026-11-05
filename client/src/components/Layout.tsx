@@ -18,31 +18,31 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   return (
     <div className="min-h-screen bg-transparent text-zinc-950 flex flex-col font-sans selection:bg-zinc-950 selection:text-white">
-      {/* Top Navbar: Transparent at top, glassmorphic on scroll */}
+      {/* Top Navbar: Scaled up, sticky top, glassmorphic on scroll */}
       <header
-        className={`sticky top-0 z-40 transition-all duration-200 ${
+        className={`sticky top-0 z-50 transition-all duration-200 ${
           isScrolled
-            ? 'bg-white/80 backdrop-blur-md border-b border-zinc-200/80 shadow-xs'
+            ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200/90 shadow-xs'
             : 'bg-transparent border-b border-transparent'
         }`}
       >
-        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-16 sm:h-[68px] flex items-center justify-between">
-          {/* Logo with Scaled-Down Begena on Transparent Background */}
-          <Link to="/" className="flex items-center gap-3 group">
-            <div className="w-8 h-10 flex items-center justify-center shrink-0">
+        <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
+          {/* Logo with Scaled-Up Begena on Transparent Background */}
+          <Link to="/" className="flex items-center gap-3.5 group">
+            <div className="w-9 h-11 sm:w-10 sm:h-12 flex items-center justify-center shrink-0 transition-transform group-hover:scale-105">
               <PixelBegena size="icon" interactive={false} />
             </div>
-            <span className="font-bold tracking-tight text-lg text-zinc-950">
+            <span className="font-bold tracking-tight text-xl sm:text-2xl text-zinc-950">
               Begenarxiv
             </span>
           </Link>
 
           {/* Navigation Links: On /catalogue, no unnecessary buttons. On /mezmur/:id, only CATALOGUE */}
           {!isCatalogue && (
-            <nav className="flex items-center gap-4 sm:gap-6 text-xs font-mono">
+            <nav className="flex items-center gap-4 sm:gap-6 text-xs sm:text-sm font-mono">
               <Link
                 to="/catalogue"
-                className="hover:text-black text-zinc-600 transition-colors"
+                className="hover:text-black text-zinc-700 font-semibold tracking-wider transition-colors px-3 py-1.5 rounded hover:bg-zinc-100/60"
               >
                 CATALOGUE
               </Link>
