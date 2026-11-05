@@ -2,13 +2,16 @@ import { Request, Response } from 'express';
 import { query } from '../db';
 
 export const getAllArtists = async (req: Request, res: Response) => {
+  const includeEmpty = req.query.include_empty === 'true';
+
   try {
     const result = await query(`
       SELECT a.id, a.name, COUNT(m.id)::int AS mezmur_count
       FROM artists a
-      LEFT JOIN mezmurs m ON m.artist_id = a.id AND (m.status = 'approved' OR m.status IS NULL)
+      LEFT JOIN mezmurs m ON m.artist_id = a.id AND m.status = 'approved'
       WHERE a.name IS NOT NULL AND TRIM(a.name) != ''
       GROUP BY a.id, a.name
+      ${includeEmpty ? '' : 'HAVING COUNT(m.id) > 0'}
       ORDER BY a.name ASC
     `);
     res.json(result.rows);
@@ -55,7 +58,7 @@ export const getMezmursByArtist = async (req: Request, res: Response) => {
        FROM mezmurs m
        LEFT JOIN artists a ON m.artist_id = a.id
        LEFT JOIN tunes t ON m.tune_id = t.id
-       WHERE m.artist_id = $1 AND m.id != $2
+       WHERE m.artist_id = $1 AND m.id != $2 AND m.status = 'approved'
        ORDER BY m.title`,
       [id, excludeId ?? -1]
     );

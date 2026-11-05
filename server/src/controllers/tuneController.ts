@@ -21,7 +21,7 @@ export const getMezmursByTune = async (req: Request, res: Response) => {
        FROM mezmurs m
        LEFT JOIN artists a ON m.artist_id = a.id
        LEFT JOIN tunes t ON m.tune_id = t.id
-       WHERE m.tune_id = $1 AND m.id != $2
+       WHERE m.tune_id = $1 AND m.id != $2 AND m.status = 'approved'
        ORDER BY m.title`,
       [id, excludeId ?? -1]
     );

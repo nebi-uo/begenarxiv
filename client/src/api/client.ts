@@ -21,8 +21,8 @@ export const api = {
   getMezmurs: () =>
     fetch(`${BASE_URL}/mezmurs`).then((res) => handleResponse<MezmurListItem[]>(res)),
 
-  getMezmurById: (id: string) =>
-    fetch(`${BASE_URL}/mezmurs/${id}`).then((res) => handleResponse<MezmurDetail>(res)),
+  getMezmurById: (id: string, admin = false) =>
+    fetch(`${BASE_URL}/mezmurs/${id}${admin ? '?admin=true' : ''}`).then((res) => handleResponse<MezmurDetail>(res)),
 
   createMezmur: (payload: CreateMezmurPayload) =>
     fetch(`${BASE_URL}/mezmurs`, {

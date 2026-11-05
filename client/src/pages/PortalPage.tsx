@@ -148,7 +148,7 @@ export default function PortalPage() {
   const [adminMezmurs, setAdminMezmurs] = useState<AdminMezmurItem[]>([]);
   const [loadingAdminMezmurs, setLoadingAdminMezmurs] = useState(false);
   const [catalogueQuery, setCatalogueQuery] = useState('');
-  const [catalogueStatusFilter, setCatalogueStatusFilter] = useState<string>('all');
+  const [catalogueStatusFilter, setCatalogueStatusFilter] = useState<string>('approved');
   const [catalogueDifficultyFilter, setCatalogueDifficultyFilter] = useState<string>('all');
   const [editingMezmurId, setEditingMezmurId] = useState<number | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
@@ -199,7 +199,7 @@ export default function PortalPage() {
 
   const handleStartEdit = async (id: number) => {
     try {
-      const mezmur = await api.getMezmurById(String(id));
+      const mezmur = await api.getMezmurById(String(id), true);
       setTitle(mezmur.title);
       setArtist(mezmur.artist_name || 'Traditional');
       if (mezmur.tune_name?.includes('Selamta')) setTune('Selamta');
@@ -549,7 +549,7 @@ export default function PortalPage() {
               <LayoutDashboard size={12} />
               <span>CATALOGUE DASHBOARD</span>
               <span className="px-1.5 py-0.2 rounded-full bg-white text-black text-[10px] font-bold">
-                {adminMezmurs.length}
+                {adminMezmurs.filter((m) => m.status === 'approved').length}
               </span>
             </button>
 
@@ -615,7 +615,7 @@ export default function PortalPage() {
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-zinc-100 text-xs">
                 <div>
                   <h2 className="font-bold text-sm text-black uppercase">
-                    Catalogue Inventory ({adminMezmurs.length} Mezmurs)
+                    Catalogue Inventory ({filteredAdminMezmurs.length} Mezmurs)
                   </h2>
                   <p className="text-zinc-500 text-[11px] font-sans mt-0.5">
                     Live inventory: edit lyrics or notation, audition strings, or remove hymns.

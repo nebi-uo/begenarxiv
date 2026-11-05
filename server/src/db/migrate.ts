@@ -5,10 +5,11 @@ export async function runMigrations() {
     // 1. Add approval and contributor columns to mezmurs table
     await query(`
       ALTER TABLE mezmurs
-        ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'approved',
+        ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'pending',
         ADD COLUMN IF NOT EXISTS contributor_name TEXT DEFAULT 'Begenarxiv',
         ADD COLUMN IF NOT EXISTS contributor_email TEXT,
         ADD COLUMN IF NOT EXISTS approved_at TIMESTAMP DEFAULT NOW();
+      ALTER TABLE mezmurs ALTER COLUMN status SET DEFAULT 'pending';
     `);
 
     // Ensure all existing rows have default approved status and contributor

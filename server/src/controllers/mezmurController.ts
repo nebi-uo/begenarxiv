@@ -123,7 +123,7 @@ export const getAllMezmurs = async (req: Request, res: Response) => {
       FROM mezmurs m
       LEFT JOIN artists a ON m.artist_id = a.id
       LEFT JOIN tunes t ON m.tune_id = t.id
-      WHERE m.status = 'approved' OR m.status IS NULL
+      WHERE m.status = 'approved'
       ORDER BY m.title
     `);
     res.json(result.rows);
@@ -136,6 +136,7 @@ export const getAllMezmurs = async (req: Request, res: Response) => {
 // GET /api/mezmurs/:id — single mezmur page with contributor attribution
 export const getMezmurById = async (req: Request, res: Response) => {
   const { id } = req.params;
+  const isAdmin = req.query.admin === 'true';
 
   try {
     const mezmurResult = await query(
@@ -149,6 +150,11 @@ export const getMezmurById = async (req: Request, res: Response) => {
 
     if (mezmurResult.rows.length === 0) {
       return res.status(404).json({ error: 'Mezmur not found' });
+    }
+
+    const mezmurRow = mezmurResult.rows[0];
+    if (mezmurRow.status !== 'approved' && !isAdmin) {
+      return res.status(404).json({ error: 'Mezmur not found or awaiting curator approval' });
     }
 
     const sequenceResult = await query(
@@ -214,8 +220,9 @@ export const createMezmur = async (req: Request, res: Response) => {
   }
 
   // Determine publication status:
-  // Admin creations go to 'approved'; user community submissions go to 'pending'
-  const finalStatus = explicitStatus || (is_admin ? 'approved' : 'pending');
+  // User submissions are strictly 'pending' awaiting admin review.
+  // Only explicitly authorized admin creations can be 'approved'.
+  const finalStatus: 'approved' | 'pending' = is_admin ? (explicitStatus || 'approved') : 'pending';
   const finalContributor = contributor_name?.trim() || (is_admin ? 'Begenarxiv' : 'Anonymous Learner');
   const finalEmail = contributor_email?.trim() || null;
 
