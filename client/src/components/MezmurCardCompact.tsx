@@ -19,10 +19,7 @@ export default function MezmurCardCompact({ mezmur, index, onClick }: Props) {
       className="group bg-white border border-zinc-200 hover:border-black rounded-lg p-3.5 w-44 shrink-0 text-left snap-start transition-colors cursor-pointer flex flex-col justify-between"
     >
       <div>
-        <div className="flex items-center justify-between text-[10px] font-mono text-zinc-400 mb-1.5">
-          <span className="group-hover:text-black transition-colors">
-            № {String(mezmur.id).padStart(2, '0')}
-          </span>
+        <div className="flex items-center justify-end text-[10px] font-mono text-zinc-400 mb-1.5">
           <ArrowUpRight size={12} className="group-hover:text-black transition-colors" />
         </div>
         <p className="text-zinc-950 text-xs font-semibold truncate group-hover:text-black">
