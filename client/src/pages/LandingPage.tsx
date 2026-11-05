@@ -629,7 +629,17 @@ export default function LandingPage() {
             <span className="text-zinc-300">/</span>
             <span className="text-zinc-500 font-normal">A free home for Begena learners</span>
           </div>
-          <p>&copy; {new Date().getFullYear()} Begenarxiv. All rights reserved.</p>
+          <div className="flex items-center gap-4 text-xs font-mono">
+            <Link to="/catalogue" className="hover:text-black transition-colors">
+              Catalogue
+            </Link>
+            <span className="text-zinc-300">·</span>
+            <Link to="/portal" className="hover:text-black transition-colors">
+              Portal
+            </Link>
+            <span className="text-zinc-300">·</span>
+            <span>&copy; {new Date().getFullYear()} Begenarxiv. All rights reserved.</span>
+          </div>
         </div>
       </footer>
     </div>

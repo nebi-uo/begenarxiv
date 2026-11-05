@@ -2,7 +2,7 @@ import { BrowserRouter, Routes, Route } from 'react-router-dom';
 import LandingPage from './pages/LandingPage';
 import CataloguePage from './pages/CataloguePage';
 import MezmurPage from './pages/MezmurPage';
-// import TunerPage from './pages/TunerPage';
+import PortalPage from './pages/PortalPage';
 
 function App() {
   return (
@@ -11,6 +11,7 @@ function App() {
         <Route path="/" element={<LandingPage />} />
         <Route path="/catalogue" element={<CataloguePage />} />
         <Route path="/mezmur/:id" element={<MezmurPage />} />
+        <Route path="/portal" element={<PortalPage />} />
       </Routes>
     </BrowserRouter>
   );

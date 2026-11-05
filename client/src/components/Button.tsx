@@ -7,6 +7,7 @@ interface Props {
   variant?: 'primary' | 'secondary' | 'accent' | 'outline';
   className?: string;
   disabled?: boolean;
+  type?: 'button' | 'submit' | 'reset';
 }
 
 export default function Button({
@@ -15,6 +16,7 @@ export default function Button({
   variant = 'primary',
   className = '',
   disabled = false,
+  type = 'button',
 }: Props) {
   let variantStyles = 'bg-zinc-950 hover:bg-zinc-800 text-white border border-zinc-950';
 
@@ -28,6 +30,7 @@ export default function Button({
 
   return (
     <motion.button
+      type={type}
       onClick={onClick}
       disabled={disabled}
       whileTap={disabled ? undefined : { scale: 0.98 }}

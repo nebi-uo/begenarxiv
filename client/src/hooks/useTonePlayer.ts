@@ -1,144 +1,89 @@
-import { useEffect, useRef, useCallback } from 'react';
+import { useCallback } from 'react';
+import { playBegenaString, getAudioContext } from '../audio/begenaSynth';
 
 export type BegenaTuneMode = 'Tizita' | 'Selamta' | 'Anchi-Hoye';
 
 // Frequencies for the 3 traditional Begena tuning modes (Qenets)
 // Tizita: String 1 = E, String 2 = C, String 3 = D, String 4 = A, String 5 = G
-// Selamta: String 1 = F (changed from E), String 2 = C, String 3 = D, String 4 = A, String 5 = G
+// Selamta: String 1 = F, String 2 = C, String 3 = D, String 4 = A, String 5 = G
 // Anchi-Hoye: String 1 = F, String 2 = C, String 3 = C#, String 4 = A, String 5 = F#
 export const BEGENA_TUNINGS: Record<
   BegenaTuneMode,
   Record<number, { note: string; hz: number; previewHz: number }>
 > = {
   Tizita: {
-    1: { note: 'E', hz: 164.81, previewHz: 329.63 },
-    2: { note: 'C', hz: 130.81, previewHz: 261.63 },
-    3: { note: 'D', hz: 146.83, previewHz: 293.66 },
-    4: { note: 'A', hz: 220.00, previewHz: 440.00 },
-    5: { note: 'G', hz: 196.00, previewHz: 392.00 },
+    1: { note: 'E', hz: 164.81, previewHz: 164.81 },
+    2: { note: 'C', hz: 130.81, previewHz: 130.81 },
+    3: { note: 'D', hz: 146.83, previewHz: 146.83 },
+    4: { note: 'A', hz: 220.00, previewHz: 220.00 },
+    5: { note: 'G', hz: 196.00, previewHz: 196.00 },
   },
   Selamta: {
-    1: { note: 'F', hz: 174.61, previewHz: 349.23 },
-    2: { note: 'C', hz: 130.81, previewHz: 261.63 },
-    3: { note: 'D', hz: 146.83, previewHz: 293.66 },
-    4: { note: 'A', hz: 220.00, previewHz: 440.00 },
-    5: { note: 'G', hz: 196.00, previewHz: 392.00 },
+    1: { note: 'F', hz: 174.61, previewHz: 174.61 },
+    2: { note: 'C', hz: 130.81, previewHz: 130.81 },
+    3: { note: 'D', hz: 146.83, previewHz: 146.83 },
+    4: { note: 'A', hz: 220.00, previewHz: 220.00 },
+    5: { note: 'G', hz: 196.00, previewHz: 196.00 },
   },
   'Anchi-Hoye': {
-    1: { note: 'F', hz: 174.61, previewHz: 349.23 },
-    2: { note: 'C', hz: 130.81, previewHz: 261.63 },
-    3: { note: 'C#', hz: 138.59, previewHz: 277.18 },
-    4: { note: 'A', hz: 220.00, previewHz: 440.00 },
-    5: { note: 'F#', hz: 185.00, previewHz: 369.99 },
+    1: { note: 'F', hz: 174.61, previewHz: 174.61 },
+    2: { note: 'C', hz: 130.81, previewHz: 130.81 },
+    3: { note: 'C#', hz: 138.59, previewHz: 138.59 },
+    4: { note: 'A', hz: 220.00, previewHz: 220.00 },
+    5: { note: 'F#', hz: 185.00, previewHz: 185.00 },
   },
 };
 
-// Default is Tizita
 export const STRING_FREQUENCIES = BEGENA_TUNINGS.Tizita;
 
 export const NOTE_TO_FREQUENCY: Record<string, number> = {
-  C: 261.63,
-  'C#': 277.18,
-  Db: 277.18,
-  D: 293.66,
-  'D#': 311.13,
-  Eb: 311.13,
-  E: 329.63,
-  F: 349.23,
-  'F#': 369.99,
-  Gb: 369.99,
-  G: 392.00,
-  'G#': 415.30,
-  Ab: 415.30,
-  A: 440.00,
-  'A#': 466.16,
-  Bb: 466.16,
-  B: 493.88,
+  C: 130.81,
+  'C#': 138.59,
+  Db: 138.59,
+  D: 146.83,
+  'D#': 155.56,
+  Eb: 155.56,
+  E: 164.81,
+  F: 174.61,
+  'F#': 185.00,
+  Gb: 185.00,
+  G: 196.00,
+  'G#': 207.65,
+  Ab: 207.65,
+  A: 220.00,
+  'A#': 233.08,
+  Bb: 233.08,
+  B: 246.94,
 };
 
 export const ROLL_OFFSET_SEC = 0.035; // ~35ms between notes in a fast ornament roll
 
 export function useTonePlayer(mode: BegenaTuneMode = 'Tizita') {
-  const audioCtxRef = useRef<AudioContext | null>(null);
-
-  const getAudioContext = useCallback(() => {
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      audioCtxRef.current = new AudioCtx();
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  }, []);
-
   const playTone = useCallback(
-    (frequencyOrNote: number | string, durationMs = 500, startTimeOffset = 0) => {
-      try {
-        const ctx = getAudioContext();
-        let freq = 329.63; // Default E4
-        if (typeof frequencyOrNote === 'number') {
-          const tuningMap = BEGENA_TUNINGS[mode] ?? BEGENA_TUNINGS.Tizita;
-          freq = tuningMap[frequencyOrNote]?.previewHz ?? frequencyOrNote;
-        } else if (typeof frequencyOrNote === 'string') {
-          freq = NOTE_TO_FREQUENCY[frequencyOrNote] ?? 329.63;
-        }
-
-        const startTime = ctx.currentTime + startTimeOffset;
-        const durationSec = durationMs / 1000;
-
-        // Fundamental triangle wave for warm string body
-        const osc = ctx.createOscillator();
-        osc.type = 'triangle';
-        osc.frequency.setValueAtTime(freq, startTime);
-
-        // Overtone sine wave for acoustic resonance
-        const overtone = ctx.createOscillator();
-        overtone.type = 'sine';
-        overtone.frequency.setValueAtTime(freq * 2, startTime);
-
-        // Gain envelope with sharp attack and natural exponential release
-        const gainNode = ctx.createGain();
-        gainNode.gain.setValueAtTime(0.0001, startTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.28, startTime + 0.008);
-        gainNode.gain.exponentialRampToValueAtTime(0.001, startTime + durationSec);
-
-        const overtoneGain = ctx.createGain();
-        overtoneGain.gain.setValueAtTime(0.07, startTime);
-        overtoneGain.gain.exponentialRampToValueAtTime(0.0001, startTime + durationSec * 0.4);
-
-        osc.connect(gainNode);
-        overtone.connect(overtoneGain);
-        overtoneGain.connect(gainNode);
-        gainNode.connect(ctx.destination);
-
-        osc.start(startTime);
-        overtone.start(startTime);
-        osc.stop(startTime + durationSec);
-        overtone.stop(startTime + durationSec);
-      } catch (e) {
-        console.warn('Audio error:', e);
+    (frequencyOrNote: number | string, durationMs = 600, startTimeOffset = 0) => {
+      let freq = 164.81; // Default E3
+      if (typeof frequencyOrNote === 'number') {
+        const tuningMap = BEGENA_TUNINGS[mode] ?? BEGENA_TUNINGS.Tizita;
+        freq = tuningMap[frequencyOrNote]?.hz ?? frequencyOrNote;
+      } else if (typeof frequencyOrNote === 'string') {
+        freq = NOTE_TO_FREQUENCY[frequencyOrNote] ?? 164.81;
       }
+
+      playBegenaString({
+        frequency: freq,
+        durationMs,
+        startTimeOffset,
+      });
     },
-    [getAudioContext, mode]
+    [mode]
   );
 
   const pluckString = useCallback(
-    (position: number, durationMs = 500) => {
+    (position: number, durationMs = 600) => {
       playTone(position, durationMs, 0);
     },
     [playTone]
   );
-
-  useEffect(() => {
-    return () => {
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close().catch(() => {});
-      }
-    };
-  }, []);
 
   return {
     playTone,

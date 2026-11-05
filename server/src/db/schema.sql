@@ -61,3 +61,15 @@ CREATE TABLE mezmur_sequences (
   duration_ms INT,
   UNIQUE(mezmur_id, step_order) -- prevents two rows claiming to be "step 3" of the same song
 );
+
+
+-- Mezmur requests: crowd-sourced requests for mezmurs to be decoded
+CREATE TABLE IF NOT EXISTS mezmur_requests (
+  id SERIAL PRIMARY KEY,
+  title TEXT NOT NULL,
+  artist TEXT,
+  youtube_url TEXT,
+  notes TEXT,
+  status TEXT DEFAULT 'pending' CHECK (status IN ('pending', 'in_progress', 'completed')),
+  created_at TIMESTAMP DEFAULT NOW()
+);

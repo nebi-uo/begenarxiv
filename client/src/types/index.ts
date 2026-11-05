@@ -30,3 +30,24 @@ export interface MezmurDetail {
   tuning_profile_id: number | null;
   sequence: SequenceStep[];
 }
+
+
+export interface MezmurRequest {
+  id: number;
+  title: string;
+  artist: string | null;
+  youtube_url: string | null;
+  notes: string | null;
+  status: 'pending' | 'in_progress' | 'completed';
+  created_at: string;
+}
+
+export interface CreateMezmurPayload {
+  title: string;
+  artist?: string;
+  tune?: string;
+  difficulty?: 'beginner' | 'intermediate' | 'advanced';
+  lyrics?: string;
+  youtube_url?: string;
+  raw_notation?: string;
+}

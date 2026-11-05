@@ -4,6 +4,7 @@ import { Play, Square, Volume2 } from 'lucide-react';
 import type { SequenceStep } from '../types';
 import Button from './Button';
 import { BEGENA_TUNINGS, NOTE_TO_FREQUENCY, type BegenaTuneMode } from '../hooks/useTonePlayer';
+import { playBegenaString } from '../audio/begenaSynth';
 
 interface Props {
   sequence: SequenceStep[];
@@ -57,7 +58,6 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
   const [activeKeys, setActiveKeys] = useState<string[]>([]);
   const [isPlayingAll, setIsPlayingAll] = useState(false);
   const [tempoRate, setTempoRate] = useState<number>(1); // 0.75x, 1x, 1.25x
-  const audioCtxRef = useRef<AudioContext | null>(null);
   const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const highlightTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const stopRequestedRef = useRef(false);
@@ -68,69 +68,32 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
     return () => {
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       highlightTimeoutsRef.current.forEach(clearTimeout);
-      if (audioCtxRef.current && audioCtxRef.current.state !== 'closed') {
-        audioCtxRef.current.close().catch(() => {});
-      }
     };
   }, []);
 
-  const getAudioContext = () => {
-    if (!audioCtxRef.current || audioCtxRef.current.state === 'closed') {
-      const AudioCtx =
-        window.AudioContext ||
-        (window as unknown as { webkitAudioContext: typeof AudioContext }).webkitAudioContext;
-      audioCtxRef.current = new AudioCtx();
-    }
-    if (audioCtxRef.current.state === 'suspended') {
-      audioCtxRef.current.resume();
-    }
-    return audioCtxRef.current;
-  };
-
-  const scheduleTone = (stringPos: number, noteName: string, durationMs: number, startTime: number) => {
-    const ctx = getAudioContext();
+  const scheduleTone = (stringPos: number, noteName: string, durationMs: number, startTimeOffset = 0) => {
     const frequency =
-      currentTuning[stringPos]?.previewHz ??
+      currentTuning[stringPos]?.hz ??
       NOTE_TO_FREQUENCY[noteName] ??
-      329.63;
-    const durationSec = durationMs / 1000;
+      164.81;
 
-    const oscillator = ctx.createOscillator();
-    const overtone = ctx.createOscillator();
-    const gain = ctx.createGain();
-
-    oscillator.type = 'triangle';
-    oscillator.frequency.setValueAtTime(frequency, startTime);
-
-    overtone.type = 'sine';
-    overtone.frequency.setValueAtTime(frequency * 2, startTime);
-
-    gain.gain.setValueAtTime(0.0001, startTime);
-    gain.gain.exponentialRampToValueAtTime(0.25, startTime + 0.008);
-    gain.gain.exponentialRampToValueAtTime(0.001, startTime + durationSec);
-
-    oscillator.connect(gain);
-    overtone.connect(gain);
-    gain.connect(ctx.destination);
-
-    oscillator.start(startTime);
-    overtone.start(startTime);
-    oscillator.stop(startTime + durationSec);
-    overtone.stop(startTime + durationSec);
+    playBegenaString({
+      frequency,
+      durationMs,
+      startTimeOffset,
+    });
   };
 
   const stepKey = (step: SequenceStep) => `${step.line_number}-${step.step_order}`;
 
   const playUnit = (unit: SequenceStep[], speed: number, onEnded?: () => void) => {
-    const ctx = getAudioContext();
     const duration = (unit[0]?.duration_ms ?? 500) / speed;
     const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
-    const startBase = ctx.currentTime;
 
     setActiveKeys([]);
     unit.forEach((step, i) => {
       const offset = i * rollOffset;
-      scheduleTone(step.string_position, step.note_name, duration, startBase + offset);
+      scheduleTone(step.string_position, step.note_name, duration, offset);
       const t = setTimeout(() => {
         setActiveKeys((prev) => [...prev, stepKey(step)]);
         if (onActiveStringChange) onActiveStringChange(step.string_position);
@@ -155,7 +118,7 @@ export default function TapToHearPlayer({ sequence, mode = 'Tizita', onActiveStr
         step.string_position,
         step.note_name,
         step.duration_ms ?? 500,
-        getAudioContext().currentTime
+        0
       );
 
       setTimeout(() => {

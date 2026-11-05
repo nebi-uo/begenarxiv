@@ -6,6 +6,7 @@ import mezmurRoutes from './routes/mezmurRoutes';
 import artistRoutes from './routes/artistRoutes';
 import tuneRoutes from './routes/tuneRoutes';
 import tuningRoutes from './routes/tuningRoutes';
+import requestRoutes from './routes/requestRoutes';
 
 dotenv.config();
 
@@ -19,6 +20,7 @@ app.use('/api/mezmurs', mezmurRoutes);
 app.use('/api/artists', artistRoutes);
 app.use('/api/tunes', tuneRoutes);
 app.use('/api/tuning-profiles', tuningRoutes);
+app.use('/api/requests', requestRoutes);
 
 // Health check route: confirms Express is running AND can reach Postgres
 app.get('/health', async (req, res) => {

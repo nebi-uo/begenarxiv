@@ -76,6 +76,10 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <span className="text-zinc-300">·</span>
               </>
             )}
+            <Link to="/portal" className="hover:text-zinc-950 transition-colors">
+              Portal
+            </Link>
+            <span className="text-zinc-300">·</span>
             <span>Beta · Free &amp; No Accounts</span>
           </div>
         </div>
