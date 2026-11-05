@@ -19,11 +19,18 @@ import {
   Plus,
   Search,
   ShieldCheck,
+  Loader2,
+  RefreshCw,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import LyricsViewer from '../components/LyricsViewer';
 import ArtistSelector from '../components/ArtistSelector';
+import {
+  DashboardTableSkeleton,
+  PendingReviewsSkeleton,
+  RequestsSkeleton,
+} from '../components/Skeletons';
 import { insertRepeatTagAtCursor } from '../utils/lyrics';
 import {
   parseRawNotation,
@@ -152,6 +159,25 @@ export default function PortalPage() {
   const [catalogueDifficultyFilter, setCatalogueDifficultyFilter] = useState<string>('all');
   const [editingMezmurId, setEditingMezmurId] = useState<number | null>(null);
   const [actionFeedback, setActionFeedback] = useState<string | null>(null);
+  const [approvingId, setApprovingId] = useState<number | null>(null);
+  const [rejectingId, setRejectingId] = useState<number | null>(null);
+  const [deletingId, setDeletingId] = useState<number | null>(null);
+
+  // Smooth scroll to top when feedback or messages appear
+  useEffect(() => {
+    if (publishSuccess || publishError || reviewFeedback || actionFeedback) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [publishSuccess, publishError, reviewFeedback, actionFeedback]);
+
+  // Smooth scroll to top on tab switch
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+  }, [activeTab]);
 
   const fetchAdminMezmurs = useCallback(() => {
     setLoadingAdminMezmurs(true);
@@ -187,6 +213,7 @@ export default function PortalPage() {
     if (!window.confirm(`Are you sure you want to permanently delete "${hymnTitle}" from the archive?`)) {
       return;
     }
+    setDeletingId(id);
     try {
       await api.deleteMezmur(id);
       setActionFeedback(`Deleted "${hymnTitle}" successfully.`);
@@ -194,6 +221,8 @@ export default function PortalPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Failed to delete mezmur';
       setActionFeedback(msg);
+    } finally {
+      setDeletingId(null);
     }
   };
 
@@ -454,6 +483,7 @@ export default function PortalPage() {
 
   // Admin Approval Action (Green Light)
   const handleApproveSubmission = async (id: number) => {
+    setApprovingId(id);
     try {
       const res = await api.approveMezmur(id);
       setReviewFeedback(res.message);
@@ -462,6 +492,8 @@ export default function PortalPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Approval failed';
       setReviewFeedback(msg);
+    } finally {
+      setApprovingId(null);
     }
   };
 
@@ -472,6 +504,7 @@ export default function PortalPage() {
     );
     if (reason === null) return;
 
+    setRejectingId(id);
     try {
       const res = await api.rejectMezmur(id, reason.trim() || undefined);
       setReviewFeedback(res.message);
@@ -480,6 +513,8 @@ export default function PortalPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Rejection failed';
       setReviewFeedback(msg);
+    } finally {
+      setRejectingId(null);
     }
   };
 
@@ -631,9 +666,10 @@ export default function PortalPage() {
                   <button
                     onClick={fetchAdminMezmurs}
                     disabled={loadingAdminMezmurs}
-                    className="px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs text-zinc-700 hover:text-black cursor-pointer transition-colors"
+                    className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded border border-zinc-300 hover:border-black text-xs text-zinc-700 hover:text-black cursor-pointer transition-colors"
                   >
-                    {loadingAdminMezmurs ? 'Refreshing...' : 'Refresh'}
+                    <RefreshCw size={11} className={loadingAdminMezmurs ? 'animate-spin' : ''} />
+                    <span>{loadingAdminMezmurs ? 'Refreshing...' : 'Refresh'}</span>
                   </button>
                   <button
                     onClick={() => {
@@ -705,7 +741,9 @@ export default function PortalPage() {
             </div>
 
             {/* List */}
-            {filteredAdminMezmurs.length === 0 ? (
+            {loadingAdminMezmurs ? (
+              <DashboardTableSkeleton />
+            ) : filteredAdminMezmurs.length === 0 ? (
               <div className="p-12 text-center bg-white border border-zinc-200 rounded-xl text-xs text-zinc-500">
                 <p className="font-bold text-black mb-1">NO MEZMURS IN REPOSITORY</p>
                 <p className="text-zinc-400 text-[11px] max-w-sm mx-auto font-sans mb-4">
@@ -797,11 +835,21 @@ export default function PortalPage() {
                         <button
                           type="button"
                           onClick={() => handleDeleteMezmur(m.id, m.title)}
-                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-red-200 hover:border-red-500 hover:bg-red-50 text-xs text-red-600 transition-colors cursor-pointer"
+                          disabled={deletingId === m.id}
+                          className="inline-flex items-center gap-1 px-2.5 py-1.5 rounded border border-red-200 hover:border-red-500 hover:bg-red-50 text-xs text-red-600 transition-colors cursor-pointer disabled:opacity-75 disabled:cursor-not-allowed"
                           title="Delete mezmur"
                         >
-                          <Trash2 size={12} />
-                          <span>Delete</span>
+                          {deletingId === m.id ? (
+                            <>
+                              <Loader2 size={12} className="animate-spin text-red-600" />
+                              <span>Deleting...</span>
+                            </>
+                          ) : (
+                            <>
+                              <Trash2 size={12} />
+                              <span>Delete</span>
+                            </>
+                          )}
                         </button>
                       </div>
                     </div>
@@ -822,9 +870,10 @@ export default function PortalPage() {
               <button
                 onClick={fetchPending}
                 disabled={loadingPending}
-                className="text-zinc-500 hover:text-black cursor-pointer text-xs"
+                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-black cursor-pointer text-xs"
               >
-                {loadingPending ? 'Refreshing...' : 'Refresh List'}
+                <RefreshCw size={11} className={loadingPending ? 'animate-spin' : ''} />
+                <span>{loadingPending ? 'Refreshing...' : 'Refresh List'}</span>
               </button>
             </div>
 
@@ -837,7 +886,9 @@ export default function PortalPage() {
               </div>
             )}
 
-            {pendingMezmurs.length === 0 ? (
+            {loadingPending ? (
+              <PendingReviewsSkeleton />
+            ) : pendingMezmurs.length === 0 ? (
               <div className="py-12 text-center text-xs text-zinc-500">
                 No submissions waiting for review. When users submit hymns at <code className="bg-zinc-100 px-1 py-0.5 rounded">/contribute</code>, they appear here for your green light!
               </div>
@@ -889,18 +940,38 @@ export default function PortalPage() {
                     <div className="flex items-center gap-2 shrink-0 pt-2 md:pt-0">
                       <button
                         onClick={() => handleApproveSubmission(sub.id)}
-                        className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs px-3.5 py-2 rounded font-bold cursor-pointer transition-colors shadow-xs"
+                        disabled={approvingId === sub.id || rejectingId === sub.id}
+                        className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs px-3.5 py-2 rounded font-bold cursor-pointer transition-colors shadow-xs disabled:opacity-75 disabled:cursor-not-allowed"
                       >
-                        <Check size={13} />
-                        <span>Green Light &amp; Approve</span>
+                        {approvingId === sub.id ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin text-white" />
+                            <span>Approving...</span>
+                          </>
+                        ) : (
+                          <>
+                            <Check size={13} />
+                            <span>Green Light &amp; Approve</span>
+                          </>
+                        )}
                       </button>
 
                       <button
                         onClick={() => handleRejectSubmission(sub.id)}
-                        className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-300 text-xs px-3 py-2 rounded cursor-pointer transition-colors"
+                        disabled={approvingId === sub.id || rejectingId === sub.id}
+                        className="inline-flex items-center gap-1.5 bg-white hover:bg-zinc-100 text-zinc-700 border border-zinc-300 text-xs px-3 py-2 rounded cursor-pointer transition-colors disabled:opacity-75 disabled:cursor-not-allowed"
                       >
-                        <X size={13} />
-                        <span>Reject</span>
+                        {rejectingId === sub.id ? (
+                          <>
+                            <Loader2 size={13} className="animate-spin text-zinc-700" />
+                            <span>Rejecting...</span>
+                          </>
+                        ) : (
+                          <>
+                            <X size={13} />
+                            <span>Reject</span>
+                          </>
+                        )}
                       </button>
                     </div>
                   </div>
@@ -1416,10 +1487,13 @@ export default function PortalPage() {
                 type="submit"
                 variant="primary"
                 disabled={isPublishing || parsedLines.length === 0 || hasInvalidTokens}
-                className="w-full py-3.5 text-sm font-mono flex items-center justify-center gap-2"
+                className="w-full py-3.5 text-sm font-mono flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-75 transition-all"
               >
                 {isPublishing ? (
-                  <span>Saving to Archive...</span>
+                  <>
+                    <Loader2 size={16} className="animate-spin text-white" />
+                    <span>{editingMezmurId ? 'Saving Changes to Archive...' : 'Publishing to Catalogue...'}</span>
+                  </>
                 ) : editingMezmurId ? (
                   <>
                     <span>UPDATE MEZMUR #{editingMezmurId}</span>
@@ -1456,13 +1530,16 @@ export default function PortalPage() {
               <button
                 onClick={fetchRequests}
                 disabled={loadingRequests}
-                className="text-zinc-500 hover:text-black cursor-pointer text-xs"
+                className="inline-flex items-center gap-1.5 text-zinc-500 hover:text-black cursor-pointer text-xs"
               >
-                {loadingRequests ? 'Refreshing...' : 'Refresh List'}
+                <RefreshCw size={11} className={loadingRequests ? 'animate-spin' : ''} />
+                <span>{loadingRequests ? 'Refreshing...' : 'Refresh List'}</span>
               </button>
             </div>
 
-            {requests.length === 0 ? (
+            {loadingRequests ? (
+              <RequestsSkeleton />
+            ) : requests.length === 0 ? (
               <div className="py-12 text-center text-xs text-zinc-500">
                 No decode requests in the queue yet.
               </div>

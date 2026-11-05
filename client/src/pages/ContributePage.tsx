@@ -9,6 +9,7 @@ import {
   Award,
   ChevronLeft,
   Sparkles,
+  Loader2,
 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
@@ -121,6 +122,23 @@ export default function ContributePage() {
       if (auditionTimeoutRef.current) clearTimeout(auditionTimeoutRef.current);
     };
   }, []);
+
+  // Return smoothly to top of page whenever an outcome (success or error) occurs
+  useEffect(() => {
+    if (submittedSuccess) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [submittedSuccess]);
+
+  useEffect(() => {
+    if (submitError) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [submitError]);
 
   // Parse raw notation into structured lines and tokens
   const parsedLines: ParsedNotationLine[] = useMemo(() => {
@@ -846,9 +864,19 @@ export default function ContributePage() {
               type="submit"
               variant="primary"
               disabled={isSubmitting || parsedLines.length === 0 || hasInvalidTokens}
-              className="w-full py-3.5 text-sm font-mono flex items-center justify-center gap-2"
+              className="w-full py-3.5 text-sm font-mono flex items-center justify-center gap-2 transition-all cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
             >
-              {isSubmitting ? 'Submitting to Curator for Review...' : 'SUBMIT MEZMUR FOR APPROVAL'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={16} className="animate-spin text-white" />
+                  <span>Submitting to Curator for Review...</span>
+                </>
+              ) : (
+                <>
+                  <Award size={16} />
+                  <span>SUBMIT MEZMUR FOR APPROVAL</span>
+                </>
+              )}
             </Button>
           </form>
         )}

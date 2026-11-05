@@ -7,7 +7,7 @@ import Layout from '../components/Layout';
 import CatalogueHero, { type GroupMode } from '../components/CatalogueHero';
 import SearchFilterBar from '../components/SearchFilterBar';
 import MezmurCard from '../components/MezmurCard';
-import IndiePageLoader from '../components/IndiePageLoader';
+import { CatalogueSkeleton } from '../components/Skeletons';
 
 export default function CataloguePage() {
   const [mezmurs, setMezmurs] = useState<MezmurListItem[]>([]);
@@ -107,12 +107,7 @@ export default function CataloguePage() {
   return (
     <Layout>
       {loading ? (
-        <div className="py-12">
-          <IndiePageLoader
-            message="FETCHING REPERTOIRE..."
-            subMessage="CONNECTING TO 10-STRING DATABASE"
-          />
-        </div>
+        <CatalogueSkeleton />
       ) : (
         <>
           <CatalogueHero

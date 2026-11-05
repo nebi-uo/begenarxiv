@@ -1,4 +1,5 @@
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import ScrollToTop from './components/ScrollToTop';
 import LandingPage from './pages/LandingPage';
 import CataloguePage from './pages/CataloguePage';
 import MezmurPage from './pages/MezmurPage';
@@ -9,6 +10,7 @@ import RequestPage from './pages/RequestPage';
 function App() {
   return (
     <BrowserRouter>
+      <ScrollToTop />
       <Routes>
         <Route path="/" element={<LandingPage />} />
         <Route path="/catalogue" element={<CataloguePage />} />

@@ -9,7 +9,7 @@ import SectionCard from '../components/SectionCard';
 import HorizontalMezmurScroll from '../components/HorizontalMezmurScroll';
 import Layout from '../components/Layout';
 import LyricsViewer from '../components/LyricsViewer';
-import IndiePageLoader from '../components/IndiePageLoader';
+import { MezmurPageSkeleton } from '../components/Skeletons';
 import PixelBegena from '../components/PixelBegena';
 import { useTonePlayer, type BegenaTuneMode, BEGENA_TUNINGS } from '../hooks/useTonePlayer';
 
@@ -88,12 +88,7 @@ export default function MezmurPage() {
   if (loading) {
     return (
       <Layout>
-        <div className="py-16">
-          <IndiePageLoader
-            message="LOADING NOTATION..."
-            subMessage="CALCULATING STRING HARMONICS"
-          />
-        </div>
+        <MezmurPageSkeleton />
       </Layout>
     );
   }

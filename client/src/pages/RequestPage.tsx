@@ -1,9 +1,10 @@
 import { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { CheckCircle2, ChevronLeft, ExternalLink } from 'lucide-react';
+import { CheckCircle2, ChevronLeft, ExternalLink, Loader2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import ArtistSelector from '../components/ArtistSelector';
+import { RequestsSkeleton } from '../components/Skeletons';
 import { api } from '../api/client';
 import type { MezmurRequest } from '../types';
 
@@ -30,6 +31,15 @@ export default function RequestPage() {
       .catch(() => {})
       .finally(() => setLoadingList(false));
   }, []);
+
+  // Return smoothly to top of page when request is submitted or an error occurs
+  useEffect(() => {
+    if (submittedSuccess || error) {
+      window.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.documentElement.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+      document.body.scrollTo({ top: 0, left: 0, behavior: 'smooth' });
+    }
+  }, [submittedSuccess, error]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -209,9 +219,16 @@ export default function RequestPage() {
               type="submit"
               variant="primary"
               disabled={isSubmitting}
-              className="w-full py-3 text-xs font-mono mt-2"
+              className="w-full py-3.5 text-xs font-mono mt-2 flex items-center justify-center gap-2 cursor-pointer disabled:cursor-not-allowed disabled:opacity-75"
             >
-              {isSubmitting ? 'Submitting...' : 'SUBMIT DECODE REQUEST'}
+              {isSubmitting ? (
+                <>
+                  <Loader2 size={14} className="animate-spin text-white" />
+                  <span>Submitting Decode Request...</span>
+                </>
+              ) : (
+                <span>SUBMIT DECODE REQUEST</span>
+              )}
             </Button>
           </form>
         )}
@@ -223,11 +240,15 @@ export default function RequestPage() {
               Community Decode Queue ({requests.length})
             </span>
             <span className="text-zinc-500 text-[11px]">
-              {loadingList ? 'Loading...' : 'Pending Curation'}
+              {loadingList ? 'Refreshing...' : 'Pending Curation'}
             </span>
           </div>
 
-          {requests.length === 0 ? (
+          {loadingList ? (
+            <div className="py-2">
+              <RequestsSkeleton />
+            </div>
+          ) : requests.length === 0 ? (
             <p className="text-xs text-zinc-500 py-6 text-center">
               No requests currently in queue. Be the first to request a hymn!
             </p>
