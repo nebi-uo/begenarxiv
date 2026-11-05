@@ -248,13 +248,6 @@ export default function LandingPage() {
 
           <nav className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
             <Link
-              to="/catalogue"
-              className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
-            >
-              CATALOGUE
-            </Link>
-
-            <Link
               to="/contribute"
               className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
             >
@@ -264,10 +257,17 @@ export default function LandingPage() {
 
             <Link
               to="/request"
-              className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs sm:text-sm font-mono px-3 py-1.5 sm:px-4 sm:py-2 rounded transition-all duration-150 shadow-xs"
+              className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
             >
               <span className="hidden sm:inline">REQUEST A MEZMUR</span>
               <span className="sm:hidden">REQUEST</span>
+            </Link>
+
+            <Link
+              to="/catalogue"
+              className="inline-flex items-center gap-1.5 bg-black hover:bg-zinc-800 text-white text-xs sm:text-sm font-mono px-3 py-1.5 sm:px-4 sm:py-2 rounded transition-all duration-150 shadow-xs font-semibold"
+            >
+              <span>CATALOGUE</span>
               <ArrowRight size={13} />
             </Link>
           </nav>

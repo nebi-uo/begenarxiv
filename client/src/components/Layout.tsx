@@ -1,5 +1,6 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
+import { ArrowRight } from 'lucide-react';
 import PixelBegena from './PixelBegena';
 
 export default function Layout({ children }: { children: ReactNode }) {
@@ -37,17 +38,8 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Navigation Links: Catalogue, Add a Mezmur, Request a Mezmur */}
+          {/* Navigation Links: Add a Mezmur, Request a Mezmur, and Primary CTA: Catalogue */}
           <nav className="flex items-center gap-1.5 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
-            <Link
-              to="/catalogue"
-              className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
-                location.pathname === '/catalogue' ? 'text-black' : 'text-zinc-600'
-              }`}
-            >
-              CATALOGUE
-            </Link>
-
             <Link
               to="/contribute"
               className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
@@ -66,6 +58,18 @@ export default function Layout({ children }: { children: ReactNode }) {
             >
               <span className="hidden sm:inline">REQUEST A MEZMUR</span>
               <span className="sm:hidden">REQUEST</span>
+            </Link>
+
+            <Link
+              to="/catalogue"
+              className={`inline-flex items-center gap-1.5 text-xs sm:text-sm font-mono px-3 py-1.5 sm:px-4 sm:py-2 rounded transition-all duration-150 shadow-xs font-semibold ${
+                location.pathname === '/catalogue'
+                  ? 'bg-black text-white ring-2 ring-zinc-300'
+                  : 'bg-black hover:bg-zinc-800 text-white'
+              }`}
+            >
+              <span>CATALOGUE</span>
+              <ArrowRight size={13} />
             </Link>
           </nav>
         </div>
