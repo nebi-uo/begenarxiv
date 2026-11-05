@@ -728,9 +728,6 @@ export default function PortalPage() {
                     >
                       <div className="space-y-1.5 flex-1 min-w-0">
                         <div className="flex flex-wrap items-center gap-2">
-                          <span className="text-xs font-mono text-zinc-400">
-                            #{String(m.id).padStart(2, '0')}
-                          </span>
                           <span className="font-bold text-sm text-black truncate">
                             {m.title}
                           </span>
