@@ -18,6 +18,8 @@ import { insertRepeatTagAtCursor } from '../utils/lyrics';
 import {
   parseRawNotation,
   insertNotationTokenAtCursor,
+  insertNotationRepeatAtCursor,
+  expandLineTokensForPlayback,
   type ParsedNotationToken,
   type ParsedNotationLine,
 } from '../utils/notation';
@@ -79,6 +81,22 @@ export default function ContributePage() {
     const start = el.selectionStart ?? el.value.length;
     const end = el.selectionEnd ?? el.value.length;
     const { text: newText, nextCursor } = insertNotationTokenAtCursor(rawNotation, token, start, end);
+    setRawNotation(newText);
+    setTimeout(() => {
+      el.focus();
+      el.setSelectionRange(nextCursor, nextCursor);
+    }, 0);
+  };
+
+  const handleInsertNotationRepeat = (tag: string, isSection = false) => {
+    const el = notationTextareaRef.current;
+    if (!el) {
+      setRawNotation((prev) => (prev ? `${prev} ${isSection ? `[notes]${tag}` : tag}` : (isSection ? `[notes]${tag}` : tag)));
+      return;
+    }
+    const start = el.selectionStart ?? el.value.length;
+    const end = el.selectionEnd ?? el.value.length;
+    const { text: newText, nextCursor } = insertNotationRepeatAtCursor(rawNotation, tag, start, end, isSection);
     setRawNotation(newText);
     setTimeout(() => {
       el.focus();
@@ -162,8 +180,10 @@ export default function ContributePage() {
 
     const allItems: { token: ParsedNotationToken; key: string }[] = [];
     parsedLines.forEach((line) => {
-      line.tokens.forEach((tok, tIdx) => {
-        allItems.push({ token: tok, key: `${line.lineNumber}-${tIdx}` });
+      const expanded = expandLineTokensForPlayback(line);
+      expanded.forEach((tok, expIdx) => {
+        const origIdx = line.tokens.indexOf(tok);
+        allItems.push({ token: tok, key: `${line.lineNumber}-${origIdx >= 0 ? origIdx : expIdx}` });
       });
     });
 
@@ -558,6 +578,14 @@ export default function ContributePage() {
                     <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">-</span>
                     <span><strong>Beat Rest</strong>: silent pause where previous string rings (<code className="text-black font-semibold">-</code> = 1 beat, <code className="text-black font-semibold">--</code> = 2 beats)</span>
                   </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">(x2)</span>
+                    <span><strong>Line Repeat</strong>: repeats the entire line (e.g. <code className="text-black font-semibold">1 3 2 4 (x2)</code>)</span>
+                  </div>
+                  <div className="flex items-start gap-2">
+                    <span className="font-bold text-black bg-white px-1.5 py-0.5 rounded border border-zinc-200 shrink-0">[..](x2)</span>
+                    <span><strong>Section Repeat (Underlined)</strong>: repeats only bracketed notes (e.g. <code className="text-black font-semibold">1 [3 2](x2) 4</code>)</span>
+                  </div>
                 </div>
               </div>
 
@@ -599,6 +627,40 @@ export default function ContributePage() {
                   >
                     + 13 (Roll)
                   </button>
+                  <span className="text-zinc-300 mx-1">|</span>
+                  <span className="text-zinc-400 text-[10px] uppercase mr-0.5">Repeat:</span>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotationRepeat('(x2)')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                    title="Repeat entire line (x2)"
+                  >
+                    + (x2) Line
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotationRepeat('(x2)', true)}
+                    className="px-2 py-0.5 rounded bg-zinc-950 text-white hover:bg-zinc-800 border border-zinc-950 transition-colors cursor-pointer text-[10px] font-bold"
+                    title="Repeat selected section with underline: highlight notes then click, or inserts [notes](x2)"
+                  >
+                    + [Section](x2) Underline
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotationRepeat('(x3)')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                    title="Repeat line (x3)"
+                  >
+                    + (x3)
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => handleInsertNotationRepeat('(፪ ጊዜ)')}
+                    className="px-2 py-0.5 rounded bg-zinc-100 hover:bg-zinc-200 border border-zinc-200 text-zinc-800 transition-colors cursor-pointer text-[10px] font-semibold"
+                    title="Repeat line (Ge'ez ፪ ጊዜ)"
+                  >
+                    + (፪ ጊዜ)
+                  </button>
                 </div>
               </div>
 
@@ -608,9 +670,16 @@ export default function ContributePage() {
                 required
                 value={rawNotation}
                 onChange={(e) => setRawNotation(e.target.value)}
-                placeholder={'1 3 2 4 | 2 1 3 1\n42 2 - 1 3 1'}
+                placeholder={'1 3 2 4 | 2 1 3 1\n42 2 - [1 3 1](x2)\n1 3 2 4 | 13 3 1 (x2)'}
                 className="w-full px-4 py-3 rounded-lg border border-zinc-300 focus:border-black outline-hidden font-mono text-sm tracking-widest leading-loose"
               />
+
+              <div className="flex items-center justify-between text-[11px] font-mono text-zinc-400 mt-1">
+                <span>
+                  Highlight notes and click <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">+ [Section](x2)</code> to repeat &amp; underline only that part (e.g.{' '}
+                  <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">[1 3 2](x2)</code>), or add <code className="text-zinc-700 bg-zinc-100 px-1 py-0.5 rounded">(x2)</code> at line end to repeat the entire line.
+                </span>
+              </div>
 
               {hasInvalidTokens && (
                 <div className="p-3 bg-zinc-50 border border-zinc-300 rounded font-mono text-xs text-black flex items-center gap-2">
@@ -705,27 +774,49 @@ export default function ContributePage() {
                         }
 
                         return (
-                          <button
-                            key={key}
-                            type="button"
-                            onClick={() => playToken(tok, key)}
-                            className={`px-2.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
-                              tok.type === 'roll'
-                                ? 'border border-dashed border-zinc-400'
-                                : 'border border-zinc-200 bg-white'
-                            } ${
-                              isPlaying
-                                ? 'bg-black text-white border-black scale-105'
-                                : tok.isValid
-                                ? 'text-black hover:border-black'
-                                : 'bg-red-50 text-red-600 border-red-300'
-                            }`}
-                            title={`Tap to hear ${tok.text}`}
-                          >
-                            {tok.text}
-                          </button>
+                          <div key={key} className="inline-flex items-center gap-1">
+                            <button
+                              type="button"
+                              onClick={() => playToken(tok, key)}
+                              className={`px-2.5 py-1.5 rounded text-xs font-bold transition-all cursor-pointer ${
+                                tok.isRepeatedSection
+                                  ? 'border-b-2 border-black underline underline-offset-4 decoration-black bg-zinc-100 font-extrabold'
+                                  : tok.type === 'roll'
+                                  ? 'border border-dashed border-zinc-400'
+                                  : 'border border-zinc-200 bg-white'
+                              } ${
+                                isPlaying
+                                  ? 'bg-black text-white border-black scale-105'
+                                  : tok.isValid
+                                  ? 'text-black hover:border-black'
+                                  : 'bg-red-50 text-red-600 border-red-300'
+                              }`}
+                              title={tok.isRepeatedSection ? `Repeated section note (x${tok.sectionRepeatCount})` : `Tap to hear ${tok.text}`}
+                            >
+                              {tok.text}
+                            </button>
+                            {tok.isSectionEnd && (
+                              <span
+                                className="px-1.5 py-0.5 rounded bg-zinc-950 text-white text-[9px] font-mono font-bold tracking-tight"
+                                title={`Repeat section x${tok.sectionRepeatCount}`}
+                              >
+                                x{tok.sectionRepeatCount}
+                              </span>
+                            )}
+                          </div>
                         );
                       })}
+
+                      {line.lineRepeatCount > 1 && (
+                        <div className="ml-auto pl-2 flex items-center">
+                          <span
+                            className="px-2 py-0.5 rounded bg-zinc-200 text-zinc-900 font-mono text-[10px] font-bold border border-zinc-300"
+                            title={`Entire line repeated ${line.lineRepeatCount} times`}
+                          >
+                            x{line.lineRepeatCount} Line
+                          </span>
+                        </div>
+                      )}
                     </div>
                   ))}
                 </div>

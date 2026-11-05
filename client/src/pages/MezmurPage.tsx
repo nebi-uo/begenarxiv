@@ -204,6 +204,7 @@ export default function MezmurPage() {
           >
             <TapToHearPlayer
               sequence={mezmur.sequence}
+              rawNotation={mezmur.raw_notation}
               mode={currentMode}
               onActiveStringChange={setActiveString}
             />

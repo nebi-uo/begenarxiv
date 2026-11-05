@@ -36,6 +36,7 @@ export interface MezmurDetail {
   contributor_name?: string | null;
   contributor_email?: string | null;
   approved_at?: string | null;
+  raw_notation?: string | null;
   sequence: SequenceStep[];
 }
 
@@ -50,6 +51,7 @@ export interface AdminMezmurItem {
   contributor_email: string | null;
   lyrics: string | null;
   youtube_url: string | null;
+  raw_notation?: string | null;
   step_count: string | number;
   created_at: string;
   approved_at: string | null;

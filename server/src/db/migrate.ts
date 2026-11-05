@@ -46,6 +46,11 @@ export async function runMigrations() {
       ALTER TABLE mezmur_sequences ADD COLUMN IF NOT EXISTS phrase_break BOOLEAN DEFAULT FALSE;
     `);
 
+    // 5. Support raw_notation persistence on mezmurs
+    await query(`
+      ALTER TABLE mezmurs ADD COLUMN IF NOT EXISTS raw_notation TEXT;
+    `);
+
     console.log('✓ Database schema migrations applied successfully.');
   } catch (err) {
     console.warn('Migration warning (non-fatal):', err);

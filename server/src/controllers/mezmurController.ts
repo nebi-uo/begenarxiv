@@ -19,6 +19,90 @@ function getTuningProfileId(tuneName: string): number {
   return 1; // Tizita
 }
 
+const GEEZ_NUMERAL_MAP: Record<string, number> = {
+  '፩': 1, '፪': 2, '፫': 3, '፬': 4, '፭': 5, '፮': 6, '፯': 7, '፰': 8, '፱': 9, '፲': 10,
+};
+
+const SECTION_REPEAT_REGEX =
+  /\[([^\]]+)\]\s*(?:[\(\[]\s*(?:(?:x\s*(\d+))|(?:(\d+)\s*x)|(?:(\d+)\s*(?:times|ጊዜ)?)|(?:([፩-፲])\s*(?:x|ጊዜ|times)?))\s*[\)\]])/gi;
+
+const LINE_REPEAT_REGEX =
+  /\s*(?:[\(\[]\s*(?:(?:x\s*(\d+))|(?:(\d+)\s*x)|(?:(\d+)\s*(?:times|ጊዜ)?)|(?:([፩-፲])\s*(?:x|ጊዜ|times)?))\s*[\)\]])\s*$/i;
+
+function parseRepeatCount(m1?: string, m2?: string, m3?: string, m4?: string): number {
+  if (m1) return parseInt(m1, 10);
+  if (m2) return parseInt(m2, 10);
+  if (m3) return parseInt(m3, 10);
+  if (m4) return GEEZ_NUMERAL_MAP[m4] || 2;
+  return 2;
+}
+
+function parseAndExpandRawNotation(raw: string): { line: number; notes: string[] }[] {
+  if (!raw.trim()) return [];
+  const rawLines = raw.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
+
+  const cleanNote = (tok: string) => tok.trim();
+
+  return rawLines.map((lineStr, idx) => {
+    let workingLine = lineStr;
+    let lineRepeatCount = 1;
+
+    const lineMatch = workingLine.match(LINE_REPEAT_REGEX);
+    if (lineMatch) {
+      lineRepeatCount = parseRepeatCount(lineMatch[1], lineMatch[2], lineMatch[3], lineMatch[4]);
+      workingLine = workingLine.replace(LINE_REPEAT_REGEX, '').trim();
+    }
+
+    const segments: { notes: string[]; repeatCount: number }[] = [];
+    const matches = Array.from(workingLine.matchAll(SECTION_REPEAT_REGEX));
+
+    if (matches.length > 0) {
+      let lastIndex = 0;
+      for (const m of matches) {
+        const matchIdx = m.index ?? 0;
+        if (matchIdx > lastIndex) {
+          const pre = workingLine.slice(lastIndex, matchIdx).trim();
+          if (pre) {
+            const preNotes = pre.split(/[\s,]+/).map(cleanNote).filter((t) => /^([1-5]+|\||\-+)$/.test(t));
+            if (preNotes.length > 0) segments.push({ notes: preNotes, repeatCount: 1 });
+          }
+        }
+        const secContent = m[1].trim();
+        const repCount = parseRepeatCount(m[2], m[3], m[4], m[5]);
+        const secNotes = secContent.split(/[\s,]+/).map(cleanNote).filter((t) => /^([1-5]+|\||\-+)$/.test(t));
+        if (secNotes.length > 0) segments.push({ notes: secNotes, repeatCount: repCount });
+        lastIndex = matchIdx + m[0].length;
+      }
+      if (lastIndex < workingLine.length) {
+        const post = workingLine.slice(lastIndex).trim();
+        if (post) {
+          const postNotes = post.split(/[\s,]+/).map(cleanNote).filter((t) => /^([1-5]+|\||\-+)$/.test(t));
+          if (postNotes.length > 0) segments.push({ notes: postNotes, repeatCount: 1 });
+        }
+      }
+    } else {
+      const notes = workingLine.split(/[\s,]+/).map(cleanNote).filter((t) => /^([1-5]+|\||\-+)$/.test(t));
+      if (notes.length > 0) segments.push({ notes, repeatCount: 1 });
+    }
+
+    // Expand section repeats
+    const singleLineNotes: string[] = [];
+    for (const seg of segments) {
+      for (let r = 0; r < seg.repeatCount; r++) {
+        singleLineNotes.push(...seg.notes);
+      }
+    }
+
+    // Expand line repeats
+    const expandedNotes: string[] = [];
+    for (let lr = 0; lr < lineRepeatCount; lr++) {
+      expandedNotes.push(...singleLineNotes);
+    }
+
+    return { line: idx + 1, notes: expandedNotes };
+  }).filter((l) => l.notes.length > 0);
+}
+
 // GET /api/mezmurs — public catalogue listing (ONLY approved hymns)
 export const getAllMezmurs = async (req: Request, res: Response) => {
   try {
@@ -129,14 +213,7 @@ export const createMezmur = async (req: Request, res: Response) => {
   if (providedSequence && Array.isArray(providedSequence) && providedSequence.length > 0) {
     parsedSequence = providedSequence;
   } else if (raw_notation && typeof raw_notation === 'string') {
-    const rawLines = raw_notation.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-    parsedSequence = rawLines.map((lineStr, idx) => {
-      const tokens = lineStr
-        .split(/[\s,]+/)
-        .map((t) => t.trim())
-        .filter((t) => /^([1-5]+|\||\-+)$/.test(t));
-      return { line: idx + 1, notes: tokens };
-    }).filter((l) => l.notes.length > 0);
+    parsedSequence = parseAndExpandRawNotation(raw_notation);
   }
 
   try {
@@ -145,8 +222,8 @@ export const createMezmur = async (req: Request, res: Response) => {
     const tuningProfileId = getTuningProfileId(tune);
 
     const mezmurResult = await query(
-      `INSERT INTO mezmurs (title, lyrics, youtube_url, difficulty, artist_id, tune_id, tuning_profile_id, status, contributor_name, contributor_email, approved_at)
-       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11) RETURNING id`,
+      `INSERT INTO mezmurs (title, lyrics, youtube_url, difficulty, artist_id, tune_id, tuning_profile_id, status, contributor_name, contributor_email, approved_at, raw_notation)
+       VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12) RETURNING id`,
       [
         title.trim(),
         lyrics.trim() || null,
@@ -159,6 +236,7 @@ export const createMezmur = async (req: Request, res: Response) => {
         finalContributor,
         finalEmail,
         finalStatus === 'approved' ? new Date() : null,
+        raw_notation?.trim() || null,
       ]
     );
 
@@ -387,9 +465,10 @@ export const updateMezmur = async (req: Request, res: Response) => {
       `UPDATE mezmurs
        SET title = $1, lyrics = $2, youtube_url = $3, difficulty = $4,
            artist_id = $5, tune_id = $6, tuning_profile_id = $7,
-           status = COALESCE($8, status)
-       WHERE id = $9
-       RETURNING id, title, status`,
+           status = COALESCE($8, status),
+           raw_notation = COALESCE($9, raw_notation)
+       WHERE id = $10
+       RETURNING id, title, status, raw_notation`,
       [
         title.trim(),
         lyrics.trim() || null,
@@ -399,6 +478,7 @@ export const updateMezmur = async (req: Request, res: Response) => {
         tuneId,
         tuningProfileId,
         newStatus || null,
+        raw_notation !== undefined ? (raw_notation?.trim() || null) : null,
         id,
       ]
     );
@@ -411,16 +491,7 @@ export const updateMezmur = async (req: Request, res: Response) => {
     if (raw_notation !== undefined && typeof raw_notation === 'string') {
       await query('DELETE FROM mezmur_sequences WHERE mezmur_id = $1', [id]);
 
-      const rawLines = raw_notation.split(/\r?\n/).map((l) => l.trim()).filter(Boolean);
-      const parsedSequence = rawLines
-        .map((lineStr, idx) => {
-          const tokens = lineStr
-            .split(/[\s,]+/)
-            .map((t) => t.trim())
-            .filter((t) => /^([1-5]+|\||\-+)$/.test(t));
-          return { line: idx + 1, notes: tokens };
-        })
-        .filter((l) => l.notes.length > 0);
+      const parsedSequence = parseAndExpandRawNotation(raw_notation);
 
       const stringsResult = await query('SELECT id, string_position FROM strings');
       const stringIdByPosition = new Map<number, number>(

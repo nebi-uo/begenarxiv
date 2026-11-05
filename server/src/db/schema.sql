@@ -51,6 +51,7 @@ CREATE TABLE mezmurs (
   contributor_name TEXT DEFAULT 'Begenarxiv',
   contributor_email TEXT,
   approved_at TIMESTAMP DEFAULT NOW(),
+  raw_notation TEXT,
   created_at TIMESTAMP DEFAULT NOW()
 );
 
