@@ -88,7 +88,7 @@ const FAQS = [
   },
   {
     q: 'What is the beta status of this project?',
-    a: 'This is an early beta. The catalogue is small and growing, and the sounds are string tones that show which string plays when. Tell us what is wrong, what is missing, and which songs you want next.',
+    a: 'This is an early beta. The catalogue is small and growing, and the sounds are string tones that show which string plays when. Tell us what is wrong, what is missing, and which songs you want next, also you can contribute your prefered mezmurs and become part of the growing community.',
   },
 ];
 
@@ -230,11 +230,10 @@ export default function LandingPage() {
 
       {/* Top Navbar - Scaled up, prominent logo, sticky top, glassmorphic on scroll */}
       <header
-        className={`sticky top-0 z-50 transition-all duration-200 ${
-          isScrolled
+        className={`sticky top-0 z-50 transition-all duration-200 ${isScrolled
             ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200/90 shadow-xs'
             : 'bg-transparent border-b border-transparent'
-        }`}
+          }`}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-3.5 group">
@@ -322,11 +321,10 @@ export default function LandingPage() {
                     <button
                       key={m}
                       onClick={() => setCurrentMode(m)}
-                      className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${
-                        currentMode === m
+                      className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${currentMode === m
                           ? 'bg-black text-white font-bold'
                           : 'bg-zinc-50 text-black hover:bg-zinc-100 border border-zinc-200'
-                      }`}
+                        }`}
                     >
                       {m}
                     </button>
@@ -354,11 +352,10 @@ export default function LandingPage() {
 
                 <button
                   onClick={isPlayingDemo ? stopDemo : playDemo}
-                  className={`inline-flex items-center gap-2 text-xs font-mono font-medium px-4 py-2.5 rounded border transition-colors cursor-pointer ${
-                    isPlayingDemo
+                  className={`inline-flex items-center gap-2 text-xs font-mono font-medium px-4 py-2.5 rounded border transition-colors cursor-pointer ${isPlayingDemo
                       ? 'bg-black text-white border-black'
                       : 'bg-white hover:bg-zinc-50 text-black border-zinc-300 hover:border-black'
-                  }`}
+                    }`}
                 >
                   {isPlayingDemo ? (
                     <>
@@ -484,11 +481,10 @@ export default function LandingPage() {
               <button
                 onClick={testSolo}
                 disabled={rollTesting !== null}
-                className={`w-full py-2 px-3 rounded font-mono text-xs font-medium border transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                  rollTesting === 'solo'
+                className={`w-full py-2 px-3 rounded font-mono text-xs font-medium border transition-colors cursor-pointer flex items-center justify-center gap-2 ${rollTesting === 'solo'
                     ? 'bg-black text-white border-black'
                     : 'bg-white hover:bg-zinc-50 text-black border-zinc-300'
-                }`}
+                  }`}
               >
                 <Play size={12} className="fill-current" />
                 <span>Test Solo Note [1]</span>
@@ -518,11 +514,10 @@ export default function LandingPage() {
               <button
                 onClick={testRoll}
                 disabled={rollTesting !== null}
-                className={`w-full py-2 px-3 rounded font-mono text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${
-                  rollTesting === 'roll'
+                className={`w-full py-2 px-3 rounded font-mono text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${rollTesting === 'roll'
                     ? 'bg-black text-white'
                     : 'bg-black hover:bg-zinc-800 text-white'
-                }`}
+                  }`}
               >
                 <Play size={12} className="fill-current" />
                 <span>Test Ornament Roll [42]</span>
@@ -566,9 +561,8 @@ export default function LandingPage() {
                     <span>{faq.q}</span>
                     <ChevronDown
                       size={15}
-                      className={`text-zinc-400 shrink-0 transition-transform duration-200 ${
-                        isOpen ? 'rotate-180 text-black' : ''
-                      }`}
+                      className={`text-zinc-400 shrink-0 transition-transform duration-200 ${isOpen ? 'rotate-180 text-black' : ''
+                        }`}
                     />
                   </button>
 
