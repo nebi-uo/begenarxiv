@@ -1,4 +1,4 @@
-import express from 'express';
+import express, { Request, Response } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
 import { query } from './db';
@@ -37,7 +37,7 @@ app.use('/api/requests', requestRoutes);
 app.use('/api/admin', authRoutes);
 
 // Health check route: confirms Express is running AND can reach Postgres
-app.get('/health', async (req, res) => {
+app.get('/health', async (req: Request, res: Response) => {
   try {
     const result = await query('SELECT NOW()');
     res.json({ status: 'ok', dbTime: result.rows[0].now });

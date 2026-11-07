@@ -36,7 +36,7 @@ async function importMezmur(data: MezmurInput) {
   // Look up each string's id by its physical position, once, for fast lookup below
   const stringsResult = await query('SELECT id, string_position FROM strings');
   const stringIdByPosition = new Map<number, number>(
-    stringsResult.rows.map((s) => [s.string_position, s.id])
+    stringsResult.rows.map((s: { string_position: number; id: number }) => [s.string_position, s.id])
   );
 
   let stepOrder = 1;
