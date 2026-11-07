@@ -1,12 +1,14 @@
 import { useState, useEffect, type ReactNode } from 'react';
 import { Link, useLocation } from 'react-router-dom';
-import { ArrowRight } from 'lucide-react';
+import { ArrowRight, Menu, X } from 'lucide-react';
+import { motion, AnimatePresence } from 'framer-motion';
 import PixelBegena from './PixelBegena';
 
 export default function Layout({ children }: { children: ReactNode }) {
   const location = useLocation();
   const isCatalogue = location.pathname.startsWith('/catalogue');
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   useEffect(() => {
     const handleScroll = () => {
@@ -16,6 +18,11 @@ export default function Layout({ children }: { children: ReactNode }) {
     window.addEventListener('scroll', handleScroll, { passive: true });
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
+
+  // Close mobile menu when location changes
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
 
   return (
     <div className="min-h-screen bg-transparent text-zinc-950 flex flex-col font-sans selection:bg-zinc-950 selection:text-white">
@@ -38,16 +45,15 @@ export default function Layout({ children }: { children: ReactNode }) {
             </span>
           </Link>
 
-          {/* Navigation Links: Add a Mezmur, Request a Mezmur, and Primary CTA: Catalogue */}
-          <nav className="flex items-center gap-1.5 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden sm:flex items-center gap-3 md:gap-6 text-xs sm:text-sm font-mono">
             <Link
               to="/contribute"
               className={`hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60 ${
                 location.pathname === '/contribute' ? 'text-black' : 'text-zinc-600'
               }`}
             >
-              <span className="hidden sm:inline">ADD A MEZMUR</span>
-              <span className="sm:hidden">ADD</span>
+              ADD A MEZMUR
             </Link>
 
             <Link
@@ -56,8 +62,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 location.pathname === '/request' ? 'text-black' : 'text-zinc-600'
               }`}
             >
-              <span className="hidden sm:inline">REQUEST A MEZMUR</span>
-              <span className="sm:hidden">REQUEST</span>
+              REQUEST A MEZMUR
             </Link>
 
             <Link
@@ -72,7 +77,62 @@ export default function Layout({ children }: { children: ReactNode }) {
               <ArrowRight size={13} />
             </Link>
           </nav>
+
+          {/* Mobile Hamburger Menu Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="sm:hidden p-2 rounded-lg text-zinc-800 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="sm:hidden border-b border-zinc-200/90 bg-white/95 backdrop-blur-md px-4 pt-2 pb-4 space-y-2 font-mono text-xs overflow-hidden"
+            >
+              <Link
+                to="/catalogue"
+                className={`flex items-center justify-between p-3 rounded-lg font-bold transition-colors ${
+                  location.pathname === '/catalogue'
+                    ? 'bg-black text-white'
+                    : 'bg-zinc-100 text-zinc-900 hover:bg-zinc-200'
+                }`}
+              >
+                <span>CATALOGUE</span>
+                <ArrowRight size={14} />
+              </Link>
+              <Link
+                to="/contribute"
+                className={`block p-3 rounded-lg font-semibold tracking-wider transition-colors ${
+                  location.pathname === '/contribute'
+                    ? 'bg-zinc-200 text-black'
+                    : 'text-zinc-700 hover:bg-zinc-100 hover:text-black'
+                }`}
+              >
+                ADD A MEZMUR
+              </Link>
+              <Link
+                to="/request"
+                className={`block p-3 rounded-lg font-semibold tracking-wider transition-colors ${
+                  location.pathname === '/request'
+                    ? 'bg-zinc-200 text-black'
+                    : 'text-zinc-700 hover:bg-zinc-100 hover:text-black'
+                }`}
+              >
+                REQUEST A MEZMUR
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Main Content Area */}
@@ -100,10 +160,6 @@ export default function Layout({ children }: { children: ReactNode }) {
                 <span className="text-zinc-300">·</span>
               </>
             )}
-            <Link to="/portal" className="hover:text-zinc-950 transition-colors">
-              Portal
-            </Link>
-            <span className="text-zinc-300">·</span>
             <span>Beta · Free &amp; No Accounts</span>
           </div>
         </div>

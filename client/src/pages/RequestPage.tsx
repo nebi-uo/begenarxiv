@@ -4,11 +4,12 @@ import { CheckCircle2, ChevronLeft, ExternalLink, Loader2 } from 'lucide-react';
 import Layout from '../components/Layout';
 import Button from '../components/Button';
 import ArtistSelector from '../components/ArtistSelector';
-import { RequestsSkeleton } from '../components/Skeletons';
+import { RequestsSkeleton, RequestPageSkeleton } from '../components/Skeletons';
 import { api } from '../api/client';
 import type { MezmurRequest } from '../types';
 
 export default function RequestPage() {
+  const [pageLoading, setPageLoading] = useState(true);
   const [title, setTitle] = useState('');
   const [artist, setArtist] = useState('');
   const [youtubeUrl, setYoutubeUrl] = useState('');
@@ -26,10 +27,14 @@ export default function RequestPage() {
 
   useEffect(() => {
     setLoadingList(true);
+    setPageLoading(true);
     api.getRequests()
       .then(setRequests)
       .catch(() => {})
-      .finally(() => setLoadingList(false));
+      .finally(() => {
+        setLoadingList(false);
+        setPageLoading(false);
+      });
   }, []);
 
   // Return smoothly to top of page when request is submitted or an error occurs
@@ -78,6 +83,14 @@ export default function RequestPage() {
       setIsSubmitting(false);
     }
   };
+
+  if (pageLoading) {
+    return (
+      <Layout>
+        <RequestPageSkeleton />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

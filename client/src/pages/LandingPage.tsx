@@ -6,6 +6,8 @@ import {
   Play,
   Square,
   ChevronDown,
+  Menu,
+  X,
 } from 'lucide-react';
 import PixelBegena from '../components/PixelBegena';
 import Button from '../components/Button';
@@ -100,6 +102,7 @@ export default function LandingPage() {
   const [activeFaq, setActiveFaq] = useState<number | null>(null);
   const [rollTesting, setRollTesting] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const { scrollY } = useScroll();
   const sandY = useTransform(scrollY, [0, 900], [0, 75]);
@@ -245,21 +248,20 @@ export default function LandingPage() {
             </span>
           </Link>
 
-          <nav className="flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
+          {/* Desktop Navigation Links */}
+          <nav className="hidden sm:flex items-center gap-2 sm:gap-4 md:gap-6 text-xs sm:text-sm font-mono">
             <Link
               to="/contribute"
               className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
             >
-              <span className="hidden sm:inline">ADD A MEZMUR</span>
-              <span className="sm:hidden">ADD</span>
+              ADD A MEZMUR
             </Link>
 
             <Link
               to="/request"
               className="text-zinc-600 hover:text-black font-semibold tracking-wider transition-colors px-2 sm:px-3 py-1.5 rounded hover:bg-zinc-100/60"
             >
-              <span className="hidden sm:inline">REQUEST A MEZMUR</span>
-              <span className="sm:hidden">REQUEST</span>
+              REQUEST A MEZMUR
             </Link>
 
             <Link
@@ -270,7 +272,50 @@ export default function LandingPage() {
               <ArrowRight size={13} />
             </Link>
           </nav>
+
+          {/* Mobile Hamburger Menu Toggle Button */}
+          <button
+            type="button"
+            onClick={() => setMobileMenuOpen((prev) => !prev)}
+            aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+            className="sm:hidden p-2 rounded-lg text-zinc-800 hover:text-black hover:bg-zinc-100 transition-colors cursor-pointer"
+          >
+            {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
+          </button>
         </div>
+
+        {/* Mobile Dropdown Menu Drawer */}
+        <AnimatePresence>
+          {mobileMenuOpen && (
+            <motion.div
+              initial={{ opacity: 0, height: 0 }}
+              animate={{ opacity: 1, height: 'auto' }}
+              exit={{ opacity: 0, height: 0 }}
+              transition={{ duration: 0.18, ease: 'easeOut' }}
+              className="sm:hidden border-b border-zinc-200/90 bg-white/95 backdrop-blur-md px-4 pt-2 pb-4 space-y-2 font-mono text-xs overflow-hidden"
+            >
+              <Link
+                to="/catalogue"
+                className="flex items-center justify-between p-3 rounded-lg font-bold bg-black text-white hover:bg-zinc-800 transition-colors"
+              >
+                <span>CATALOGUE</span>
+                <ArrowRight size={14} />
+              </Link>
+              <Link
+                to="/contribute"
+                className="block p-3 rounded-lg font-semibold tracking-wider text-zinc-700 hover:bg-zinc-100 hover:text-black transition-colors"
+              >
+                ADD A MEZMUR
+              </Link>
+              <Link
+                to="/request"
+                className="block p-3 rounded-lg font-semibold tracking-wider text-zinc-700 hover:bg-zinc-100 hover:text-black transition-colors"
+              >
+                REQUEST A MEZMUR
+              </Link>
+            </motion.div>
+          )}
+        </AnimatePresence>
       </header>
 
       {/* Hero Section */}
@@ -642,10 +687,6 @@ export default function LandingPage() {
           <div className="flex items-center gap-4 text-xs font-mono">
             <Link to="/catalogue" className="hover:text-black transition-colors">
               Catalogue
-            </Link>
-            <span className="text-zinc-300">·</span>
-            <Link to="/portal" className="hover:text-black transition-colors">
-              Portal
             </Link>
             <span className="text-zinc-300">·</span>
             <span>&copy; {new Date().getFullYear()} Begenarxiv. All rights reserved.</span>

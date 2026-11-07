@@ -15,6 +15,7 @@ import Layout from '../components/Layout';
 import Button from '../components/Button';
 import LyricsViewer from '../components/LyricsViewer';
 import ArtistSelector from '../components/ArtistSelector';
+import { ContributeSkeleton } from '../components/Skeletons';
 import { insertRepeatTagAtCursor } from '../utils/lyrics';
 import {
   parseRawNotation,
@@ -28,6 +29,7 @@ import { api } from '../api/client';
 import { useTonePlayer, type BegenaTuneMode } from '../hooks/useTonePlayer';
 
 export default function ContributePage() {
+  const [pageLoading, setPageLoading] = useState(true);
   const [contributorName, setContributorName] = useState('');
   const [contributorEmail, setContributorEmail] = useState('');
   const [title, setTitle] = useState('');
@@ -118,7 +120,11 @@ export default function ContributePage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   useEffect(() => {
+    const timer = setTimeout(() => {
+      setPageLoading(false);
+    }, 320);
     return () => {
+      clearTimeout(timer);
       if (auditionTimeoutRef.current) clearTimeout(auditionTimeoutRef.current);
     };
   }, []);
@@ -283,6 +289,14 @@ export default function ContributePage() {
     setLyrics('በገናዬም መጣሁ ምስጋና ላቀርብ (x2)\nየሰራዊት ጌታ እግዚአብሔርን ላከብር (x2)');
     setRawNotation('1 3 2 4 | 2 1 3 1\n42 2 - 1 3 1');
   };
+
+  if (pageLoading) {
+    return (
+      <Layout>
+        <ContributeSkeleton />
+      </Layout>
+    );
+  }
 
   return (
     <Layout>

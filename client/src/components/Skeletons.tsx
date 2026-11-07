@@ -216,3 +216,151 @@ export function RequestsSkeleton() {
   );
 }
 
+export function ContributeSkeleton() {
+  return (
+    <div className="space-y-6 animate-pulse max-w-6xl mx-auto py-2">
+      {/* Top Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div className="h-4 bg-zinc-200 rounded w-28" />
+        <div className="h-4 bg-zinc-100 rounded w-36" />
+      </div>
+
+      {/* Hero Banner Skeleton */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 space-y-3">
+        <div className="h-8 bg-zinc-200 rounded w-1/3" />
+        <div className="h-4 bg-zinc-100 rounded w-2/3" />
+      </div>
+
+      {/* Studio Two-Column Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-8">
+        {/* Left Form (7 cols) */}
+        <div className="lg:col-span-7 space-y-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 space-y-5">
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="h-3 bg-zinc-200 rounded w-24" />
+                <div className="h-10 bg-zinc-100 rounded" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 bg-zinc-200 rounded w-24" />
+                <div className="h-10 bg-zinc-100 rounded" />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <div className="h-3 bg-zinc-200 rounded w-28" />
+              <div className="h-10 bg-zinc-100 rounded" />
+            </div>
+
+            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <div className="h-3 bg-zinc-200 rounded w-20" />
+                <div className="h-10 bg-zinc-100 rounded" />
+              </div>
+              <div className="space-y-2">
+                <div className="h-3 bg-zinc-200 rounded w-20" />
+                <div className="h-10 bg-zinc-100 rounded" />
+              </div>
+            </div>
+
+            {/* Lyrics Section */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center">
+                <div className="h-3 bg-zinc-200 rounded w-28" />
+                <div className="h-6 bg-zinc-100 rounded w-32" />
+              </div>
+              <div className="h-28 bg-zinc-50 border border-zinc-200 rounded-lg" />
+            </div>
+
+            {/* Notation Section */}
+            <div className="space-y-2 pt-2">
+              <div className="flex justify-between items-center">
+                <div className="h-3 bg-zinc-200 rounded w-36" />
+                <div className="h-6 bg-zinc-100 rounded w-44" />
+              </div>
+              <div className="h-28 bg-zinc-50 border border-zinc-200 rounded-lg" />
+            </div>
+
+            <div className="h-12 bg-zinc-200 rounded-lg w-full" />
+          </div>
+        </div>
+
+        {/* Right Preview (5 cols) */}
+        <div className="lg:col-span-5 space-y-6">
+          <div className="bg-white border border-zinc-200 rounded-xl p-6 space-y-4">
+            <div className="h-4 bg-zinc-200 rounded w-36" />
+            <div className="h-48 bg-zinc-50 border border-zinc-100 rounded-lg" />
+            <div className="h-10 bg-zinc-100 rounded w-full" />
+          </div>
+          <div className="bg-zinc-50 border border-zinc-200 rounded-xl p-6 space-y-3">
+            <div className="h-4 bg-zinc-200 rounded w-28" />
+            <div className="h-3 bg-zinc-200/60 rounded w-full" />
+            <div className="h-3 bg-zinc-200/60 rounded w-5/6" />
+          </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+export function RequestPageSkeleton() {
+  return (
+    <div className="max-w-3xl mx-auto py-4 space-y-6 animate-pulse">
+      {/* Breadcrumb */}
+      <div className="flex items-center justify-between">
+        <div className="h-4 bg-zinc-200 rounded w-24" />
+        <div className="h-5 bg-zinc-100 rounded w-28" />
+      </div>
+
+      {/* Hero Header */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 space-y-3 shadow-xs">
+        <div className="h-7 bg-zinc-200 rounded w-48" />
+        <div className="h-4 bg-zinc-100 rounded w-4/5" />
+      </div>
+
+      {/* Form Skeleton */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 space-y-5 shadow-xs">
+        <div className="space-y-2">
+          <div className="h-3 bg-zinc-200 rounded w-24" />
+          <div className="h-10 bg-zinc-100 rounded" />
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="h-3 bg-zinc-200 rounded w-28" />
+            <div className="h-10 bg-zinc-100 rounded" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-zinc-200 rounded w-36" />
+            <div className="h-10 bg-zinc-100 rounded" />
+          </div>
+        </div>
+
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+          <div className="space-y-2">
+            <div className="h-3 bg-zinc-200 rounded w-24" />
+            <div className="h-10 bg-zinc-100 rounded" />
+          </div>
+          <div className="space-y-2">
+            <div className="h-3 bg-zinc-200 rounded w-24" />
+            <div className="h-10 bg-zinc-100 rounded" />
+          </div>
+        </div>
+
+        <div className="space-y-2">
+          <div className="h-3 bg-zinc-200 rounded w-28" />
+          <div className="h-20 bg-zinc-50 border border-zinc-200 rounded" />
+        </div>
+
+        <div className="h-11 bg-zinc-200 rounded-lg w-full" />
+      </div>
+
+      {/* Queue Table Skeleton */}
+      <div className="bg-white border border-zinc-200 rounded-xl p-6 sm:p-8 space-y-4 shadow-xs">
+        <div className="h-4 bg-zinc-200 rounded w-40" />
+        <RequestsSkeleton />
+      </div>
+    </div>
+  );
+}
+
