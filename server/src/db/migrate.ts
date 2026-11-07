@@ -1,5 +1,3 @@
-import fs from 'fs';
-import path from 'path';
 import { query } from './index';
 
 export async function runMigrations() {
@@ -156,22 +154,6 @@ export async function runMigrations() {
       INSERT INTO tunes (name) VALUES ('Selamta') ON CONFLICT (name) DO NOTHING;
       INSERT INTO tunes (name) VALUES ('Anchi-Hoye') ON CONFLICT (name) DO NOTHING;
     `);
-
-    // 7. Auto-seed verified repertoire if the database is brand new and empty
-    try {
-      const mezmurCountRes = await query('SELECT count(*) FROM mezmurs');
-      const mezmurCount = parseInt(mezmurCountRes.rows[0]?.count || '0', 10);
-      if (mezmurCount === 0) {
-        const seedSqlPath = path.resolve(__dirname, '../../data/seed-repertoire.sql');
-        if (fs.existsSync(seedSqlPath)) {
-          const seedSql = fs.readFileSync(seedSqlPath, 'utf-8');
-          await query(seedSql);
-          console.log('✓ Initial repertoire seed applied to brand new database.');
-        }
-      }
-    } catch (seedErr) {
-      console.warn('Seed notice (non-fatal):', seedErr);
-    }
 
     console.log('✓ Database schema migrations applied successfully.');
   } catch (err) {
