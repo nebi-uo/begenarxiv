@@ -7,7 +7,10 @@ import type {
   AdminMezmurItem,
 } from '../types';
 
-const BASE_URL = 'http://localhost:4000/api';
+const RAW_API_URL = (import.meta.env.VITE_API_URL as string | undefined)?.trim();
+const BASE_URL = RAW_API_URL
+  ? (RAW_API_URL.endsWith('/api') ? RAW_API_URL : `${RAW_API_URL.replace(/\/+$/, '')}/api`)
+  : 'http://localhost:4000/api';
 const ADMIN_TOKEN_KEY = 'begenarxiv_admin_token';
 
 export const authStorage = {

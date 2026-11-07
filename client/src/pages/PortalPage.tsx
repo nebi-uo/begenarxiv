@@ -281,7 +281,7 @@ export default function PortalPage() {
     } catch (err: unknown) {
       const msg = err instanceof Error ? err.message : 'Invalid administrator password';
       if (msg.includes('Failed to fetch') || msg.includes('NetworkError') || msg.includes('ECONNREFUSED')) {
-        setLoginError('Unable to connect to backend server (http://localhost:4000). Please check if server is running.');
+        setLoginError('Unable to connect to backend server. Please check your network connection or verify the server is running.');
       } else {
         setLoginError(msg);
       }

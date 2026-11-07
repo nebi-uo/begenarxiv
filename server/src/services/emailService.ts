@@ -13,6 +13,11 @@ import path from 'path';
 
 export const ADMIN_EMAIL = process.env.ADMIN_EMAIL || 'nebiyoutahoa@gmail.com';
 
+export function getClientUrl(): string {
+  const url = process.env.CLIENT_URL || process.env.APP_URL || 'http://localhost:5173';
+  return url.replace(/\/+$/, '');
+}
+
 export interface ContributorApprovalData {
   contributorName: string;
   contributorEmail: string;
@@ -141,7 +146,7 @@ export async function sendContributorApprovalEmail(
   data: ContributorApprovalData
 ): Promise<{ success: boolean; certificateId: string }> {
   const certificateId = `BGX-CONTRIBUTOR-${String(data.mezmurId).padStart(4, '0')}`;
-  const hymnUrl = `http://localhost:5173/mezmur/${data.mezmurId}`;
+  const hymnUrl = `${getClientUrl()}/mezmur/${data.mezmurId}`;
   const dateStr = data.approvedDate || new Date().toLocaleDateString();
 
   const textBody = `
@@ -210,7 +215,7 @@ ${ADMIN_EMAIL}
     <p>Thank you for contributing to the preservation and teaching of Ethiopia's sacred 10-string Begena heritage.</p>
 
     <div class="footer">
-      Begenarxiv Archive · <a href="http://localhost:5173" style="color:#71717a;">begenarxiv.org</a><br>
+      Begenarxiv Archive · <a href="${getClientUrl()}" style="color:#71717a;">begenarxiv.org</a><br>
       Admin contact: ${ADMIN_EMAIL}
     </div>
   </div>
@@ -239,7 +244,7 @@ export async function sendContributorRejectionEmail(
     ? data.reason.trim()
     : 'The notation sequence, timing, or rhythm groupings could not be verified against the traditional Begena repertoire.';
 
-  const contributeUrl = `http://localhost:5173/contribute`;
+  const contributeUrl = `${getClientUrl()}/contribute`;
 
   const textBody = `
 Greetings ${data.contributorName},
@@ -304,7 +309,7 @@ ${ADMIN_EMAIL}
     </div>
 
     <div class="footer">
-      Begenarxiv Archive · <a href="http://localhost:5173" style="color:#71717a;">begenarxiv.org</a><br>
+      Begenarxiv Archive · <a href="${getClientUrl()}" style="color:#71717a;">begenarxiv.org</a><br>
       Questions? Reach out to ${ADMIN_EMAIL}
     </div>
   </div>
@@ -332,7 +337,7 @@ ${ADMIN_EMAIL}
 export async function sendDecodeRequestReceivedEmail(
   data: DecodeRequestEmailData
 ): Promise<{ success: boolean }> {
-  const portalUrl = `http://localhost:5173/portal`;
+  const portalUrl = `${getClientUrl()}/portal`;
 
   // A) Notification to Admin
   const adminText = `
@@ -386,7 +391,7 @@ We have received your submission (Request #${data.requestId}) and added it to ou
 You will receive an email as soon as the interactive mezmur page is ready.
 
 You can browse the current repertoire anytime:
-http://localhost:5173/catalogue
+${getClientUrl()}/catalogue
 
 Warm regards,
 The Begenarxiv Team
@@ -424,7 +429,7 @@ ${ADMIN_EMAIL}
     <p>Our curation team will decode the numbers notation and lyrics. Once published, you'll receive a direct link so you can practice string-by-string with the interactive player.</p>
 
     <div class="footer">
-      Begenarxiv Archive · <a href="http://localhost:5173" style="color:#71717a;">begenarxiv.org</a><br>
+      Begenarxiv Archive · <a href="${getClientUrl()}" style="color:#71717a;">begenarxiv.org</a><br>
       Admin contact: ${ADMIN_EMAIL}
     </div>
   </div>
@@ -449,7 +454,7 @@ ${ADMIN_EMAIL}
 export async function sendDecodeRequestCompletedEmail(
   data: DecodeCompletedData
 ): Promise<{ success: boolean }> {
-  const hymnUrl = `http://localhost:5173/mezmur/${data.mezmurId}`;
+  const hymnUrl = `${getClientUrl()}/mezmur/${data.mezmurId}`;
 
   const textBody = `
 Greetings ${data.requesterName || 'Learner'},
@@ -494,7 +499,7 @@ ${ADMIN_EMAIL}
     </div>
 
     <div class="footer">
-      Begenarxiv Archive · <a href="http://localhost:5173" style="color:#71717a;">begenarxiv.org</a><br>
+      Begenarxiv Archive · <a href="${getClientUrl()}" style="color:#71717a;">begenarxiv.org</a><br>
       Admin contact: ${ADMIN_EMAIL}
     </div>
   </div>

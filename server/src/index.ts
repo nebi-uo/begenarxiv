@@ -15,7 +15,15 @@ dotenv.config();
 const app = express();
 const PORT = process.env.PORT || 4000;
 
-app.use(cors());
+const clientUrl = process.env.CLIENT_URL ? process.env.CLIENT_URL.replace(/\/+$/, '') : null;
+app.use(
+  cors({
+    origin: clientUrl
+      ? [clientUrl, 'http://localhost:5173', 'http://127.0.0.1:5173', 'http://localhost:3000']
+      : true,
+    credentials: true,
+  })
+);
 app.use(express.json());
 
 // Run safe DB migrations on boot
