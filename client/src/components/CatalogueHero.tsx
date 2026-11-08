@@ -24,7 +24,7 @@ export default function CatalogueHero({
             Mezmur Repertoire
           </h1>
           <p className="text-zinc-500 text-xs sm:text-sm mt-1">
-            Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
+            The interactive archive of Begena mezmurs, verified numbers notations, lyrics, and traditional tuning modes.
           </p>
 
           <div className="flex items-center gap-2.5 mt-3 text-xs font-mono text-zinc-500">

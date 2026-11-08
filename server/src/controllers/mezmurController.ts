@@ -249,7 +249,7 @@ export const createMezmur = async (req: Request, res: Response) => {
   const isAuthorizedAdmin = Boolean(is_admin && verifyAdminToken(token));
 
   const finalStatus: 'approved' | 'pending' = isAuthorizedAdmin ? (explicitStatus || 'approved') : 'pending';
-  const finalContributor = contributor_name?.trim() || (isAuthorizedAdmin ? 'Begenarxiv' : 'Anonymous Learner');
+  const finalContributor = contributor_name?.trim() || (isAuthorizedAdmin ? 'Begenarxiv' : 'Anonymous Contributor');
   const finalEmail = contributor_email?.trim() || null;
 
   // Parse raw_notation if provided

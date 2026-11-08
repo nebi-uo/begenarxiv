@@ -34,63 +34,63 @@ const SAMPLE_HYMN_SEQUENCE: DemoStep[] = [
 
 const TELEMETRY_CARDS = [
   {
-    num: '01 / TAP & HEAR',
-    title: 'Hear How Songs Move',
-    desc: 'Every number in the song is tappable and plays that string. Play the whole hymn while each number lights up in time.',
+    num: '01 / INTERACTIVE NOTATION',
+    title: 'Hear How Mezmurs Move',
+    desc: 'Every number is tappable. Audition individual strings or play the full mezmur with real-time highlighting.',
     sub: 'Tap-to-Hear Audio',
   },
   {
-    num: '02 / TWO-STRING ROLLS',
-    title: 'Fast Ornament Rolls',
-    desc: 'Numbers alone hide the feel. Grouped digits (like "42") play the way fast two-string ornaments actually sound.',
+    num: '02 / SACRED ORNAMENTS',
+    title: 'Authentic 50ms Rolls',
+    desc: 'Grouped digits (like "42") play with authentic micro-timing, rendering two-string ornaments as they actually sound.',
     sub: 'Sub-millisecond Timing',
   },
   {
-    num: '03 / ACCURATE MATERIAL',
-    title: 'Lyrics & Notation Together',
-    desc: 'Lyrics, verified numbers notation, reference videos, and difficulty levels on one page so you can pick what fits you.',
-    sub: 'All on One Page',
+    num: '03 / COMPLETE REPERTOIRE',
+    title: 'Lyrics, Notes & Modes',
+    desc: 'Liturgical lyrics, verified numbers sequences, traditional tuning modes, and reference performances in one archive.',
+    sub: 'Curated Repertoire',
   },
   {
-    num: '04 / LEARNER-FIRST',
-    title: 'Free for Begena Learners',
-    desc: 'No accounts, no paywall. Built for self-taught and semi-taught players who need to hear songs properly.',
-    sub: 'No Accounts · No Paywall',
+    num: '04 / ALL-IN-ONE HUB',
+    title: 'Built for Enthusiasts',
+    desc: 'An open archive MVP for Begena players. Built to expand with acoustic tuners and companion practice tools.',
+    sub: 'MVP Live · Tuner Next',
   },
 ];
 
 const FAQS = [
   {
-    q: 'Who is Begenarxiv for?',
-    a: 'Begena players who are learning, especially self-taught or semi-taught ones. People who already have numbers for a song but cannot tell how it should actually sound.',
+    q: 'What is Begenarxiv?',
+    a: 'An interactive digital archive for the Ethiopian Begena. It preserves mezmur lyrics and numbers notations with tap-to-hear strings, synced playback, and traditional tuning modes.',
+  },
+  {
+    q: 'Is this an app to learn the Begena from scratch?',
+    a: 'No. Begenarxiv is not a beginner course or tutorial app. It is an archive built for Begena enthusiasts and players looking for verified notations and musical context to play their way.',
   },
   {
     q: 'What problem does Begenarxiv solve?',
-    a: 'Learning the Begena has two real obstacles: accurate material is scattered across apps and hard to verify, and numbers alone do not teach you how a song moves. Notation tells you which strings to play, but not the rhythm, feel, or fast ornamented notes. Hearing a song teaches more than reading it.',
+    a: 'Static paper numbers tell you which string to pluck, but hide rhythm, pauses, and ornaments. Begenarxiv lets you hear the notes in context so you can understand how the hymn actually moves.',
   },
   {
-    q: 'What can I do on each mezmur page?',
-    a: 'Every mezmur page has lyrics, numbers notation, a reference video, and a difficulty rating. Every number is tappable and plays that string, or you can play the whole song while each number lights up in sync, including fast two-string ornaments.',
+    q: 'What is the current MVP scope?',
+    a: 'A curated catalogue of mezmurs with tap-to-hear playback, 50ms ornament rolls, lyrics, traditional tuning modes, and a community contribution portal.',
   },
   {
-    q: 'Are these real acoustic recordings?',
-    a: 'The sounds you hear are synthesized string tones that show which string is played and when. Real Begena string recordings are planned for future updates.',
+    q: 'What tools are planned next?',
+    a: 'We are expanding Begenarxiv into an all-in-one Begena platform. Next up is a dedicated acoustic tuner for gut string frequencies, followed by custom notation decoders and player tools.',
   },
   {
-    q: 'Is Begenarxiv a tuner or community platform?',
-    a: 'Not yet. A tuning tool is planned for a later release. There are no accounts, paywalls, uploads, or comments—Begenarxiv is completely free and learner-first.',
+    q: 'What are the 3 Begena tuning modes (Qenets)?',
+    a: 'Tizita (1=E, 2=C, 3=D, 4=A, 5=G), Selamta (1=F, 2=C, 3=D, 4=A, 5=G), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#). Each hymn adapts its string frequencies to its traditional mode.',
   },
   {
-    q: 'What are the 3 Begena tuning modes?',
-    a: 'Tizita (1=E, 2=C, 3=D, 4=A, 5=G), Selamta (1=F, 2=C, 3=D, 4=A, 5=G), and Anchi-Hoye (1=F, 2=C, 3=C#, 4=A, 5=F#). Tizita is the contemplative nocturnal mode, Selamta shifts string 1 to F, and Anchi-Hoye introduces minor-second intervals.',
+    q: 'Can I contribute to the archive?',
+    a: 'Yes. Anyone can submit hymn notations and lyrics via "Add a Mezmur" or request uncatalogued songs. Approved submissions receive permanent archive credit.',
   },
   {
-    q: 'How are the 10 Begena strings arranged?',
-    a: 'A Begena has 10 physical strings. In authentic tradition, plucking starts on string 1, skips 2 drone strings to reach string 2, then skips 1 string between each remaining active position: string 1, skip 2, string 2, skip 1, string 3, skip 1, string 4, skip 1, string 5.',
-  },
-  {
-    q: 'What is the beta status of this project?',
-    a: 'This is an early beta. The catalogue is small and growing, and the sounds are string tones that show which string plays when. Tell us what is wrong, what is missing, and which songs you want next, also you can contribute your prefered mezmurs and become part of the growing community.',
+    q: 'Is Begenarxiv free?',
+    a: 'Yes. It is completely free, open to the community, and requires no account or subscription.',
   },
 ];
 
@@ -234,8 +234,8 @@ export default function LandingPage() {
       {/* Top Navbar - Scaled up, prominent logo, sticky top, glassmorphic on scroll */}
       <header
         className={`sticky top-0 z-50 transition-all duration-200 ${isScrolled
-            ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200/90 shadow-xs'
-            : 'bg-transparent border-b border-transparent'
+          ? 'bg-white/90 backdrop-blur-md border-b border-zinc-200/90 shadow-xs'
+          : 'bg-transparent border-b border-transparent'
           }`}
       >
         <div className="max-w-6xl mx-auto px-4 sm:px-6 lg:px-8 h-18 sm:h-20 flex items-center justify-between">
@@ -331,19 +331,17 @@ export default function LandingPage() {
             >
               {/* Ready-to-use Headline */}
               <h1 className="text-3xl sm:text-5xl lg:text-6xl font-bold tracking-tight text-black leading-[1.08] mb-3">
-                Learn Begena. Properly.
+                The Interactive Begena Archive.
               </h1>
 
               {/* Ready-to-use Subheadline */}
-              <p className="text-base sm:text-lg text-black font-medium leading-snug max-w-xl mb-4">
-                Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
+              <p className="text-base sm:text-lg text-black font-medium leading-snug max-w-xl mb-3">
+                An all-in-one archive of Begena mezmurs and notations presented interactively so enthusiasts can explore and play their way.
               </p>
 
               {/* About description */}
               <p className="text-xs sm:text-sm text-zinc-600 leading-relaxed max-w-xl mb-6">
-                Reading numbers tells you which strings to play. It does not tell you how the song moves.
-                Begenarxiv puts a mezmur's lyrics and numbers on one page and lets you tap any number to hear it,
-                or play the whole song with each number lighting up in time, including the fast ornamented notes.
+                Tap any number to audition strings, stream full hymns with real-time illumination, and explore traditional tuning modes. Built as an open platform for Begena players.
               </p>
 
               {/* 3 Traditional Tune Modes */}
@@ -367,8 +365,8 @@ export default function LandingPage() {
                       key={m}
                       onClick={() => setCurrentMode(m)}
                       className={`px-3 py-1.5 rounded transition-colors cursor-pointer ${currentMode === m
-                          ? 'bg-black text-white font-bold'
-                          : 'bg-zinc-50 text-black hover:bg-zinc-100 border border-zinc-200'
+                        ? 'bg-black text-white font-bold'
+                        : 'bg-zinc-50 text-black hover:bg-zinc-100 border border-zinc-200'
                         }`}
                     >
                       {m}
@@ -391,15 +389,15 @@ export default function LandingPage() {
               >
                 <Link to="/catalogue">
                   <Button variant="primary" className="text-xs px-4 py-2.5">
-                    Browse Catalogue <ArrowRight size={13} />
+                    Explore the Archive <ArrowRight size={13} />
                   </Button>
                 </Link>
 
                 <button
                   onClick={isPlayingDemo ? stopDemo : playDemo}
                   className={`inline-flex items-center gap-2 text-xs font-mono font-medium px-4 py-2.5 rounded border transition-colors cursor-pointer ${isPlayingDemo
-                      ? 'bg-black text-white border-black'
-                      : 'bg-white hover:bg-zinc-50 text-black border-zinc-300 hover:border-black'
+                    ? 'bg-black text-white border-black'
+                    : 'bg-white hover:bg-zinc-50 text-black border-zinc-300 hover:border-black'
                     }`}
                 >
                   {isPlayingDemo ? (
@@ -498,7 +496,7 @@ export default function LandingPage() {
               Solo Pluck vs. Two-String Ornament Roll
             </h2>
             <p className="text-xs sm:text-sm text-zinc-600 mt-1">
-              Numbers alone do not show how a song moves. Compare a single note sustain against a fast two-string roll (token <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded">42</code>) played the way it actually sounds.
+              Compare a clean solo sustain against a fast two-string ornament roll (token <code className="font-mono bg-zinc-100 px-1 py-0.5 rounded">42</code>) with authentic 50ms timing.
             </p>
           </motion.div>
 
@@ -527,8 +525,8 @@ export default function LandingPage() {
                 onClick={testSolo}
                 disabled={rollTesting !== null}
                 className={`w-full py-2 px-3 rounded font-mono text-xs font-medium border transition-colors cursor-pointer flex items-center justify-center gap-2 ${rollTesting === 'solo'
-                    ? 'bg-black text-white border-black'
-                    : 'bg-white hover:bg-zinc-50 text-black border-zinc-300'
+                  ? 'bg-black text-white border-black'
+                  : 'bg-white hover:bg-zinc-50 text-black border-zinc-300'
                   }`}
               >
                 <Play size={12} className="fill-current" />
@@ -552,7 +550,7 @@ export default function LandingPage() {
                 </div>
                 <h3 className="text-base font-bold text-black mb-1">Two-String Ornament [ 4 2 ]</h3>
                 <p className="text-xs text-zinc-600 leading-relaxed mb-4">
-                  String 4 ({currentTuningNotes[4]?.note}) followed 50ms later by String 2 ({currentTuningNotes[2]?.note}), the way ornaments actually sound in church mezmurs.
+                  String 4 ({currentTuningNotes[4]?.note}) followed 50ms later by String 2 ({currentTuningNotes[2]?.note}), exactly as played in traditional mezmurs.
                 </p>
               </div>
 
@@ -560,8 +558,8 @@ export default function LandingPage() {
                 onClick={testRoll}
                 disabled={rollTesting !== null}
                 className={`w-full py-2 px-3 rounded font-mono text-xs font-medium transition-colors cursor-pointer flex items-center justify-center gap-2 ${rollTesting === 'roll'
-                    ? 'bg-black text-white'
-                    : 'bg-black hover:bg-zinc-800 text-white'
+                  ? 'bg-black text-white'
+                  : 'bg-black hover:bg-zinc-800 text-white'
                   }`}
               >
                 <Play size={12} className="fill-current" />
@@ -657,10 +655,10 @@ export default function LandingPage() {
           <div className="p-6 sm:p-8 md:p-10 bg-white border border-black rounded-lg flex flex-col sm:flex-row items-start sm:items-center justify-between gap-6 shadow-sm">
             <div>
               <h2 className="text-xl sm:text-2xl font-bold tracking-tight text-black">
-                Explore the Mezmur Repertoire
+                Explore the Begena Archive
               </h2>
               <p className="text-xs sm:text-sm text-zinc-600 mt-1 max-w-md">
-                Mezmur lyrics and numbers you can actually hear, tap by tap, string by string.
+                Verified numbers notations, liturgical lyrics, and interactive playback for Begena enthusiasts.
               </p>
             </div>
 
@@ -682,7 +680,7 @@ export default function LandingPage() {
             </div>
             <span className="text-sm font-bold">Begenarxiv</span>
             <span className="text-zinc-300">/</span>
-            <span className="text-zinc-500 font-normal">A free home for Begena learners</span>
+            <span className="text-zinc-500 font-normal">An interactive archive for Begena enthusiasts</span>
           </div>
           <div className="flex items-center gap-4 text-xs font-mono">
             <Link to="/catalogue" className="hover:text-black transition-colors">

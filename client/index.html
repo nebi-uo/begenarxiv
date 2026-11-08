@@ -1,37 +1,43 @@
 <!doctype html>
 <html lang="en">
-  <head>
-    <meta charset="UTF-8" />
-    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>Begenarxiv — Learn Begena. Properly.</title>
-    <meta name="description" content="A free home for Begena learners: mezmurs with lyrics, numbers, and tap-to-hear playback." />
-  </head>
-  <body>
-    <div id="root"></div>
-    <script>
-      window.addEventListener('error', function(e) {
-        var root = document.getElementById('root');
-        if (root && (!root.innerHTML || root.innerHTML.trim() === '')) {
-          root.innerHTML = '<div style="padding:2.5rem;font-family:monospace;color:#18181b;background:#ffffff;max-width:750px;margin:3rem auto;border:1px solid #e4e4e7;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">' +
-            '<div style="display:flex;align-items:center;gap:8px;color:#dc2626;font-weight:bold;margin-bottom:1rem;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;">' +
-            '<span>⚠ Browser Runtime Crash Detected</span>' +
-            '</div>' +
-            '<p style="font-size:13px;font-weight:bold;margin-bottom:0.75rem;color:#000000;">' + (e.message || 'Unknown error occurred in browser') + '</p>' +
-            '<pre style="background:#f4f4f5;border:1px solid #e4e4e7;padding:1rem;border-radius:6px;overflow-x:auto;font-size:11px;line-height:1.6;color:#3f3f46;max-height:240px;overflow-y:auto;">' +
-            (e.error && e.error.stack ? e.error.stack : (e.filename + ':' + e.lineno + ':' + e.colno)) +
-            '</pre>' +
-            '<div style="margin-top:1.5rem;display:flex;gap:12px;">' +
-            '<button onclick="try{localStorage.clear();sessionStorage.clear();}catch(err){}location.reload();" style="padding:8px 16px;background:#000000;color:#ffffff;border:none;border-radius:6px;font-family:monospace;font-size:12px;font-weight:bold;cursor:pointer;">Clear Storage &amp; Reload</button>' +
-            '<a href="/catalogue" style="padding:8px 16px;border:1px solid #d4d4d8;color:#18181b;text-decoration:none;border-radius:6px;font-family:monospace;font-size:12px;font-weight:bold;display:inline-block;">Go to Catalogue</a>' +
-            '</div>' +
-            '</div>';
-        }
-      });
-    </script>
-    <script type="module" src="/src/main.tsx"></script>
-  </body>
+
+<head>
+  <meta charset="UTF-8" />
+  <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link
+    href="https://fonts.googleapis.com/css2?family=Inter+Tight:ital,wght@0,300..900;1,300..900&family=JetBrains+Mono:wght@400;500;600;700&display=swap"
+    rel="stylesheet">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Begenarxiv</title>
+  <meta name="description"
+    content="The all-in-one interactive archive for Begena enthusiasts: verified mezmur notations, sacred lyrics, tap-to-hear playback, and traditional tunings." />
+</head>
+
+<body>
+  <div id="root"></div>
+  <script>
+    window.addEventListener('error', function (e) {
+      var root = document.getElementById('root');
+      if (root && (!root.innerHTML || root.innerHTML.trim() === '')) {
+        root.innerHTML = '<div style="padding:2.5rem;font-family:monospace;color:#18181b;background:#ffffff;max-width:750px;margin:3rem auto;border:1px solid #e4e4e7;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.05);">' +
+          '<div style="display:flex;align-items:center;gap:8px;color:#dc2626;font-weight:bold;margin-bottom:1rem;font-size:14px;letter-spacing:0.05em;text-transform:uppercase;">' +
+          '<span>⚠ Browser Runtime Crash Detected</span>' +
+          '</div>' +
+          '<p style="font-size:13px;font-weight:bold;margin-bottom:0.75rem;color:#000000;">' + (e.message || 'Unknown error occurred in browser') + '</p>' +
+          '<pre style="background:#f4f4f5;border:1px solid #e4e4e7;padding:1rem;border-radius:6px;overflow-x:auto;font-size:11px;line-height:1.6;color:#3f3f46;max-height:240px;overflow-y:auto;">' +
+          (e.error && e.error.stack ? e.error.stack : (e.filename + ':' + e.lineno + ':' + e.colno)) +
+          '</pre>' +
+          '<div style="margin-top:1.5rem;display:flex;gap:12px;">' +
+          '<button onclick="try{localStorage.clear();sessionStorage.clear();}catch(err){}location.reload();" style="padding:8px 16px;background:#000000;color:#ffffff;border:none;border-radius:6px;font-family:monospace;font-size:12px;font-weight:bold;cursor:pointer;">Clear Storage &amp; Reload</button>' +
+          '<a href="/catalogue" style="padding:8px 16px;border:1px solid #d4d4d8;color:#18181b;text-decoration:none;border-radius:6px;font-family:monospace;font-size:12px;font-weight:bold;display:inline-block;">Go to Catalogue</a>' +
+          '</div>' +
+          '</div>';
+      }
+    });
+  </script>
+  <script type="module" src="/src/main.tsx"></script>
+</body>
+
 </html>
