@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react';
 import { BrowserRouter, Routes, Route } from 'react-router-dom';
+import { Analytics } from '@vercel/analytics/react';
 import ErrorBoundary from './components/ErrorBoundary';
 import ScrollToTop from './components/ScrollToTop';
 
@@ -33,6 +34,7 @@ function App() {
             <Route path="/portal" element={<PortalPage />} />
           </Routes>
         </Suspense>
+        <Analytics />
       </BrowserRouter>
     </ErrorBoundary>
   );
