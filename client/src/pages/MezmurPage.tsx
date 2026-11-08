@@ -18,6 +18,23 @@ function getYoutubeEmbedUrl(url: string): string | null {
   return match ? `https://www.youtube.com/embed/${match[1]}` : null;
 }
 
+export function detectTuneMode(data?: Partial<MezmurDetail> | null): BegenaTuneMode {
+  if (!data) return 'Tizita';
+  const candidate = (
+    data.tuning_profile_name ||
+    data.tune_name ||
+    ''
+  ).toLowerCase();
+
+  if (candidate.includes('selamta') || data.tuning_profile_id === 2) {
+    return 'Selamta';
+  }
+  if (candidate.includes('anchi') || data.tuning_profile_id === 3) {
+    return 'Anchi-Hoye';
+  }
+  return 'Tizita';
+}
+
 function MezmurPage() {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
@@ -37,7 +54,10 @@ function MezmurPage() {
     setLoading(true);
     setError(null);
     api.getMezmurById(id)
-      .then(setMezmur)
+      .then((data) => {
+        setMezmur(data);
+        setCurrentMode(detectTuneMode(data));
+      })
       .catch((err) => setError(err.message))
       .finally(() => setLoading(false));
   };
@@ -58,13 +78,8 @@ function MezmurPage() {
         .then(setMoreInTune)
         .catch(() => {});
     }
-    // If tune name matches one of the 3 modes, adapt tuning mode
-    if (mezmur.tune_name) {
-      const lower = mezmur.tune_name.toLowerCase();
-      if (lower.includes('selamta')) setCurrentMode('Selamta');
-      else if (lower.includes('anchi')) setCurrentMode('Anchi-Hoye');
-      else setCurrentMode('Tizita');
-    }
+    const detected = detectTuneMode(mezmur);
+    setCurrentMode(detected);
   }, [mezmur]);
 
   const handleManualPluck = useCallback((pos: number) => {
@@ -144,7 +159,7 @@ function MezmurPage() {
             <div className="flex flex-wrap items-center gap-2 mb-2 font-mono text-xs text-zinc-500">
               <span>{mezmur.artist_name ?? 'Unknown artist'}</span>
               <span>/</span>
-              <span>{mezmur.tune_name ?? 'Tizita Mode'}</span>
+              <span>{mezmur.tune_name ?? `${currentMode} Mode`}</span>
               <span>·</span>
               {mezmur.contributor_name && mezmur.contributor_name.toLowerCase() !== 'begenarxiv' ? (
                 <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-md bg-zinc-100 border border-zinc-200 text-zinc-800 text-[11px] font-mono font-medium">
@@ -269,7 +284,7 @@ function MezmurPage() {
             onSelect={(mid) => navigate(`/mezmur/${mid}`)}
           />
           <HorizontalMezmurScroll
-            title={`More in ${mezmur.tune_name ?? 'this tune'}`}
+            title={`More in ${mezmur.tune_name ?? `${currentMode} Mode`}`}
             items={moreInTune}
             onSelect={(mid) => navigate(`/mezmur/${mid}`)}
           />

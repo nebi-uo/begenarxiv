@@ -93,7 +93,15 @@ export default function TapToHearPlayer({
   const highlightTimeoutsRef = useRef<ReturnType<typeof setTimeout>[]>([]);
   const stopRequestedRef = useRef(false);
 
-  const currentTuning = BEGENA_TUNINGS[mode] ?? BEGENA_TUNINGS.Tizita;
+  const modeRef = useRef(mode);
+  modeRef.current = mode;
+
+  const currentTuning = useMemo(() => {
+    return BEGENA_TUNINGS[mode] ?? BEGENA_TUNINGS.Tizita;
+  }, [mode]);
+
+  const tuningRef = useRef(currentTuning);
+  tuningRef.current = currentTuning;
 
   // Parse raw notation with repeated sections and lines if provided
   const parsedNotationLines = useMemo(() => {
@@ -108,100 +116,113 @@ export default function TapToHearPlayer({
     };
   }, []);
 
-  const scheduleTone = (stringPos: number, noteName: string, durationMs: number, startTimeOffset = 0) => {
-    const frequency =
-      currentTuning[stringPos]?.hz ??
-      NOTE_TO_FREQUENCY[noteName] ??
-      164.81;
+  const scheduleTone = useCallback(
+    (stringPos: number, noteName: string, durationMs: number, startTimeOffset = 0) => {
+      const activeTuning = tuningRef.current ?? BEGENA_TUNINGS[modeRef.current] ?? BEGENA_TUNINGS.Tizita;
+      const frequency =
+        activeTuning[stringPos]?.hz ??
+        NOTE_TO_FREQUENCY[noteName] ??
+        164.81;
 
-    playBegenaString({
-      frequency,
-      durationMs,
-      startTimeOffset,
-    });
-  };
+      playBegenaString({
+        frequency,
+        durationMs,
+        startTimeOffset,
+      });
+    },
+    []
+  );
 
   const stepKey = (step: SequenceStep) => `${step.line_number}-${step.step_order}`;
 
   // Sequence Step playback unit
-  const playUnit = (unit: SequenceStep[], speed: number, onEnded?: () => void) => {
-    const first = unit[0];
-    const duration = (first?.duration_ms ?? 500) / speed;
+  const playUnit = useCallback(
+    (unit: SequenceStep[], speed: number, onEnded?: () => void) => {
+      const activeTuning = tuningRef.current ?? BEGENA_TUNINGS[modeRef.current] ?? BEGENA_TUNINGS.Tizita;
+      const first = unit[0];
+      const duration = (first?.duration_ms ?? 500) / speed;
 
-    if (first?.phrase_break || first?.is_rest) {
-      setActiveKeys([stepKey(first)]);
-      if (onActiveStringChange) onActiveStringChange(null);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => {
-        setActiveKeys((prev) => prev.filter((k) => k !== stepKey(first)));
-        if (onEnded) onEnded();
-      }, duration);
-      return;
-    }
+      if (first?.phrase_break || first?.is_rest) {
+        setActiveKeys([stepKey(first)]);
+        if (onActiveStringChange) onActiveStringChange(null);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setActiveKeys((prev) => prev.filter((k) => k !== stepKey(first)));
+          if (onEnded) onEnded();
+        }, duration);
+        return;
+      }
 
-    const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
+      const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
 
-    setActiveKeys([]);
-    unit.forEach((step, i) => {
-      const offset = i * rollOffset;
-      scheduleTone(step.string_position, step.note_name, duration, offset);
-      const t = setTimeout(() => {
-        setActiveKeys((prev) => [...prev, stepKey(step)]);
-        if (onActiveStringChange) onActiveStringChange(step.string_position);
-      }, offset * 1000);
-      highlightTimeoutsRef.current.push(t);
-    });
+      setActiveKeys([]);
+      unit.forEach((step, i) => {
+        const offset = i * rollOffset;
+        const noteName = activeTuning[step.string_position]?.note ?? step.note_name;
+        scheduleTone(step.string_position, noteName, duration, offset);
+        const t = setTimeout(() => {
+          setActiveKeys((prev) => [...prev, stepKey(step)]);
+          if (onActiveStringChange) onActiveStringChange(step.string_position);
+        }, offset * 1000);
+        highlightTimeoutsRef.current.push(t);
+      });
 
-    const totalDuration = duration + (unit.length - 1) * rollOffset * 1000;
-    if (onEnded) timeoutRef.current = setTimeout(onEnded, totalDuration);
-  };
+      const totalDuration = duration + (unit.length - 1) * rollOffset * 1000;
+      if (onEnded) timeoutRef.current = setTimeout(onEnded, totalDuration);
+    },
+    [onActiveStringChange, scheduleTone]
+  );
 
   // Parsed Token playback unit (when raw notation is active)
-  const playParsedToken = (
-    tok: ParsedNotationToken,
-    key: string,
-    speed: number,
-    onEnded?: () => void
-  ) => {
-    const duration = (tok.durationMs || 500) / speed;
+  const playParsedToken = useCallback(
+    (
+      tok: ParsedNotationToken,
+      key: string,
+      speed: number,
+      onEnded?: () => void
+    ) => {
+      const activeTuning = tuningRef.current ?? BEGENA_TUNINGS[modeRef.current] ?? BEGENA_TUNINGS.Tizita;
+      const duration = (tok.durationMs || 500) / speed;
 
-    if (tok.type === 'phrase_break' || tok.type === 'rest') {
+      if (tok.type === 'phrase_break' || tok.type === 'rest') {
+        setActiveKeys([key]);
+        if (onActiveStringChange) onActiveStringChange(null);
+        if (timeoutRef.current) clearTimeout(timeoutRef.current);
+        timeoutRef.current = setTimeout(() => {
+          setActiveKeys((prev) => prev.filter((k) => k !== key));
+          if (onEnded) onEnded();
+        }, duration);
+        return;
+      }
+
       setActiveKeys([key]);
-      if (onActiveStringChange) onActiveStringChange(null);
+      if (tok.positions.length > 0) {
+        if (onActiveStringChange) onActiveStringChange(tok.positions[0]);
+
+        if (tok.type === 'roll') {
+          const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
+          tok.positions.forEach((pos, i) => {
+            const offset = i * rollOffset;
+            scheduleTone(pos, activeTuning[pos]?.note ?? '', 220, offset);
+            const t = setTimeout(() => {
+              if (onActiveStringChange) onActiveStringChange(pos);
+            }, offset * 1000);
+            highlightTimeoutsRef.current.push(t);
+          });
+        } else {
+          scheduleTone(tok.positions[0], activeTuning[tok.positions[0]]?.note ?? '', duration, 0);
+        }
+      }
+
+      const totalDuration = tok.type === 'roll' ? 280 / speed : duration;
       if (timeoutRef.current) clearTimeout(timeoutRef.current);
       timeoutRef.current = setTimeout(() => {
         setActiveKeys((prev) => prev.filter((k) => k !== key));
         if (onEnded) onEnded();
-      }, duration);
-      return;
-    }
-
-    setActiveKeys([key]);
-    if (tok.positions.length > 0) {
-      if (onActiveStringChange) onActiveStringChange(tok.positions[0]);
-
-      if (tok.type === 'roll') {
-        const rollOffset = BASE_ROLL_OFFSET_SEC / speed;
-        tok.positions.forEach((pos, i) => {
-          const offset = i * rollOffset;
-          scheduleTone(pos, currentTuning[pos]?.note ?? '', 220, offset);
-          const t = setTimeout(() => {
-            if (onActiveStringChange) onActiveStringChange(pos);
-          }, offset * 1000);
-          highlightTimeoutsRef.current.push(t);
-        });
-      } else {
-        scheduleTone(tok.positions[0], currentTuning[tok.positions[0]]?.note ?? '', duration, 0);
-      }
-    }
-
-    const totalDuration = tok.type === 'roll' ? 280 / speed : duration;
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setActiveKeys((prev) => prev.filter((k) => k !== key));
-      if (onEnded) onEnded();
-    }, totalDuration);
-  };
+      }, totalDuration);
+    },
+    [onActiveStringChange, scheduleTone]
+  );
 
   const handleTapStep = useCallback(
     (step: SequenceStep) => {
@@ -221,9 +242,12 @@ export default function TapToHearPlayer({
 
       if (onActiveStringChange) onActiveStringChange(step.string_position);
 
+      const activeTuning = tuningRef.current ?? BEGENA_TUNINGS[modeRef.current] ?? BEGENA_TUNINGS.Tizita;
+      const noteName = activeTuning[step.string_position]?.note ?? step.note_name;
+
       scheduleTone(
         step.string_position,
-        step.note_name,
+        noteName,
         step.duration_ms ?? 500,
         0
       );
@@ -233,7 +257,7 @@ export default function TapToHearPlayer({
         if (onActiveStringChange) onActiveStringChange(null);
       }, 280);
     },
-    [onActiveStringChange, currentTuning]
+    [onActiveStringChange, scheduleTone]
   );
 
   const handleTapParsedToken = useCallback(
@@ -252,16 +276,18 @@ export default function TapToHearPlayer({
         return;
       }
 
+      const activeTuning = tuningRef.current ?? BEGENA_TUNINGS[modeRef.current] ?? BEGENA_TUNINGS.Tizita;
+
       if (tok.positions.length > 0) {
         if (onActiveStringChange) onActiveStringChange(tok.positions[0]);
         if (tok.type === 'roll') {
           tok.positions.forEach((pos, i) => {
             setTimeout(() => {
-              scheduleTone(pos, currentTuning[pos]?.note ?? '', 220, 0);
+              scheduleTone(pos, activeTuning[pos]?.note ?? '', 220, 0);
             }, i * 50);
           });
         } else {
-          scheduleTone(tok.positions[0], currentTuning[tok.positions[0]]?.note ?? '', tok.durationMs || 500, 0);
+          scheduleTone(tok.positions[0], activeTuning[tok.positions[0]]?.note ?? '', tok.durationMs || 500, 0);
         }
       }
 
@@ -270,7 +296,7 @@ export default function TapToHearPlayer({
         if (onActiveStringChange) onActiveStringChange(null);
       }, 280);
     },
-    [onActiveStringChange, currentTuning]
+    [onActiveStringChange, scheduleTone]
   );
 
   const handlePlayAll = useCallback(() => {
@@ -319,7 +345,16 @@ export default function TapToHearPlayer({
     };
 
     advance(0);
-  }, [sequence, parsedNotationLines, tempoRate, onActiveStringChange]);
+  }, [
+    sequence,
+    parsedNotationLines,
+    tempoRate,
+    onActiveStringChange,
+    playParsedToken,
+    playUnit,
+    mode,
+    currentTuning,
+  ]);
 
   const handleStop = useCallback(() => {
     stopRequestedRef.current = true;

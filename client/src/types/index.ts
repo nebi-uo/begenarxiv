@@ -4,6 +4,7 @@ export interface MezmurListItem {
   difficulty: 'practice' | 'beginner' | 'intermediate' | 'advanced' | null;
   artist_name: string | null;
   tune_name: string | null;
+  tuning_profile_name?: string | null;
   status?: 'approved' | 'pending' | 'rejected';
   contributor_name?: string | null;
 }
@@ -31,6 +32,7 @@ export interface MezmurDetail {
   tune_id: number | null;
   artist_name: string | null;
   tune_name: string | null;
+  tuning_profile_name?: string | null;
   tuning_profile_id: number | null;
   status?: 'approved' | 'pending' | 'rejected';
   contributor_name?: string | null;
@@ -47,6 +49,7 @@ export interface AdminMezmurItem {
   status: 'approved' | 'pending' | 'rejected';
   artist_name: string | null;
   tune_name: string | null;
+  tuning_profile_name?: string | null;
   contributor_name: string | null;
   contributor_email: string | null;
   lyrics: string | null;

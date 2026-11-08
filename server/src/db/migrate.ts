@@ -144,8 +144,19 @@ export async function runMigrations() {
         (1, 2, 130.81),
         (1, 3, 146.83),
         (1, 4, 220.00),
-        (1, 5, 196.00)
-      ON CONFLICT (tuning_profile_id, string_id) DO NOTHING;
+        (1, 5, 196.00),
+        (2, 1, 174.61),
+        (2, 2, 130.81),
+        (2, 3, 146.83),
+        (2, 4, 220.00),
+        (2, 5, 196.00),
+        (3, 1, 174.61),
+        (3, 2, 130.81),
+        (3, 3, 138.59),
+        (3, 4, 220.00),
+        (3, 5, 185.00)
+      ON CONFLICT (tuning_profile_id, string_id) DO UPDATE
+        SET frequency_hz = EXCLUDED.frequency_hz;
     `);
 
     await query(`

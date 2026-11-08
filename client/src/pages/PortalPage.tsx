@@ -319,8 +319,9 @@ export default function PortalPage() {
       const mezmur = await api.getMezmurById(String(id), true);
       setTitle(mezmur.title);
       setArtist(mezmur.artist_name || 'Traditional');
-      if (mezmur.tune_name?.includes('Selamta')) setTune('Selamta');
-      else if (mezmur.tune_name?.includes('Anchi')) setTune('Anchi-Hoye');
+      const tuneModeStr = (mezmur.tune_name || mezmur.tuning_profile_name || '').toLowerCase();
+      if (tuneModeStr.includes('selamta') || mezmur.tuning_profile_id === 2) setTune('Selamta');
+      else if (tuneModeStr.includes('anchi') || mezmur.tuning_profile_id === 3) setTune('Anchi-Hoye');
       else setTune('Tizita');
       setDifficulty(mezmur.difficulty || 'beginner');
       setYoutubeUrl(mezmur.youtube_url || '');

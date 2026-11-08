@@ -55,7 +55,7 @@ export default function CataloguePage() {
 
       const matchesMode =
         modeFilter === 'all' ||
-        (m.tune_name && m.tune_name.toLowerCase().includes(modeFilter.toLowerCase()));
+        ((m.tune_name || m.tuning_profile_name || '').toLowerCase().includes(modeFilter.toLowerCase()));
 
       const matchesArtist =
         artistFilter === 'all' ||

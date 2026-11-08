@@ -119,11 +119,14 @@ function parseAndExpandRawNotation(raw: string): { line: number; notes: string[]
 export const getAllMezmurs = async (req: Request, res: Response) => {
   try {
     const result = await query(`
-      SELECT m.id, m.title, m.difficulty, m.status, m.contributor_name,
-             a.name AS artist_name, t.name AS tune_name
+      SELECT m.id, m.title, m.difficulty, m.status, m.contributor_name, m.tuning_profile_id,
+             a.name AS artist_name,
+             COALESCE(t.name, tp.name, 'Tizita') AS tune_name,
+             tp.name AS tuning_profile_name
       FROM mezmurs m
       LEFT JOIN artists a ON m.artist_id = a.id
       LEFT JOIN tunes t ON m.tune_id = t.id
+      LEFT JOIN tuning_profiles tp ON m.tuning_profile_id = tp.id
       WHERE m.status = 'approved'
       ORDER BY m.title
     `);
@@ -134,6 +137,12 @@ export const getAllMezmurs = async (req: Request, res: Response) => {
   }
 };
 
+const TUNING_NOTE_MAP: Record<number, Record<number, string>> = {
+  1: { 1: 'E', 2: 'C', 3: 'D', 4: 'A', 5: 'G' }, // Tizita
+  2: { 1: 'F', 2: 'C', 3: 'D', 4: 'A', 5: 'G' }, // Selamta
+  3: { 1: 'F', 2: 'C', 3: 'C#', 4: 'A', 5: 'F#' }, // Anchi-Hoye
+};
+
 // GET /api/mezmurs/:id — single mezmur page with contributor attribution
 export const getMezmurById = async (req: Request, res: Response) => {
   const { id } = req.params;
@@ -141,10 +150,13 @@ export const getMezmurById = async (req: Request, res: Response) => {
 
   try {
     const mezmurResult = await query(
-      `SELECT m.*, a.name AS artist_name, t.name AS tune_name
+      `SELECT m.*, a.name AS artist_name,
+              COALESCE(t.name, tp.name, 'Tizita') AS tune_name,
+              tp.name AS tuning_profile_name
        FROM mezmurs m
        LEFT JOIN artists a ON m.artist_id = a.id
        LEFT JOIN tunes t ON m.tune_id = t.id
+       LEFT JOIN tuning_profiles tp ON m.tuning_profile_id = tp.id
        WHERE m.id = $1`,
       [id]
     );
@@ -161,6 +173,8 @@ export const getMezmurById = async (req: Request, res: Response) => {
       return res.status(404).json({ error: 'Mezmur not found or awaiting curator approval' });
     }
 
+    const profileId = mezmurRow.tuning_profile_id || 1;
+
     const sequenceResult = await query(
       `SELECT ms.step_order, ms.line_number, ms.duration_ms, ms.group_id,
               ms.is_rest, ms.phrase_break,
@@ -175,9 +189,14 @@ export const getMezmurById = async (req: Request, res: Response) => {
       [id]
     );
 
+    const sequence = sequenceResult.rows.map((step: { string_position: number; note_name: string }) => ({
+      ...step,
+      note_name: TUNING_NOTE_MAP[profileId]?.[step.string_position] || step.note_name,
+    }));
+
     const response: MezmurWithSequence = {
-      ...mezmurResult.rows[0],
-      sequence: sequenceResult.rows,
+      ...mezmurRow,
+      sequence,
     };
 
     res.json(response);
@@ -352,11 +371,14 @@ export const getPendingMezmurs = async (req: Request, res: Response) => {
   try {
     const result = await query(`
       SELECT m.id, m.title, m.lyrics, m.youtube_url, m.difficulty, m.status,
-             m.contributor_name, m.contributor_email, m.created_at,
-             a.name AS artist_name, t.name AS tune_name
+             m.contributor_name, m.contributor_email, m.created_at, m.tuning_profile_id,
+             a.name AS artist_name,
+             COALESCE(t.name, tp.name, 'Tizita') AS tune_name,
+             tp.name AS tuning_profile_name
       FROM mezmurs m
       LEFT JOIN artists a ON m.artist_id = a.id
       LEFT JOIN tunes t ON m.tune_id = t.id
+      LEFT JOIN tuning_profiles tp ON m.tuning_profile_id = tp.id
       WHERE m.status = 'pending'
       ORDER BY m.created_at DESC
     `);
@@ -459,12 +481,15 @@ export const getAllMezmursAdmin = async (req: Request, res: Response) => {
   try {
     const result = await query(`
       SELECT m.id, m.title, m.difficulty, m.status, m.contributor_name, m.contributor_email,
-             m.approved_at, m.created_at, m.lyrics, m.youtube_url,
-             a.name AS artist_name, t.name AS tune_name,
+             m.approved_at, m.created_at, m.lyrics, m.youtube_url, m.tuning_profile_id,
+             a.name AS artist_name,
+             COALESCE(t.name, tp.name, 'Tizita') AS tune_name,
+             tp.name AS tuning_profile_name,
              (SELECT COUNT(*) FROM mezmur_sequences WHERE mezmur_id = m.id) AS step_count
       FROM mezmurs m
       LEFT JOIN artists a ON m.artist_id = a.id
       LEFT JOIN tunes t ON m.tune_id = t.id
+      LEFT JOIN tuning_profiles tp ON m.tuning_profile_id = tp.id
       ORDER BY m.id DESC
     `);
     res.json(result.rows);
